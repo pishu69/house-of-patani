@@ -5,23 +5,19 @@ import {
 } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { fallbackAfterError } from "@/services/service.utils";
-import type { ReviewRow } from "@/types/database.types";
+import type { SettingRow } from "@/types/database.types";
 
-export const reviewService = {
-  async listByProduct(
-    productId: string,
-  ): Promise<ServiceResponse<ReviewRow[]>> {
+export const settingService = {
+  async list(): Promise<ServiceResponse<SettingRow[]>> {
     if (!supabase) {
       return mockResponse([]);
     }
 
     try {
       const { data, error } = await supabase
-        .from("reviews")
+        .from("settings")
         .select("*")
-        .eq("product_id", productId)
-        .eq("approved", true)
-        .order("created_at", { ascending: false });
+        .order("key");
 
       if (error) {
         throw error;
@@ -32,7 +28,7 @@ export const reviewService = {
       return fallbackAfterError(
         [],
         error,
-        "We could not load product reviews right now.",
+        "We could not load store settings right now.",
       );
     }
   },

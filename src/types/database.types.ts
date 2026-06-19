@@ -1,0 +1,258 @@
+import type { OrderStatus } from "@/constants/order-status";
+import type { PaymentStatus } from "@/constants/payment-status";
+
+export type Json =
+  | boolean
+  | number
+  | string
+  | null
+  | Json[]
+  | { [key: string]: Json | undefined };
+
+type Insertable<Row, RequiredKeys extends keyof Row> = Partial<Row> &
+  Pick<Row, RequiredKeys>;
+
+type TableDefinition<Row, RequiredKeys extends keyof Row> = {
+  Insert: Insertable<Row, RequiredKeys> & Record<string, unknown>;
+  Relationships: [];
+  Row: Row & Record<string, unknown>;
+  Update: Partial<Row> & Record<string, unknown>;
+};
+
+export interface CategoryRow {
+  active: boolean;
+  created_at: string;
+  description: string | null;
+  id: string;
+  image_url: string | null;
+  name: string;
+  slug: string;
+  updated_at: string;
+}
+
+export interface ProductRow {
+  active: boolean;
+  best_seller: boolean;
+  category_id: string | null;
+  created_at: string;
+  description: string | null;
+  featured: boolean;
+  id: string;
+  name: string;
+  new_arrival: boolean;
+  original_price: number;
+  price: number;
+  rating: number;
+  review_count: number;
+  short_description: string | null;
+  sku: string;
+  slug: string;
+  stock: number;
+  tags: string[];
+  updated_at: string;
+}
+
+export interface ProductImageRow {
+  alt_text: string | null;
+  created_at: string;
+  id: string;
+  image_url: string;
+  product_id: string;
+  sort_order: number;
+}
+
+export interface CustomerRow {
+  active: boolean;
+  auth_user_id: string | null;
+  created_at: string;
+  email: string;
+  id: string;
+  name: string;
+  phone: string | null;
+  updated_at: string;
+}
+
+export interface AddressRow {
+  city: string;
+  country: string;
+  created_at: string;
+  customer_id: string;
+  id: string;
+  is_default: boolean;
+  label: string | null;
+  line1: string;
+  line2: string | null;
+  postal_code: string;
+  state: string;
+  updated_at: string;
+}
+
+export interface OrderRow {
+  created_at: string;
+  customer_email: string;
+  customer_id: string | null;
+  customer_name: string;
+  customer_phone: string;
+  discount: number;
+  id: string;
+  notes: string | null;
+  order_number: string;
+  order_status: OrderStatus;
+  payment_method: string;
+  payment_status: PaymentStatus;
+  shipping: number;
+  shipping_address: Json;
+  subtotal: number;
+  total: number;
+  updated_at: string;
+}
+
+export interface OrderItemRow {
+  id: string;
+  order_id: string;
+  price: number;
+  product_id: string | null;
+  product_image: string | null;
+  product_name: string;
+  quantity: number;
+  total: number;
+}
+
+export interface CouponRow {
+  active: boolean;
+  code: string;
+  created_at: string;
+  expires_at: string | null;
+  id: string;
+  minimum_order_value: number;
+  type: "fixed" | "percentage";
+  usage_limit: number | null;
+  used_count: number;
+  value: number;
+}
+
+export interface ReviewRow {
+  approved: boolean;
+  comment: string | null;
+  created_at: string;
+  customer_id: string | null;
+  customer_name: string;
+  id: string;
+  product_id: string;
+  rating: number;
+  title: string | null;
+  updated_at: string;
+}
+
+export interface WishlistRow {
+  created_at: string;
+  customer_id: string;
+  id: string;
+  product_id: string;
+}
+
+export interface SettingRow {
+  created_at: string;
+  id: string;
+  key: string;
+  updated_at: string;
+  value: Json;
+}
+
+export interface BannerRow {
+  active: boolean;
+  created_at: string;
+  id: string;
+  image_url: string;
+  link_url: string | null;
+  mobile_image_url: string | null;
+  position: string;
+  sort_order: number;
+  subtitle: string | null;
+  title: string;
+  updated_at: string;
+}
+
+export interface AdminRow {
+  active: boolean;
+  created_at: string;
+  email: string;
+  id: string;
+  name: string;
+  role: "admin" | "super_admin";
+  updated_at: string;
+  user_id: string;
+}
+
+export interface Database {
+  public: {
+    CompositeTypes: Record<never, never>;
+    Enums: Record<never, never>;
+    Functions: {
+      is_admin: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      is_super_admin: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+    };
+    Tables: {
+      addresses: TableDefinition<
+        AddressRow,
+        | "city"
+        | "country"
+        | "customer_id"
+        | "line1"
+        | "postal_code"
+        | "state"
+      >;
+      admins: TableDefinition<
+        AdminRow,
+        "email" | "name" | "role" | "user_id"
+      >;
+      banners: TableDefinition<
+        BannerRow,
+        "image_url" | "position" | "title"
+      >;
+      categories: TableDefinition<CategoryRow, "name" | "slug">;
+      coupons: TableDefinition<CouponRow, "code" | "type" | "value">;
+      customers: TableDefinition<CustomerRow, "email" | "name">;
+      order_items: TableDefinition<
+        OrderItemRow,
+        "order_id" | "price" | "product_name" | "quantity" | "total"
+      >;
+      orders: TableDefinition<
+        OrderRow,
+        | "customer_email"
+        | "customer_name"
+        | "customer_phone"
+        | "order_number"
+        | "order_status"
+        | "payment_method"
+        | "payment_status"
+        | "shipping_address"
+        | "total"
+      >;
+      product_images: TableDefinition<
+        ProductImageRow,
+        "image_url" | "product_id"
+      >;
+      products: TableDefinition<
+        ProductRow,
+        "name" | "original_price" | "price" | "sku" | "slug"
+      >;
+      reviews: TableDefinition<
+        ReviewRow,
+        "customer_name" | "product_id" | "rating"
+      >;
+      settings: TableDefinition<SettingRow, "key" | "value">;
+      wishlists: TableDefinition<
+        WishlistRow,
+        "customer_id" | "product_id"
+      >;
+    };
+    Views: Record<never, never>;
+  };
+}

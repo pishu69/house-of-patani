@@ -9,6 +9,23 @@ export type {
 export type { Category } from "@/types/category.types";
 export type { Coupon } from "@/types/coupon.types";
 export type { Customer } from "@/types/customer.types";
+export type {
+  AddressRow,
+  AdminRow,
+  BannerRow,
+  CategoryRow,
+  CouponRow,
+  CustomerRow,
+  Database,
+  Json,
+  OrderItemRow,
+  OrderRow,
+  ProductImageRow,
+  ProductRow,
+  ReviewRow,
+  SettingRow,
+  WishlistRow,
+} from "@/types/database.types";
 export type { Order, OrderItem } from "@/types/order.types";
 export type {
   CatalogProduct,
