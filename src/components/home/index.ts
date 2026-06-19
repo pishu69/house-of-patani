@@ -1,0 +1,11 @@
+export { ArtisanSection } from "@/components/home/ArtisanSection";
+export { CategoryCard } from "@/components/home/CategoryCard";
+export { CategorySection } from "@/components/home/CategorySection";
+export { FeaturedProductsSection } from "@/components/home/FeaturedProductsSection";
+export { HeritageStorySection } from "@/components/home/HeritageStorySection";
+export { HeroSection } from "@/components/home/HeroSection";
+export { InstagramSection } from "@/components/home/InstagramSection";
+export { NewsletterSection } from "@/components/home/NewsletterSection";
+export { ProductCarousel } from "@/components/home/ProductCarousel";
+export { StorySection } from "@/components/home/StorySection";
+export { TestimonialsSection } from "@/components/home/TestimonialsSection";
