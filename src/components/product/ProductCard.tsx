@@ -18,7 +18,7 @@ function ProductCardComponent({ product }: ProductCardProps) {
       transition={{ duration: 0.25, ease: "easeOut" }}
       whileHover={{ y: -4 }}
     >
-      <Link to={`/products/${product.slug}`}>
+      <Link to={`/product/${product.slug}`}>
         <div className="relative aspect-[4/5] overflow-hidden bg-linen">
           {imageUrl ? (
             <img
@@ -35,7 +35,7 @@ function ProductCardComponent({ product }: ProductCardProps) {
       </Link>
       <div className="p-5">
         <div className="flex items-start justify-between gap-4">
-          <Link to={`/products/${product.slug}`}>
+          <Link to={`/product/${product.slug}`}>
             <h3 className="text-2xl leading-tight transition group-hover:text-maroon">
               {product.name}
             </h3>

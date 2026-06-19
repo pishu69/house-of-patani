@@ -1,6 +1,8 @@
 export { ProductGallery } from "@/components/product/ProductGallery";
+export { DeliveryInformation } from "@/components/product/DeliveryInformation";
 export { ProductImageZoom } from "@/components/product/ProductImageZoom";
 export { ProductInfo } from "@/components/product/ProductInfo";
+export { ProductPurchaseActions } from "@/components/product/ProductPurchaseActions";
 export {
   ProductTabs,
   type ProductTab,

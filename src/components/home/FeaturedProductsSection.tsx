@@ -1,6 +1,10 @@
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { ProductCarousel } from "@/components/home/ProductCarousel";
-import { featuredProducts } from "@/constants/mock-data";
+import { products } from "@/data/products";
+
+const featuredProducts = products
+  .filter((product) => product.featured)
+  .slice(0, 8);
 
 export function FeaturedProductsSection() {
   return (

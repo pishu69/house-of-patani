@@ -2,15 +2,9 @@ import { Avatar } from "@/components/common/Avatar";
 import { Card } from "@/components/common/Card";
 import { RatingStars } from "@/components/common/RatingStars";
 import { formatDate } from "@/utils";
+import type { ProductReview } from "@/types/review.types";
 
-export interface ReviewCardData {
-  author: string;
-  comment: string;
-  createdAt: string;
-  id: string;
-  rating: number;
-  title?: string;
-}
+export type ReviewCardData = ProductReview;
 
 interface ReviewCardProps {
   review: ReviewCardData;

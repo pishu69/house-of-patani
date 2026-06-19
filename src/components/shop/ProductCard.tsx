@@ -40,7 +40,7 @@ function ProductCardComponent({
         <Link
           aria-label={`View ${product.name}`}
           className="block h-full"
-          to={`/products/${product.slug}`}
+          to={`/product/${product.slug}`}
         >
           {imageUrl ? (
             <img
@@ -83,7 +83,7 @@ function ProductCardComponent({
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
           {categoryNameBySlug[product.category]}
         </p>
-        <Link className="mt-2" to={`/products/${product.slug}`}>
+        <Link className="mt-2" to={`/product/${product.slug}`}>
           <h2 className="text-2xl leading-tight transition group-hover:text-maroon">
             {product.name}
           </h2>

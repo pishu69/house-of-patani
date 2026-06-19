@@ -13,7 +13,14 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
         {children}
-        <Toaster richColors />
+        <Toaster
+          closeButton
+          position="top-right"
+          richColors
+          toastOptions={{
+            className: "font-sans",
+          }}
+        />
       </MotionConfig>
     </QueryClientProvider>
   );

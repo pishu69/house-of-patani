@@ -1,9 +1,10 @@
 import { SectionHeading } from "@/components/common/SectionHeading";
-import { ProductCarousel } from "@/components/home/ProductCarousel";
-import type { Product } from "@/types/product.types";
+import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
+import type { CatalogProduct } from "@/types/product.types";
 
 interface RelatedProductsProps {
-  products: Product[];
+  products: CatalogProduct[];
 }
 
 export function RelatedProducts({ products }: RelatedProductsProps) {
@@ -14,9 +15,11 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         eyebrow="Complete the Story"
         title="You may also appreciate"
       />
-      <div className="mt-10">
-        <ProductCarousel ariaLabel="Related products" products={products} />
-      </div>
+      <ProductGrid className="mt-10">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </ProductGrid>
     </section>
   );
 }

@@ -1,7 +1,9 @@
+import type { KeyboardEvent, ReactNode } from "react";
+import { useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface ProductTab {
-  content: string;
+  content: ReactNode;
   id: string;
   label: string;
 }
@@ -17,7 +19,33 @@ export function ProductTabs({
   onTabChange,
   tabs,
 }: ProductTabsProps) {
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const selectedTab = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
+
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? tabs.length - 1
+          : event.key === "ArrowRight"
+            ? (index + 1) % tabs.length
+            : (index - 1 + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+
+    if (nextTab) {
+      onTabChange?.(nextTab.id);
+      tabRefs.current[nextIndex]?.focus();
+    }
+  };
 
   return (
     <div>
@@ -26,7 +54,7 @@ export function ProductTabs({
         className="flex gap-1 overflow-x-auto border-b border-maroon/10"
         role="tablist"
       >
-        {tabs.map((tab) => (
+        {tabs.map((tab, index) => (
           <button
             aria-controls={`${tab.id}-panel`}
             aria-selected={tab.id === activeTab}
@@ -39,7 +67,12 @@ export function ProductTabs({
             id={`${tab.id}-tab`}
             key={tab.id}
             onClick={() => onTabChange?.(tab.id)}
+            onKeyDown={(event) => handleKeyDown(event, index)}
+            ref={(element) => {
+              tabRefs.current[index] = element;
+            }}
             role="tab"
+            tabIndex={tab.id === activeTab ? 0 : -1}
             type="button"
           >
             {tab.label}
@@ -49,9 +82,10 @@ export function ProductTabs({
       {selectedTab ? (
         <div
           aria-labelledby={`${selectedTab.id}-tab`}
-          className="py-6 text-sm leading-7 text-muted-foreground"
+          className="py-7 text-sm leading-7 text-muted-foreground"
           id={`${selectedTab.id}-panel`}
           role="tabpanel"
+          tabIndex={0}
         >
           {selectedTab.content}
         </div>

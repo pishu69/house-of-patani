@@ -1,12 +1,12 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 import { IconButton } from "@/components/common/IconButton";
-import { ProductCard } from "@/components/product/ProductCard";
-import type { Product } from "@/types/product.types";
+import { ProductCard } from "@/components/shop/ProductCard";
+import type { CatalogProduct } from "@/types/product.types";
 
 interface ProductCarouselProps {
   ariaLabel?: string;
-  products: Product[];
+  products: CatalogProduct[];
 }
 
 export function ProductCarousel({
