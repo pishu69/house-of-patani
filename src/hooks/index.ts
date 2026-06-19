@@ -8,6 +8,10 @@ export {
   categoryQueryKeys,
   useCategories,
 } from "@/hooks/useCategories";
+export {
+  customerQueryKeys,
+  useCustomers,
+} from "@/hooks/useCustomers";
 export { couponQueryKeys, useCoupons } from "@/hooks/useCoupons";
 export { orderQueryKeys, useOrders } from "@/hooks/useOrders";
 export { useProductBySlug } from "@/hooks/useProductBySlug";

@@ -20,5 +20,9 @@ export function StatusBadge({
           ? "outline"
           : "ghost";
 
-  return <Badge variant={variant}>{label}</Badge>;
+  return (
+    <Badge className="capitalize" variant={variant}>
+      {label}
+    </Badge>
+  );
 }

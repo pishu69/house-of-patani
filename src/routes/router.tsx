@@ -86,6 +86,24 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: ROUTES.ADMIN.PRODUCT_NEW,
+        lazy: async () => {
+          const { ProductEditorPage } = await import(
+            "@/pages/admin/ProductEditorPage"
+          );
+          return { Component: ProductEditorPage };
+        },
+      },
+      {
+        path: ROUTES.ADMIN.PRODUCT_EDIT,
+        lazy: async () => {
+          const { ProductEditorPage } = await import(
+            "@/pages/admin/ProductEditorPage"
+          );
+          return { Component: ProductEditorPage };
+        },
+      },
+      {
         path: ROUTES.ADMIN.ORDERS,
         lazy: async () => {
           const { OrdersPage } = await import("@/pages/admin/OrdersPage");

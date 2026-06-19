@@ -8,6 +8,32 @@ export default defineConfig({
       checks: {
         pluginTimings: false,
       },
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: "supabase",
+              test: /node_modules[\\/]@supabase/,
+            },
+            {
+              name: "motion",
+              test: /node_modules[\\/]framer-motion/,
+            },
+            {
+              name: "react-query",
+              test: /node_modules[\\/]@tanstack[\\/]react-query/,
+            },
+            {
+              name: "icons",
+              test: /node_modules[\\/]lucide-react/,
+            },
+            {
+              name: "react",
+              test: /node_modules[\\/](react|react-dom|react-router)/,
+            },
+          ],
+        },
+      },
     },
   },
   plugins: [react()],

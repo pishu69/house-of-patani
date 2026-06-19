@@ -9,6 +9,8 @@ export const ROUTES = {
   ADMIN: {
     ROOT: "/admin",
     PRODUCTS: "products",
+    PRODUCT_NEW: "products/new",
+    PRODUCT_EDIT: "products/:id/edit",
     ORDERS: "orders",
     CUSTOMERS: "customers",
     COUPONS: "coupons",

@@ -2,6 +2,12 @@ export {
   ActionMenu,
   type ActionMenuItem,
 } from "@/components/admin/ActionMenu";
+export { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
+export { AdminMobileMenu } from "@/components/admin/AdminMobileMenu";
+export { AdminSelect } from "@/components/admin/AdminSelect";
+export { AdminSidebar } from "@/components/admin/AdminSidebar";
+export { AdminSourceBadge } from "@/components/admin/AdminSourceBadge";
+export { AdminTopbar } from "@/components/admin/AdminTopbar";
 export { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 export {
   DataTable,
