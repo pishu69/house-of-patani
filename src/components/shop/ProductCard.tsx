@@ -8,7 +8,9 @@ import { RatingStars } from "@/components/common/RatingStars";
 import { StockBadge } from "@/components/product/StockBadge";
 import { Button } from "@/components/ui/button";
 import { categoryNameBySlug } from "@/data/categories";
+import { showCartMutationToast } from "@/lib/cart-feedback";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/stores/cart.store";
 import type { CatalogProduct } from "@/types/product.types";
 import { formatCurrency } from "@/utils";
 
@@ -25,10 +27,25 @@ function ProductCardComponent({
   onWishlistToggle,
   product,
 }: ProductCardProps) {
+  const addItem = useCartStore((state) => state.addItem);
+  const openDrawer = useCartStore((state) => state.openDrawer);
   const imageUrl = product.images[0];
   const discount = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100,
   );
+  const handleAddToCart = () => {
+    if (onAddToCart) {
+      onAddToCart(product);
+      return;
+    }
+
+    const result = addItem(product.id);
+    showCartMutationToast(product.name, result);
+
+    if (result.success) {
+      openDrawer();
+    }
+  };
 
   return (
     <motion.article
@@ -120,7 +137,7 @@ function ProductCardComponent({
           className="mt-5"
           disabled={product.stock === 0}
           fullWidth
-          onClick={() => onAddToCart?.(product)}
+          onClick={handleAddToCart}
           variant="outline"
         >
           {product.stock === 0 ? "Out of Stock" : "Add to Cart"}

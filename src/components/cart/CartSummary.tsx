@@ -28,14 +28,17 @@ export function CartSummary({
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-muted-foreground">Shipping</dt>
-          <dd className="font-semibold">{formatCurrency(shipping)}</dd>
+          <dd className="font-semibold">
+            {shipping === 0 ? "Free" : formatCurrency(shipping)}
+          </dd>
         </div>
-        {discount > 0 ? (
-          <div className="flex justify-between gap-4 text-maroon">
-            <dt>Discount</dt>
-            <dd className="font-semibold">-{formatCurrency(discount)}</dd>
-          </div>
-        ) : null}
+        <div className="flex justify-between gap-4 text-maroon">
+          <dt>Discount</dt>
+          <dd className="font-semibold">
+            {discount > 0 ? "-" : ""}
+            {formatCurrency(discount)}
+          </dd>
+        </div>
       </dl>
       <Divider className="my-5" />
       <div className="flex items-baseline justify-between gap-4">

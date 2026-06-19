@@ -2,9 +2,10 @@ import { Minus, Plus } from "lucide-react";
 import { IconButton } from "@/components/common/IconButton";
 
 interface QuantitySelectorProps {
-  max?: number;
+  max?: number | undefined;
   min?: number;
   onChange?: ((quantity: number) => void) | undefined;
+  onMaximumReached?: (() => void) | undefined;
   quantity: number;
 }
 
@@ -12,6 +13,7 @@ export function QuantitySelector({
   max = 99,
   min = 1,
   onChange,
+  onMaximumReached,
   quantity,
 }: QuantitySelectorProps) {
   return (
@@ -36,8 +38,14 @@ export function QuantitySelector({
       </output>
       <IconButton
         aria-label="Increase quantity"
-        disabled={quantity >= max}
-        onClick={() => onChange?.(Math.min(max, quantity + 1))}
+        onClick={() => {
+          if (quantity >= max) {
+            onMaximumReached?.();
+            return;
+          }
+
+          onChange?.(quantity + 1);
+        }}
         size="sm"
       >
         <Plus aria-hidden="true" size={16} />

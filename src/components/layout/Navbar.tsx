@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { ROUTES } from "@/constants/routes";
+import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -14,6 +15,7 @@ const navItems = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { itemCount, openDrawer } = useCart();
 
   return (
     <header className="sticky top-0 z-50 border-b border-maroon/10 bg-ivory/90 backdrop-blur-xl">
@@ -65,13 +67,19 @@ export function Navbar() {
           >
             <Search size={20} />
           </Link>
-          <Link
-            aria-label="Cart"
-            className="rounded-full p-3 text-charcoal/75 transition hover:bg-maroon/5 hover:text-maroon"
-            to={ROUTES.CART}
+          <button
+            aria-label={`Open cart with ${itemCount} item${itemCount === 1 ? "" : "s"}`}
+            className="relative rounded-full p-3 text-charcoal/75 transition hover:bg-maroon/5 hover:text-maroon"
+            onClick={openDrawer}
+            type="button"
           >
-            <ShoppingBag size={20} />
-          </Link>
+            <ShoppingBag aria-hidden="true" size={20} />
+            {itemCount > 0 ? (
+              <span className="absolute right-0 top-0 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-maroon px-1 text-[0.65rem] font-bold text-ivory">
+                {itemCount > 99 ? "99+" : itemCount}
+              </span>
+            ) : null}
+          </button>
           <Link
             aria-label="Account"
             className="rounded-full p-3 text-charcoal/75 transition hover:bg-maroon/5 hover:text-maroon"
@@ -94,8 +102,13 @@ export function Navbar() {
       </div>
 
       <MobileMenu
+        cartCount={itemCount}
         isOpen={isOpen}
         items={navItems}
+        onCartOpen={() => {
+          setIsOpen(false);
+          openDrawer();
+        }}
         onNavigate={() => setIsOpen(false)}
       />
     </header>

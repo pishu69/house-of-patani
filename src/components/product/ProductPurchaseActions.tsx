@@ -7,6 +7,7 @@ interface ProductPurchaseActionsProps {
   isWishlisted: boolean;
   onAddToCart: () => void;
   onQuantityChange: (quantity: number) => void;
+  onStockLimit: () => void;
   onWishlistToggle: () => void;
   quantity: number;
   stock: number;
@@ -16,6 +17,7 @@ export function ProductPurchaseActions({
   isWishlisted,
   onAddToCart,
   onQuantityChange,
+  onStockLimit,
   onWishlistToggle,
   quantity,
   stock,
@@ -27,6 +29,7 @@ export function ProductPurchaseActions({
         <QuantitySelector
           max={Math.max(stock, 1)}
           onChange={onQuantityChange}
+          onMaximumReached={onStockLimit}
           quantity={quantity}
         />
         <Button

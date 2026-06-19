@@ -21,12 +21,16 @@ import {
   getProductReviews,
 } from "@/data/product-experience";
 import { products } from "@/data/products";
+import { showCartMutationToast } from "@/lib/cart-feedback";
+import { useCartStore } from "@/stores/cart.store";
 
 export function ProductPage() {
   const { slug } = useParams();
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const addItem = useCartStore((state) => state.addItem);
+  const openDrawer = useCartStore((state) => state.openDrawer);
   const product = products.find((item) => item.slug === slug);
 
   const relatedProducts = useMemo(
@@ -131,9 +135,12 @@ export function ProductPage() {
   ];
 
   const handleAddToCart = () => {
-    toast.success(`${product.name} added to your selection`, {
-      description: `Quantity ${quantity}.`,
-    });
+    const result = addItem(product.id, quantity);
+    showCartMutationToast(product.name, result);
+
+    if (result.success) {
+      openDrawer();
+    }
   };
 
   const handleWishlistToggle = () => {
@@ -171,6 +178,11 @@ export function ProductPage() {
                       isWishlisted={isWishlisted}
                       onAddToCart={handleAddToCart}
                       onQuantityChange={setQuantity}
+                      onStockLimit={() =>
+                        toast.error("Stock limit reached", {
+                          description: `Only ${product.stock} of ${product.name} are currently available.`,
+                        })
+                      }
                       onWishlistToggle={handleWishlistToggle}
                       quantity={quantity}
                       stock={product.stock}
