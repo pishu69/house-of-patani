@@ -1,5 +1,7 @@
 export const ROUTES = {
   HOME: "/",
+  LOGIN: "/login",
+  VERIFY_OTP: "/verify-otp",
   SHOP: "/shop",
   PRODUCT: "/product/:slug",
   CART: "/cart",

@@ -11,6 +11,7 @@ interface CustomerStore {
   profile: CustomerProfile;
   addAddress: (address: Omit<CustomerAddress, "id">) => CustomerAddress;
   removeAddress: (id: string) => void;
+  replaceAddresses: (addresses: CustomerAddress[]) => void;
   setDefaultAddress: (id: string) => void;
   updateAddress: (
     id: string,
@@ -68,6 +69,8 @@ export const useCustomerStore = create<CustomerStore>()(
             state.addresses.filter((address) => address.id !== id),
           ),
         })),
+      replaceAddresses: (addresses) =>
+        set({ addresses: normalizeDefaults(addresses) }),
       setDefaultAddress: (id) =>
         set((state) => ({
           addresses: state.addresses.map((address) => ({

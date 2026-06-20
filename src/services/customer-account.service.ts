@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { adminStorage } from "@/services/admin-storage";
 import { fallbackAfterError } from "@/services/service.utils";
 import { useCustomerStore } from "@/stores/customer.store";
+import { useWishlistStore } from "@/stores/wishlist.store";
 import type {
   CustomerAccountSnapshot,
   CustomerAddress,
@@ -144,6 +145,31 @@ export const customerAccountService = {
       .addresses.some((address) => address.id === id);
     if (exists) useCustomerStore.getState().setDefaultAddress(id);
     return mockResponse(exists);
+  },
+
+  async syncAuthenticatedAccount(): Promise<void> {
+    if (!supabase) return;
+
+    const customerId = await getCurrentCustomerId();
+    if (!customerId) return;
+    const { profile, addresses } = useCustomerStore.getState();
+    const wishlistProductIds = useWishlistStore.getState().productIds;
+    const { error } = await supabase.rpc("sync_customer_account", {
+      p_addresses: addresses.map((address) => ({
+        city: address.city,
+        country: address.country,
+        isDefault: address.isDefault,
+        label: address.label,
+        line1: address.line1,
+        line2: address.line2,
+        postalCode: address.postalCode,
+        state: address.state,
+      })),
+      p_email: profile.email,
+      p_name: profile.name,
+      p_wishlist_product_ids: wishlistProductIds,
+    });
+    if (error) throw error;
   },
 
   async listOrders(

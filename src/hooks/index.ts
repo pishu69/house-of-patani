@@ -11,6 +11,7 @@ export {
   useCustomerOrder,
   useCustomerOrders,
 } from "@/hooks/useCustomerAccount";
+export { useCustomerAuth } from "@/hooks/useCustomerAuth";
 export {
   categoryQueryKeys,
   useCategories,

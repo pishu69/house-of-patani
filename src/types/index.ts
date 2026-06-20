@@ -25,6 +25,14 @@ export type {
   GuestOrderLookupResult,
 } from "@/types/customer-account.types";
 export type {
+  CustomerAuthResolution,
+  CustomerAuthSession,
+  CustomerAuthStatus,
+  SendOtpInput,
+  SendOtpResult,
+  VerifyOtpInput,
+} from "@/types/customer-auth.types";
+export type {
   AddressRow,
   AdminRow,
   BannerRow,

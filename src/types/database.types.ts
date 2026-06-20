@@ -231,6 +231,15 @@ export interface Database {
         };
         Returns: Json;
       };
+      sync_customer_account: {
+        Args: {
+          p_addresses: Json;
+          p_email: string;
+          p_name: string;
+          p_wishlist_product_ids: string[];
+        };
+        Returns: undefined;
+      };
       create_guest_order: {
         Args: {
           p_address: Json;
@@ -239,6 +248,17 @@ export interface Database {
           p_customer_phone: string;
           p_items: Json;
           p_payment_method: string;
+        };
+        Returns: Json;
+      };
+      complete_customer_otp_login: {
+        Args: {
+          p_addresses: Json;
+          p_auth_user_id: string;
+          p_email: string;
+          p_name: string;
+          p_phone: string;
+          p_wishlist_product_ids: string[];
         };
         Returns: Json;
       };

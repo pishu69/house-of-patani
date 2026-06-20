@@ -8,6 +8,10 @@ export { categoryService } from "@/services/category.service";
 export { couponService } from "@/services/coupon.service";
 export { customerService } from "@/services/customer.service";
 export { customerAccountService } from "@/services/customer-account.service";
+export {
+  customerAuthService,
+  DEMO_CUSTOMER_OTP,
+} from "@/services/customer-auth.service";
 export { orderService } from "@/services/order.service";
 export { paymentService } from "@/services/payment.service";
 export { productService } from "@/services/product.service";

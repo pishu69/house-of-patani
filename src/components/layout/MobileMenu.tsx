@@ -1,6 +1,8 @@
-import { Search, ShoppingBag, UserRound } from "lucide-react";
-import { Link } from "react-router-dom";
+import { LogOut, Search, ShoppingBag, UserRound } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { ROUTES } from "@/constants/routes";
+import { useCustomerAuth } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 export interface MobileMenuItem {
@@ -25,6 +27,21 @@ export function MobileMenu({
   onCartOpen,
   onNavigate,
 }: MobileMenuProps) {
+  const navigate = useNavigate();
+  const { logout, status } = useCustomerAuth();
+  const isAuthenticated = status === "authenticated";
+
+  async function handleLogout() {
+    try {
+      await logout();
+      onNavigate();
+      navigate(ROUTES.HOME);
+      toast.success("You are signed out.");
+    } catch {
+      toast.error("You could not be signed out.");
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -75,26 +92,46 @@ export function MobileMenu({
               aria-label="Account"
               className="flex justify-center rounded-full border border-maroon/15 py-3 text-maroon transition hover:bg-maroon/5"
               onClick={onNavigate}
-              to={ROUTES.ACCOUNT.ROOT}
+              to={isAuthenticated ? ROUTES.ACCOUNT.ROOT : ROUTES.LOGIN}
             >
               <UserRound aria-hidden="true" size={19} />
             </Link>
           </li>
           <li className="grid gap-1 border-t border-maroon/10 pt-3">
-            <Link
-              className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
-              onClick={onNavigate}
-              to={ROUTES.ACCOUNT.ORDERS_PATH}
-            >
-              My Orders
-            </Link>
-            <Link
-              className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
-              onClick={onNavigate}
-              to={ROUTES.ACCOUNT.WISHLIST_PATH}
-            >
-              Wishlist
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+                  onClick={onNavigate}
+                  to={ROUTES.ACCOUNT.ORDERS_PATH}
+                >
+                  My Orders
+                </Link>
+                <Link
+                  className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+                  onClick={onNavigate}
+                  to={ROUTES.ACCOUNT.WISHLIST_PATH}
+                >
+                  Wishlist
+                </Link>
+                <button
+                  className="rounded-full px-4 py-3 text-left text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+                  onClick={() => void handleLogout()}
+                  type="button"
+                >
+                  <LogOut className="mr-2 inline" size={16} />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+                onClick={onNavigate}
+                to={ROUTES.LOGIN}
+              >
+                Login
+              </Link>
+            )}
             <Link
               className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
               onClick={onNavigate}

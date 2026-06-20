@@ -1,4 +1,5 @@
 import { Save } from "lucide-react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -11,15 +12,23 @@ import {
 import { applyZodErrors } from "@/lib/form-validation";
 import { customerAccountService } from "@/services";
 import { useCustomerStore } from "@/stores/customer.store";
+import { useCustomerAuth } from "@/hooks";
 
 export function ProfilePage() {
   const profile = useCustomerStore((state) => state.profile);
+  const { status } = useCustomerAuth();
+  const isAuthenticated = status === "authenticated";
   const {
     formState: { errors },
     handleSubmit,
     register,
+    reset,
     setError,
   } = useForm<CustomerProfileFormValues>({ defaultValues: profile });
+
+  useEffect(() => {
+    reset(profile);
+  }, [profile, reset]);
 
   function submit(values: CustomerProfileFormValues) {
     const result = customerProfileSchema.safeParse(values);
@@ -39,8 +48,9 @@ export function ProfilePage() {
       <p className="eyebrow">Profile</p>
       <h2 className="mt-2 text-3xl">Your contact details</h2>
       <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-        These details help find orders placed from this device. OTP sign-in
-        will connect them to a verified customer account later.
+        {isAuthenticated
+          ? "Your verified mobile links orders to this account. Name and email changes sync securely when Supabase is available."
+          : "These details help find orders placed from this device. OTP sign-in connects them to a verified customer account."}
       </p>
       <form
         className="mt-7 grid max-w-2xl gap-5 sm:grid-cols-2"
@@ -67,6 +77,7 @@ export function ProfilePage() {
           <input
             autoComplete="tel"
             className={fieldClass}
+            disabled={isAuthenticated}
             inputMode="tel"
             {...register("phone")}
           />

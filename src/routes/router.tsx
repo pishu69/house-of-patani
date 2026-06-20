@@ -17,6 +17,20 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: ROUTES.LOGIN,
+        lazy: async () => {
+          const { LoginPage } = await import("@/pages/LoginPage");
+          return { Component: LoginPage };
+        },
+      },
+      {
+        path: ROUTES.VERIFY_OTP,
+        lazy: async () => {
+          const { VerifyOtpPage } = await import("@/pages/VerifyOtpPage");
+          return { Component: VerifyOtpPage };
+        },
+      },
+      {
         path: ROUTES.SHOP,
         lazy: async () => {
           const { ShopPage } = await import("@/pages/ShopPage");
