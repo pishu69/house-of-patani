@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/cart.store";
 import type { CartItemView } from "@/types/cart.types";
 
@@ -9,6 +9,9 @@ const STANDARD_SHIPPING = 199;
 const DISCOUNT_PLACEHOLDER = 0;
 
 export function useCart() {
+  const productsQuery = useProducts();
+  const products = productsQuery.data?.data ?? [];
+
   const {
     addItem,
     clearCart,
@@ -41,27 +44,35 @@ export function useCart() {
     const cartItems = items.flatMap<CartItemView>((entry) => {
       const product = products.find((item) => item.id === entry.productId);
 
-      if (!product) {
+      if (!product) return [];
+
+      const quantity = Math.min(entry.quantity, product.stock);
+
+      if (quantity <= 0 || product.stock <= 0 || !product.active) {
         return [];
       }
 
       return [
         {
-          lineTotal: product.price * entry.quantity,
+          lineTotal: product.price * quantity,
           product,
-          quantity: entry.quantity,
+          quantity,
         },
       ];
     });
+
     const itemCount = cartItems.reduce(
       (total, item) => total + item.quantity,
       0,
     );
+
     const subtotal = cartItems.reduce(
       (total, item) => total + item.lineTotal,
       0,
     );
+
     const discount = DISCOUNT_PLACEHOLDER;
+
     const shipping =
       subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD
         ? 0
@@ -71,11 +82,12 @@ export function useCart() {
       cartItems,
       discount,
       grandTotal: subtotal - discount + shipping,
+      isLoading: productsQuery.isLoading,
       itemCount,
       shipping,
       subtotal,
     };
-  }, [items]);
+  }, [items, products, productsQuery.isLoading]);
 
   return {
     addItem,
