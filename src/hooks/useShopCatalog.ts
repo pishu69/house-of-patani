@@ -9,11 +9,8 @@ import { useSearchParams } from "react-router-dom";
 import type { CategoryFilterOption } from "@/components/shop/CategoryFilter";
 import type { SortOption } from "@/components/shop/SortDropdown";
 import { shopCategories } from "@/data/categories";
-import { MAX_PRODUCT_PRICE, products } from "@/data/products";
-import {
-  filterCatalogProducts,
-  type ShopSort,
-} from "@/lib/catalog";
+import { useProducts } from "@/hooks/useProducts";
+import { filterCatalogProducts, type ShopSort } from "@/lib/catalog";
 import type { ProductCategory } from "@/types/product.types";
 
 export type { ShopSort } from "@/lib/catalog";
@@ -26,6 +23,7 @@ interface UpdateOptions {
 }
 
 const PAGE_SIZE = 12;
+const DEFAULT_MAX_PRODUCT_PRICE = 100000;
 
 export const shopSortOptions: SortOption[] = [
   { label: "Featured", value: "featured" },
@@ -40,21 +38,29 @@ const validSorts = new Set<ShopSort>(
   shopSortOptions.map((option) => option.value as ShopSort),
 );
 
-const categoryOptions: CategoryFilterOption[] = [
-  { count: products.length, label: "All Categories", value: "all" },
-  ...shopCategories.map((category) => ({
-    count: products.filter((product) => product.category === category.slug)
-      .length,
-    label: category.name,
-    value: category.slug,
-  })),
-];
-
 function isProductCategory(value: string): value is ProductCategory {
   return shopCategories.some((category) => category.slug === value);
 }
 
 export function useShopCatalog() {
+  const productsQuery = useProducts();
+  const products = productsQuery.data?.data ?? [];
+
+  const maxProductPrice = Math.max(
+    DEFAULT_MAX_PRODUCT_PRICE,
+    ...products.map((product) => product.price),
+  );
+
+  const categoryOptions: CategoryFilterOption[] = [
+    { count: products.length, label: "All Categories", value: "all" },
+    ...shopCategories.map((category) => ({
+      count: products.filter((product) => product.category === category.slug)
+        .length,
+      label: category.name,
+      value: category.slug,
+    })),
+  ];
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
@@ -74,8 +80,8 @@ export function useShopCatalog() {
   const parsedMaxPrice = Number(searchParams.get("maxPrice"));
   const maxPrice =
     Number.isFinite(parsedMaxPrice) && parsedMaxPrice > 0
-      ? Math.min(parsedMaxPrice, MAX_PRODUCT_PRICE)
-      : MAX_PRODUCT_PRICE;
+      ? Math.min(parsedMaxPrice, maxProductPrice)
+      : maxProductPrice;
   const parsedMinPrice = Number(searchParams.get("minPrice"));
   const minPrice =
     Number.isFinite(parsedMinPrice) && parsedMinPrice > 0
@@ -125,14 +131,15 @@ export function useShopCatalog() {
         sort,
       }),
     [
-    bestSeller,
-    category,
-    deferredQuery,
-    featured,
-    maxPrice,
-    minPrice,
-    newArrival,
-    sort,
+      products,
+      bestSeller,
+      category,
+      deferredQuery,
+      featured,
+      maxPrice,
+      minPrice,
+      newArrival,
+      sort,
     ],
   );
 
@@ -173,9 +180,9 @@ export function useShopCatalog() {
     currentPage,
     featured,
     filteredProducts,
-    isPending,
+    isPending: isPending || productsQuery.isLoading,
     maxPrice,
-    maxPriceLimit: MAX_PRODUCT_PRICE,
+    maxPriceLimit: maxProductPrice,
     minPrice,
     newArrival,
     query,
@@ -203,7 +210,7 @@ export function useShopCatalog() {
     setMaxPrice: (value: number) =>
       updateParams(
         {
-          maxPrice: value >= MAX_PRODUCT_PRICE ? null : String(value),
+          maxPrice: value >= maxProductPrice ? null : String(value),
           page: null,
         },
         { replace: true, transition: false },
