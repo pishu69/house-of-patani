@@ -19,3 +19,7 @@ export {
   productQueryKeys,
   useProducts,
 } from "@/hooks/useProducts";
+export {
+  settingsQueryKeys,
+  useSettings,
+} from "@/hooks/useSettings";

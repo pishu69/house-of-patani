@@ -9,12 +9,14 @@ export { AdminSidebar } from "@/components/admin/AdminSidebar";
 export { AdminSourceBadge } from "@/components/admin/AdminSourceBadge";
 export { AdminTopbar } from "@/components/admin/AdminTopbar";
 export { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+export { CouponFormDialog } from "@/components/admin/CouponFormDialog";
 export {
   DataTable,
   type DataTableColumn,
 } from "@/components/admin/DataTable";
 export { DashboardCard } from "@/components/admin/DashboardCard";
 export { EmptyAdminState } from "@/components/admin/EmptyAdminState";
+export { FormFieldError } from "@/components/admin/FormFieldError";
 export { ImageUploader } from "@/components/admin/ImageUploader";
 export { LoadingTableSkeleton } from "@/components/admin/LoadingTableSkeleton";
 export { PageTitle } from "@/components/admin/PageTitle";

@@ -10,7 +10,7 @@ export const productQueryKeys = {
 export function useProducts() {
   return useQuery({
     queryKey: productQueryKeys.all,
-    queryFn: () => productService.list(),
+    queryFn: () => productService.listAdmin(),
     staleTime: 5 * 60 * 1000,
   });
 }

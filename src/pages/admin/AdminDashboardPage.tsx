@@ -23,9 +23,10 @@ import { useCustomers, useOrders, useProducts } from "@/hooks";
 import type { OrderRow } from "@/types/database.types";
 import type { CatalogProduct } from "@/types/product.types";
 import { formatCurrency, formatDate } from "@/utils";
+import { categoryNameBySlug } from "@/data/categories";
 
 function getOrderTone(status: OrderRow["order_status"]) {
-  if (status === "completed") return "positive" as const;
+  if (status === "delivered") return "positive" as const;
   if (status === "cancelled") return "negative" as const;
   if (status === "pending") return "warning" as const;
   return "neutral" as const;
@@ -124,6 +125,16 @@ export function AdminDashboardPage() {
         right.rating * right.reviewCount - left.rating * left.reviewCount,
     )
     .slice(0, 5);
+  const activeCustomers = customers.filter((customer) => customer.active);
+  const orderSummary = [
+    { label: "Pending", value: "pending" },
+    { label: "Confirmed", value: "confirmed" },
+    { label: "Packed", value: "packed" },
+    { label: "Shipped", value: "shipped" },
+    { label: "Delivered", value: "delivered" },
+    { label: "Cancelled", value: "cancelled" },
+    { label: "Refunded", value: "refunded" },
+  ] as const;
 
   return (
     <div className="space-y-8">
@@ -201,6 +212,102 @@ export function AdminDashboardPage() {
               <TopProduct key={product.id} product={product} />
             ))}
           </ol>
+        </DashboardCard>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <DashboardCard
+          description="Current distribution across the fulfilment lifecycle."
+          title="Order status"
+        >
+          <ul className="grid grid-cols-2 gap-3">
+            {orderSummary.map((status) => (
+              <li
+                className="rounded-md border border-maroon/10 bg-background p-3"
+                key={status.value}
+              >
+                <p className="text-xs text-muted-foreground">{status.label}</p>
+                <p className="mt-1 text-xl font-semibold text-charcoal">
+                  {
+                    orders.filter(
+                      (order) => order.order_status === status.value,
+                    ).length
+                  }
+                </p>
+              </li>
+            ))}
+          </ul>
+        </DashboardCard>
+
+        <DashboardCard
+          description="Products at five units or fewer."
+          title="Low stock products"
+        >
+          {lowStockProducts.length > 0 ? (
+            <ul>
+              {lowStockProducts.slice(0, 6).map((product) => (
+                <li
+                  className="flex items-center justify-between gap-3 border-b border-maroon/10 py-3 last:border-b-0"
+                  key={product.id}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-charcoal">
+                      {product.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {categoryNameBySlug[product.category]}
+                    </p>
+                  </div>
+                  <StatusBadge
+                    label={`${product.stock} left`}
+                    tone="warning"
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No products are currently low on stock.
+            </p>
+          )}
+        </DashboardCard>
+
+        <DashboardCard
+          description="A quick view of customer account health."
+          title="Customer summary"
+        >
+          <dl className="space-y-4">
+            <div className="flex items-center justify-between border-b border-maroon/10 pb-4">
+              <dt className="text-sm text-muted-foreground">
+                Total customers
+              </dt>
+              <dd className="text-xl font-semibold text-charcoal">
+                {customers.length}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between border-b border-maroon/10 pb-4">
+              <dt className="text-sm text-muted-foreground">
+                Active customers
+              </dt>
+              <dd className="text-xl font-semibold text-charcoal">
+                {activeCustomers.length}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-sm text-muted-foreground">
+                Paid-order customers
+              </dt>
+              <dd className="text-xl font-semibold text-charcoal">
+                {
+                  new Set(
+                    orders
+                      .filter((order) => order.payment_status === "paid")
+                      .map((order) => order.customer_email),
+                  ).size
+                }
+              </dd>
+            </div>
+          </dl>
         </DashboardCard>
       </section>
     </div>

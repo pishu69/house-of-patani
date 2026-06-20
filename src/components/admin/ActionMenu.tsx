@@ -37,7 +37,10 @@ export function ActionMenu({
                   : "flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-charcoal transition hover:bg-maroon/5"
               }
               key={item.label}
-              onClick={item.onSelect}
+              onClick={(event) => {
+                item.onSelect?.();
+                event.currentTarget.closest("details")?.removeAttribute("open");
+              }}
               type="button"
             >
               {Icon ? <Icon aria-hidden="true" size={16} /> : null}

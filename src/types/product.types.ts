@@ -18,6 +18,7 @@ export type ProductCategory =
   | "accessories";
 
 export interface CatalogProduct {
+  active: boolean;
   bestSeller: boolean;
   category: ProductCategory;
   createdAt: string;
@@ -31,6 +32,23 @@ export interface CatalogProduct {
   price: number;
   rating: number;
   reviewCount: number;
+  sku: string;
+  slug: string;
+  stock: number;
+  tags: string[];
+}
+
+export interface ProductInput {
+  active: boolean;
+  bestSeller: boolean;
+  category: ProductCategory;
+  description: string;
+  featured: boolean;
+  name: string;
+  newArrival: boolean;
+  originalPrice: number;
+  price: number;
+  sku: string;
   slug: string;
   stock: number;
   tags: string[];

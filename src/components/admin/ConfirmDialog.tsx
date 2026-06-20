@@ -1,11 +1,12 @@
 import { CircleAlert, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { IconButton } from "@/components/common/IconButton";
 import { Button } from "@/components/ui/button";
 
 interface ConfirmDialogProps {
   cancelLabel?: string;
   confirmLabel?: string;
+  confirmDisabled?: boolean;
   description: string;
   isOpen: boolean;
   onCancel?: () => void;
@@ -17,6 +18,7 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
   cancelLabel = "Cancel",
   confirmLabel = "Confirm",
+  confirmDisabled = false,
   description,
   isOpen,
   onCancel,
@@ -24,6 +26,17 @@ export function ConfirmDialog({
   title,
   trigger,
 }: ConfirmDialogProps) {
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onCancel?.();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onCancel]);
+
   if (!isOpen) {
     return <>{trigger}</>;
   }
@@ -40,7 +53,12 @@ export function ConfirmDialog({
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <CircleAlert aria-hidden="true" size={20} />
           </span>
-          <IconButton aria-label="Close dialog" onClick={onCancel} size="sm">
+          <IconButton
+            aria-label="Close dialog"
+            autoFocus
+            onClick={onCancel}
+            size="sm"
+          >
             <X aria-hidden="true" size={18} />
           </IconButton>
         </div>
@@ -54,7 +72,12 @@ export function ConfirmDialog({
           <Button onClick={onCancel} size="sm" variant="ghost">
             {cancelLabel}
           </Button>
-          <Button onClick={onConfirm} size="sm" variant="destructive">
+          <Button
+            disabled={confirmDisabled}
+            onClick={onConfirm}
+            size="sm"
+            variant="destructive"
+          >
             {confirmLabel}
           </Button>
         </div>

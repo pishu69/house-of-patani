@@ -1,4 +1,5 @@
 export type { Address } from "@/types/address.types";
+export type { CouponInput, StoreSettings } from "@/types/admin.types";
 export type { Banner } from "@/types/banner.types";
 export type {
   CartEntry,
@@ -31,6 +32,7 @@ export type {
   CatalogProduct,
   Product,
   ProductCategory,
+  ProductInput,
 } from "@/types/product.types";
 export type { ProductReview, Review } from "@/types/review.types";
 export type { Setting } from "@/types/setting.types";

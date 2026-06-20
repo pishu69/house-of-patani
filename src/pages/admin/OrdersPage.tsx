@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -12,18 +13,46 @@ import {
   StatusBadge,
   type DataTableColumn,
 } from "@/components/admin";
-import { useOrders } from "@/hooks";
+import {
+  ORDER_STATUSES,
+  type OrderStatus,
+} from "@/constants/order-status";
+import {
+  PAYMENT_STATUSES,
+  type PaymentStatus,
+} from "@/constants/payment-status";
+import { orderQueryKeys, useOrders } from "@/hooks";
+import { orderService } from "@/services";
 import type { OrderRow } from "@/types/database.types";
 import { formatCurrency, formatDate } from "@/utils";
 
-function orderTone(status: OrderRow["order_status"]) {
-  if (status === "completed") return "positive" as const;
-  if (status === "cancelled") return "negative" as const;
+const orderStatusOptions: { label: string; value: OrderStatus }[] = [
+  { label: "Pending", value: ORDER_STATUSES.PENDING },
+  { label: "Confirmed", value: ORDER_STATUSES.CONFIRMED },
+  { label: "Packed", value: ORDER_STATUSES.PACKED },
+  { label: "Shipped", value: ORDER_STATUSES.SHIPPED },
+  { label: "Delivered", value: ORDER_STATUSES.DELIVERED },
+  { label: "Cancelled", value: ORDER_STATUSES.CANCELLED },
+  { label: "Refunded", value: ORDER_STATUSES.REFUNDED },
+];
+
+const paymentStatusOptions: { label: string; value: PaymentStatus }[] = [
+  { label: "Pending", value: PAYMENT_STATUSES.PENDING },
+  { label: "Paid", value: PAYMENT_STATUSES.PAID },
+  { label: "Failed", value: PAYMENT_STATUSES.FAILED },
+  { label: "Refunded", value: PAYMENT_STATUSES.REFUNDED },
+];
+
+function orderTone(status: OrderStatus) {
+  if (status === "delivered") return "positive" as const;
+  if (status === "cancelled" || status === "refunded") {
+    return "negative" as const;
+  }
   if (status === "pending") return "warning" as const;
   return "neutral" as const;
 }
 
-function paymentTone(status: OrderRow["payment_status"]) {
+function paymentTone(status: PaymentStatus) {
   if (status === "paid") return "positive" as const;
   if (status === "failed" || status === "refunded") {
     return "negative" as const;
@@ -31,83 +60,33 @@ function paymentTone(status: OrderRow["payment_status"]) {
   return "warning" as const;
 }
 
-const columns: DataTableColumn<OrderRow>[] = [
-  {
-    header: "Order",
-    id: "order",
-    render: (order) => (
-      <div>
-        <p className="font-semibold text-charcoal">{order.order_number}</p>
-        <p className="mt-0.5 text-xs">{formatDate(order.created_at)}</p>
-      </div>
-    ),
-  },
-  {
-    header: "Customer",
-    id: "customer",
-    render: (order) => (
-      <div>
-        <p className="font-medium text-charcoal">{order.customer_name}</p>
-        <p className="mt-0.5 text-xs">{order.customer_email}</p>
-      </div>
-    ),
-  },
-  {
-    header: "Total",
-    id: "total",
-    render: (order) => (
-      <span className="font-semibold text-charcoal">
-        {formatCurrency(order.total)}
-      </span>
-    ),
-  },
-  {
-    header: "Payment",
-    id: "payment",
-    render: (order) => (
-      <StatusBadge
-        label={order.payment_status}
-        tone={paymentTone(order.payment_status)}
-      />
-    ),
-  },
-  {
-    header: "Order status",
-    id: "status",
-    render: (order) => (
-      <StatusBadge
-        label={order.order_status}
-        tone={orderTone(order.order_status)}
-      />
-    ),
-  },
-  {
-    header: "Update",
-    id: "update",
-    render: (order) => (
-      <select
-        aria-label={`Update status for ${order.order_number}`}
-        className="h-9 rounded-md border border-maroon/15 bg-card px-2 text-xs text-charcoal"
-        defaultValue={order.order_status}
-        onChange={() =>
-          toast.info("Order updates will be enabled in Phase 7B.")
-        }
-      >
-        <option value="pending">Pending</option>
-        <option value="processing">Processing</option>
-        <option value="completed">Completed</option>
-        <option value="cancelled">Cancelled</option>
-      </select>
-    ),
-  },
-];
-
 export function OrdersPage() {
+  const queryClient = useQueryClient();
   const ordersQuery = useOrders();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [payment, setPayment] = useState("all");
   const orders = ordersQuery.data?.data ?? [];
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: Pick<
+        Partial<OrderRow>,
+        "order_status" | "payment_method" | "payment_status"
+      >;
+    }) => orderService.update(id, input),
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all });
+      toast.success("Order updated.", {
+        description: response.warning?.message,
+      });
+    },
+    onError: () => toast.error("The order could not be updated."),
+  });
 
   const filteredOrders = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -123,11 +102,133 @@ export function OrdersPage() {
     );
   }, [orders, payment, search, status]);
 
+  const columns = useMemo<DataTableColumn<OrderRow>[]>(
+    () => [
+      {
+        header: "Order",
+        id: "order",
+        render: (order) => (
+          <div>
+            <p className="font-semibold text-charcoal">
+              {order.order_number}
+            </p>
+            <p className="mt-0.5 text-xs">{formatDate(order.created_at)}</p>
+          </div>
+        ),
+      },
+      {
+        header: "Customer",
+        id: "customer",
+        render: (order) => (
+          <div className="min-w-44">
+            <p className="font-medium text-charcoal">{order.customer_name}</p>
+            <p className="mt-0.5 text-xs">{order.customer_email}</p>
+          </div>
+        ),
+      },
+      {
+        header: "Total",
+        id: "total",
+        render: (order) => (
+          <span className="font-semibold text-charcoal">
+            {formatCurrency(order.total)}
+          </span>
+        ),
+      },
+      {
+        header: "Status",
+        id: "status",
+        render: (order) => (
+          <div className="space-y-2">
+            <StatusBadge
+              label={order.order_status}
+              tone={orderTone(order.order_status)}
+            />
+            <select
+              aria-label={`Order status for ${order.order_number}`}
+              className="block h-9 min-w-32 rounded-md border border-maroon/15 bg-card px-2 text-xs text-charcoal"
+              disabled={updateMutation.isPending}
+              onChange={(event) =>
+                updateMutation.mutate({
+                  id: order.id,
+                  input: {
+                    order_status: event.target.value as OrderStatus,
+                  },
+                })
+              }
+              value={order.order_status}
+            >
+              {orderStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ),
+      },
+      {
+        header: "Payment",
+        id: "payment",
+        render: (order) => (
+          <div className="space-y-2">
+            <StatusBadge
+              label={order.payment_status}
+              tone={paymentTone(order.payment_status)}
+            />
+            <select
+              aria-label={`Payment status for ${order.order_number}`}
+              className="block h-9 min-w-28 rounded-md border border-maroon/15 bg-card px-2 text-xs text-charcoal"
+              disabled={updateMutation.isPending}
+              onChange={(event) =>
+                updateMutation.mutate({
+                  id: order.id,
+                  input: {
+                    payment_status: event.target.value as PaymentStatus,
+                  },
+                })
+              }
+              value={order.payment_status}
+            >
+              {paymentStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ),
+      },
+      {
+        header: "Method",
+        id: "method",
+        render: (order) => (
+          <select
+            aria-label={`Payment method for ${order.order_number}`}
+            className="h-9 min-w-36 rounded-md border border-maroon/15 bg-card px-2 text-xs text-charcoal"
+            disabled={updateMutation.isPending}
+            onChange={(event) =>
+              updateMutation.mutate({
+                id: order.id,
+                input: { payment_method: event.target.value },
+              })
+            }
+            value={order.payment_method}
+          >
+            <option value="cod">Cash on delivery</option>
+            <option value="online">Online payment</option>
+          </select>
+        ),
+      },
+    ],
+    [updateMutation],
+  );
+
   return (
     <div className="space-y-6">
       <PageTitle
         action={<AdminSourceBadge source={ordersQuery.data?.source} />}
-        description="Review fulfilment and payment states without changing live records."
+        description="Manage fulfilment, payment status, and payment method."
         title="Orders"
       />
 
@@ -146,10 +247,11 @@ export function OrdersPage() {
           value={status}
         >
           <option value="all">All order statuses</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          {orderStatusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </AdminSelect>
         <AdminSelect
           label="Filter by payment status"
@@ -157,10 +259,11 @@ export function OrdersPage() {
           value={payment}
         >
           <option value="all">All payments</option>
-          <option value="pending">Pending</option>
-          <option value="paid">Paid</option>
-          <option value="failed">Failed</option>
-          <option value="refunded">Refunded</option>
+          {paymentStatusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </AdminSelect>
         <span className="self-center text-sm text-muted-foreground md:text-right">
           {filteredOrders.length} orders

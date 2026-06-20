@@ -132,6 +132,7 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
       ).toISOString();
 
       return {
+        active: true,
         bestSeller: seed.bestSeller ?? false,
         category,
         createdAt,
@@ -147,6 +148,7 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
         price: seed.price,
         rating: seed.rating,
         reviewCount: seed.reviewCount,
+        sku: `HOP-${String(sequence).padStart(4, "0")}`,
         slug: generateSlug(seed.name),
         stock: seed.stock,
         tags: seed.tags,

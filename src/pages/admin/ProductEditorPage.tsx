@@ -1,29 +1,158 @@
-import { ImageIcon, Save } from "lucide-react";
-import type { FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ImageIcon, RefreshCw, Save } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
   DashboardCard,
   EmptyAdminState,
+  FormFieldError,
   PageTitle,
 } from "@/components/admin";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { shopCategories } from "@/data/categories";
-import { useProducts } from "@/hooks";
+import { productQueryKeys, useProducts } from "@/hooks";
+import {
+  productFormSchema,
+  type ProductFormValues,
+} from "@/lib/admin-schemas";
+import { applyZodErrors } from "@/lib/form-validation";
+import { productService } from "@/services";
+import type { ProductInput } from "@/types/product.types";
+import { generateSlug } from "@/utils";
 
 const inputClassName =
   "mt-2 h-11 w-full rounded-md border border-maroon/15 bg-background px-3 text-sm text-charcoal";
 const textareaClassName =
   "mt-2 min-h-32 w-full resize-y rounded-md border border-maroon/15 bg-background px-3 py-3 text-sm text-charcoal";
 
+const defaultValues: ProductFormValues = {
+  active: true,
+  bestSeller: false,
+  category: "clothing",
+  description: "",
+  featured: false,
+  name: "",
+  newArrival: false,
+  originalPrice: 0,
+  price: 0,
+  sku: "",
+  slug: "",
+  stock: 0,
+  tags: "",
+};
+
 export function ProductEditorPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const productsQuery = useProducts();
   const isEditing = Boolean(id);
   const product = productsQuery.data?.data.find((item) => item.id === id);
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+    reset,
+    setError,
+    setValue,
+    watch,
+  } = useForm<ProductFormValues>({ defaultValues });
+  const name = watch("name");
+  const slug = watch("slug");
 
-  if (isEditing && !productsQuery.isLoading && !product) {
+  useEffect(() => {
+    if (!product) return;
+
+    reset({
+      active: product.active,
+      bestSeller: product.bestSeller,
+      category: product.category,
+      description: product.description,
+      featured: product.featured,
+      name: product.name,
+      newArrival: product.newArrival,
+      originalPrice: product.originalPrice,
+      price: product.price,
+      sku: product.sku,
+      slug: product.slug,
+      stock: product.stock,
+      tags: product.tags.join(", "),
+    });
+  }, [product, reset]);
+
+  useEffect(() => {
+    if (!isEditing && name && !slug) {
+      setValue("slug", generateSlug(name), { shouldValidate: true });
+    }
+  }, [isEditing, name, setValue, slug]);
+
+  const saveMutation = useMutation({
+    mutationFn: (input: ProductInput) =>
+      isEditing && id
+        ? productService.update(id, input)
+        : productService.create(input),
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.all });
+      toast.success(isEditing ? "Product updated." : "Product created.", {
+        description: response.warning?.message,
+      });
+      navigate("/admin/products");
+    },
+    onError: () => {
+      toast.error("The product could not be saved. Please try again.");
+    },
+  });
+
+  function submitForm(values: ProductFormValues) {
+    const result = productFormSchema.safeParse(values);
+
+    if (!result.success) {
+      applyZodErrors(result.error.issues, setError);
+      return;
+    }
+
+    const duplicateSlug = productsQuery.data?.data.some(
+      (item) => item.slug === result.data.slug && item.id !== id,
+    );
+    const duplicateSku = productsQuery.data?.data.some(
+      (item) =>
+        item.sku.toLowerCase() === result.data.sku.toLowerCase() &&
+        item.id !== id,
+    );
+
+    if (duplicateSlug) {
+      setError("slug", { message: "This slug is already in use." });
+      return;
+    }
+
+    if (duplicateSku) {
+      setError("sku", { message: "This SKU is already in use." });
+      return;
+    }
+
+    saveMutation.mutate({
+      ...result.data,
+      sku: result.data.sku.toUpperCase(),
+      tags: result.data.tags
+        .split(",")
+        .map((tag) => tag.trim().toLowerCase())
+        .filter(Boolean),
+    });
+  }
+
+  if (productsQuery.isLoading && isEditing) {
+    return (
+      <div className="flex min-h-80 items-center justify-center">
+        <LoadingSpinner label="Loading product" />
+      </div>
+    );
+  }
+
+  if (isEditing && !product) {
     return (
       <EmptyAdminState
         action={
@@ -34,19 +163,18 @@ export function ProductEditorPage() {
             Return to products
           </Link>
         }
-        description="This preview record could not be resolved from the current catalogue."
+        description="This product could not be resolved from the current catalogue."
         title="Product not found"
       />
     );
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    toast.info("Product saving will be enabled in Phase 7B.");
-  }
-
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form
+      className="space-y-6"
+      noValidate
+      onSubmit={handleSubmit(submitForm)}
+    >
       <PageTitle
         action={
           <div className="flex flex-wrap gap-3">
@@ -56,9 +184,9 @@ export function ProductEditorPage() {
             >
               Cancel
             </Link>
-            <Button type="submit">
+            <Button disabled={saveMutation.isPending} type="submit">
               <Save aria-hidden="true" size={17} />
-              Save product
+              {saveMutation.isPending ? "Saving..." : "Save product"}
             </Button>
           </div>
         }
@@ -74,42 +202,77 @@ export function ProductEditorPage() {
                 Product name
                 <input
                   className={inputClassName}
-                  defaultValue={product?.name}
                   placeholder="Product name"
-                  type="text"
+                  {...register("name")}
                 />
+                <FormFieldError message={errors.name?.message} />
               </label>
               <label className="text-sm font-medium text-charcoal sm:col-span-2">
                 Short description
                 <textarea
                   className={textareaClassName}
-                  defaultValue={product?.description}
                   placeholder="A concise catalogue description"
+                  {...register("description")}
                 />
+                <FormFieldError message={errors.description?.message} />
               </label>
               <label className="text-sm font-medium text-charcoal">
                 Price
                 <input
                   className={inputClassName}
-                  defaultValue={product?.price}
                   min="0"
+                  step="0.01"
                   type="number"
+                  {...register("price", { valueAsNumber: true })}
                 />
+                <FormFieldError message={errors.price?.message} />
               </label>
               <label className="text-sm font-medium text-charcoal">
                 Original price
                 <input
                   className={inputClassName}
-                  defaultValue={product?.originalPrice}
                   min="0"
+                  step="0.01"
                   type="number"
+                  {...register("originalPrice", { valueAsNumber: true })}
                 />
+                <FormFieldError message={errors.originalPrice?.message} />
+              </label>
+              <label className="text-sm font-medium text-charcoal">
+                Slug
+                <span className="relative block">
+                  <input className={`${inputClassName} pr-12`} {...register("slug")} />
+                  <button
+                    aria-label="Generate slug from product name"
+                    className="absolute right-1 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-maroon transition hover:bg-maroon/5"
+                    onClick={() =>
+                      setValue("slug", generateSlug(name), {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                    title="Generate slug"
+                    type="button"
+                  >
+                    <RefreshCw aria-hidden="true" size={16} />
+                  </button>
+                </span>
+                <FormFieldError message={errors.slug?.message} />
+              </label>
+              <label className="text-sm font-medium text-charcoal">
+                SKU
+                <input
+                  className={inputClassName}
+                  placeholder="HOP-0001"
+                  {...register("sku")}
+                />
+                <FormFieldError message={errors.sku?.message} />
               </label>
             </div>
           </DashboardCard>
 
           <DashboardCard
-            description="A dedicated space for product photography."
+            description="Image uploads remain reserved for Phase 8."
             title="Media"
           >
             <div className="flex min-h-44 flex-col items-center justify-center rounded-md border border-dashed border-maroon/20 bg-background p-6 text-center">
@@ -118,7 +281,7 @@ export function ProductEditorPage() {
                 Product media workspace
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Media management is currently read-only.
+                Existing storefront images remain unchanged.
               </p>
             </div>
           </DashboardCard>
@@ -129,57 +292,60 @@ export function ProductEditorPage() {
             <div className="space-y-4">
               <label className="text-sm font-medium text-charcoal">
                 Category
-                <select
-                  className={inputClassName}
-                  defaultValue={product?.category ?? ""}
-                >
-                  <option disabled value="">
-                    Select category
-                  </option>
+                <select className={inputClassName} {...register("category")}>
                   {shopCategories.map((category) => (
                     <option key={category.slug} value={category.slug}>
                       {category.name}
                     </option>
                   ))}
                 </select>
+                <FormFieldError message={errors.category?.message} />
               </label>
               <label className="text-sm font-medium text-charcoal">
                 Inventory
                 <input
                   className={inputClassName}
-                  defaultValue={product?.stock}
                   min="0"
                   type="number"
+                  {...register("stock", { valueAsNumber: true })}
                 />
+                <FormFieldError message={errors.stock?.message} />
               </label>
               <label className="text-sm font-medium text-charcoal">
                 Tags
                 <input
                   className={inputClassName}
-                  defaultValue={product?.tags.join(", ")}
                   placeholder="heritage, handwoven"
-                  type="text"
+                  {...register("tags")}
                 />
+                <FormFieldError message={errors.tags?.message} />
               </label>
             </div>
           </DashboardCard>
 
-          <DashboardCard title="Merchandising">
+          <DashboardCard title="Visibility">
             <div className="space-y-3">
               {[
-                ["Featured product", product?.featured],
-                ["Best seller", product?.bestSeller],
-                ["New arrival", product?.newArrival],
-              ].map(([label, checked]) => (
+                ["active", "Active product"],
+                ["featured", "Featured product"],
+                ["bestSeller", "Best seller"],
+                ["newArrival", "New arrival"],
+              ].map(([field, label]) => (
                 <label
                   className="flex items-center justify-between gap-4 rounded-md border border-maroon/10 bg-background px-4 py-3 text-sm font-medium text-charcoal"
-                  key={String(label)}
+                  key={field}
                 >
-                  {String(label)}
+                  {label}
                   <input
                     className="h-4 w-4 accent-maroon"
-                    defaultChecked={Boolean(checked)}
                     type="checkbox"
+                    {...register(
+                      field as
+                        | "active"
+                        | "bestSeller"
+                        | "featured"
+                        | "newArrival",
+                    )}
                   />
                 </label>
               ))}
