@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 interface PaymentMethodCardProps {
   description: string;
+  disabled?: boolean;
   id: string;
   name: string;
   onSelect?: (id: string) => void;
@@ -12,13 +13,14 @@ interface PaymentMethodCardProps {
 
 export function PaymentMethodCard({
   description,
+  disabled = false,
   id,
   name,
   onSelect,
   selected = false,
 }: PaymentMethodCardProps) {
   return (
-    <label className="block cursor-pointer">
+    <label className={disabled ? "block cursor-not-allowed opacity-60" : "block cursor-pointer"}>
       <Card
         className={cn(
           "flex items-start gap-4 p-5 transition",
@@ -28,6 +30,7 @@ export function PaymentMethodCard({
         <input
           checked={selected}
           className="mt-1 h-4 w-4 accent-maroon"
+          disabled={disabled}
           name="payment-method"
           onChange={() => onSelect?.(id)}
           type="radio"

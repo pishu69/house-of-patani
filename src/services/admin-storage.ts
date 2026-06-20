@@ -5,7 +5,15 @@ import {
 import { shopCategories } from "@/data/categories";
 import { products } from "@/data/products";
 import type { StoreSettings } from "@/types/admin.types";
-import type { CouponRow, OrderRow } from "@/types/database.types";
+import type {
+  CouponRow,
+  OrderItemRow,
+  OrderRow,
+} from "@/types/database.types";
+import type {
+  CreateGuestOrderInput,
+  OrderConfirmation,
+} from "@/types/order.types";
 import type {
   CatalogProduct,
   ProductInput,
@@ -86,6 +94,16 @@ function createId(prefix: string) {
   return `${prefix}-${randomId}`;
 }
 
+function createOrderNumber() {
+  const date = new Date();
+  const datePart = [
+    String(date.getFullYear()).slice(-2),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("");
+  return `HOP-${datePart}-${String(Date.now()).slice(-5)}`;
+}
+
 export const adminStorage = {
   categories: {
     list() {
@@ -127,6 +145,29 @@ export const adminStorage = {
       const remaining = { ...current };
       delete remaining[productId];
       writeValue("product-media", remaining);
+    },
+  },
+  productOverrides: {
+    get(productId: string) {
+      return readValue<Record<string, Partial<CatalogProduct>>>(
+        "product-overrides",
+        {},
+      )[productId];
+    },
+    set(productId: string, input: Partial<CatalogProduct>) {
+      const current = readValue<Record<string, Partial<CatalogProduct>>>(
+        "product-overrides",
+        {},
+      );
+      const next = {
+        ...(current[productId] ?? {}),
+        ...input,
+      };
+      writeValue("product-overrides", {
+        ...current,
+        [productId]: next,
+      });
+      return next;
     },
   },
   products: {
@@ -216,6 +257,106 @@ export const adminStorage = {
 
       writeValue("orders", next);
       return updated;
+    },
+    create(
+      input: CreateGuestOrderInput,
+      catalog: CatalogProduct[],
+      shipping: number,
+    ): OrderConfirmation {
+      const now = new Date().toISOString();
+      const orderId = createId("order");
+      const orderNumber = createOrderNumber();
+      const orderItems: OrderItemRow[] = input.items.map((item) => {
+        const product = catalog.find(
+          (catalogProduct) =>
+            catalogProduct.id === item.productId ||
+            catalogProduct.sku === item.sku,
+        );
+
+        if (!product || !product.active || product.stock < item.quantity) {
+          throw new Error("PRODUCT_UNAVAILABLE");
+        }
+
+        return {
+          id: createId("order-item"),
+          order_id: orderId,
+          price: product.price,
+          product_id: product.id,
+          product_image: product.images[0] ?? null,
+          product_name: product.name,
+          quantity: item.quantity,
+          total: product.price * item.quantity,
+        };
+      });
+      const subtotal = orderItems.reduce(
+        (total, item) => total + item.total,
+        0,
+      );
+      const order: OrderRow = {
+        created_at: now,
+        customer_email: input.customerEmail.toLowerCase(),
+        customer_id: null,
+        customer_name: input.customerName,
+        customer_phone: input.customerPhone,
+        discount: 0,
+        id: orderId,
+        notes: input.address.landmark || null,
+        order_number: orderNumber,
+        order_status: "pending",
+        payment_method: "cod",
+        payment_status: "pending",
+        shipping,
+        shipping_address: {
+          addressLine1: input.address.addressLine1,
+          addressLine2: input.address.addressLine2,
+          city: input.address.city,
+          country: input.address.country,
+          landmark: input.address.landmark,
+          pincode: input.address.pincode,
+          state: input.address.state,
+        },
+        subtotal,
+        total: subtotal + shipping,
+        updated_at: now,
+      };
+
+      writeValue("orders", [order, ...this.list()]);
+      this.saveConfirmation({ items: orderItems, order });
+      catalog.forEach((product) => {
+        const orderedItem = input.items.find(
+          (item) =>
+            item.productId === product.id || item.sku === product.sku,
+        );
+        if (orderedItem) {
+          adminStorage.products.update(product.id, {
+            stock: product.stock - orderedItem.quantity,
+          });
+          adminStorage.productOverrides.set(product.id, {
+            stock: product.stock - orderedItem.quantity,
+          });
+        }
+      });
+
+      return { items: orderItems, order };
+    },
+    saveConfirmation(confirmation: OrderConfirmation) {
+      const confirmations = readValue<Record<string, OrderConfirmation>>(
+        "order-confirmations",
+        {},
+      );
+      writeValue("order-confirmations", {
+        ...confirmations,
+        [confirmation.order.order_number]: confirmation,
+      });
+      return confirmation;
+    },
+    getConfirmation(orderNumber: string) {
+      return (
+        readValue<Record<string, OrderConfirmation>>(
+          "order-confirmations",
+          {},
+        )[orderNumber] ?? null
+      );
     },
   },
   coupons: {

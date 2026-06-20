@@ -50,6 +50,15 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: ROUTES.ORDER_CONFIRMATION,
+        lazy: async () => {
+          const { OrderConfirmationPage } = await import(
+            "@/pages/OrderConfirmationPage"
+          );
+          return { Component: OrderConfirmationPage };
+        },
+      },
+      {
         path: ROUTES.ABOUT,
         lazy: async () => {
           const { AboutPage } = await import("@/pages/AboutPage");

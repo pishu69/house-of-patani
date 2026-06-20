@@ -27,7 +27,14 @@ export type {
   SettingRow,
   WishlistRow,
 } from "@/types/database.types";
-export type { Order, OrderItem } from "@/types/order.types";
+export type {
+  CheckoutAddress,
+  CheckoutOrderItem,
+  CreateGuestOrderInput,
+  Order,
+  OrderConfirmation,
+  OrderItem,
+} from "@/types/order.types";
 export type {
   CatalogProduct,
   Product,

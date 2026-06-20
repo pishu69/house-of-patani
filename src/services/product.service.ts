@@ -35,6 +35,7 @@ function mapProduct(
       .list()
       .find((product) => product.id === row.id || product.slug === row.slug) ??
     mockProducts.find((product) => product.slug === row.slug);
+  const override = adminStorage.productOverrides.get(row.id);
   const categorySlug = row.category_id
     ? categories.get(row.category_id)?.slug
     : undefined;
@@ -62,25 +63,29 @@ function mapProduct(
   }
 
   return {
-    active: row.active,
-    bestSeller: row.best_seller,
+    active: override?.active ?? row.active,
+    bestSeller: override?.bestSeller ?? row.best_seller,
     category: categorySlug,
     createdAt: row.created_at,
-    description: row.short_description ?? row.description ?? "",
-    featured: row.featured,
+    description:
+      override?.description ??
+      row.short_description ??
+      row.description ??
+      "",
+    featured: override?.featured ?? row.featured,
     id: row.id,
     images: resolvedMedia.map((image) => image.url),
     media: resolvedMedia,
-    name: row.name,
-    newArrival: row.new_arrival,
-    originalPrice: row.original_price,
-    price: row.price,
+    name: override?.name ?? row.name,
+    newArrival: override?.newArrival ?? row.new_arrival,
+    originalPrice: override?.originalPrice ?? row.original_price,
+    price: override?.price ?? row.price,
     rating: row.rating,
     reviewCount: row.review_count,
-    sku: row.sku,
-    slug: row.slug,
-    stock: row.stock,
-    tags: row.tags,
+    sku: override?.sku ?? row.sku,
+    slug: override?.slug ?? row.slug,
+    stock: override?.stock ?? row.stock,
+    tags: override?.tags ?? row.tags,
   };
 }
 

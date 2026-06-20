@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface ShippingMethodCardProps {
   description: string;
+  disabled?: boolean;
   id: string;
   name: string;
   onSelect?: (id: string) => void;
@@ -14,6 +15,7 @@ interface ShippingMethodCardProps {
 
 export function ShippingMethodCard({
   description,
+  disabled = false,
   id,
   name,
   onSelect,
@@ -21,7 +23,7 @@ export function ShippingMethodCard({
   selected = false,
 }: ShippingMethodCardProps) {
   return (
-    <label className="block cursor-pointer">
+    <label className={disabled ? "block cursor-not-allowed opacity-60" : "block cursor-pointer"}>
       <Card
         className={cn(
           "flex items-start gap-4 p-5 transition",
@@ -31,6 +33,7 @@ export function ShippingMethodCard({
         <input
           checked={selected}
           className="mt-1 h-4 w-4 accent-maroon"
+          disabled={disabled}
           name="shipping-method"
           onChange={() => onSelect?.(id)}
           type="radio"

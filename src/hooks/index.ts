@@ -14,6 +14,10 @@ export {
 } from "@/hooks/useCustomers";
 export { couponQueryKeys, useCoupons } from "@/hooks/useCoupons";
 export { orderQueryKeys, useOrders } from "@/hooks/useOrders";
+export {
+  orderConfirmationQueryKeys,
+  useOrderConfirmation,
+} from "@/hooks/useOrderConfirmation";
 export { useProductBySlug } from "@/hooks/useProductBySlug";
 export {
   productQueryKeys,
