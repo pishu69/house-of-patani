@@ -1,14 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImageIcon, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
   AdminSourceBadge,
+  CategoryMediaManager,
   DashboardCard,
   FormFieldError,
   PageTitle,
+  SingleImageUploader,
 } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 import { settingsQueryKeys, useSettings } from "@/hooks";
@@ -31,7 +33,10 @@ const defaults: SettingsFormValues = {
   facebook: "",
   freeShippingThreshold: 0,
   homepageBanner: "",
+  homepageBannerPath: "",
   instagram: "",
+  logoPath: "",
+  logoUrl: "",
   razorpayEnabled: false,
   shippingCharge: 0,
   storeName: "",
@@ -47,7 +52,13 @@ export function SettingsPage() {
     register,
     reset,
     setError,
+    setValue,
+    watch,
   } = useForm<SettingsFormValues>({ defaultValues: defaults });
+  const homepageBanner = watch("homepageBanner");
+  const homepageBannerPath = watch("homepageBannerPath");
+  const logoUrl = watch("logoUrl");
+  const logoPath = watch("logoPath");
 
   useEffect(() => {
     if (settingsQuery.data?.data) reset(settingsQuery.data.data);
@@ -216,25 +227,56 @@ export function SettingsPage() {
 
         <DashboardCard
           className="xl:col-span-2"
-          description="URL placeholder only; uploads will arrive in Phase 8."
+          description="The main image shown behind the homepage introduction."
           title="Homepage banner"
         >
-          <label className="text-sm font-medium text-charcoal">
-            Banner image URL
-            <div className="relative">
-              <ImageIcon
-                aria-hidden="true"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gold"
-                size={18}
-              />
-              <input
-                className={`${inputClassName} pl-10`}
-                placeholder="https://..."
-                {...register("homepageBanner")}
-              />
-            </div>
-            <FormFieldError message={errors.homepageBanner?.message} />
-          </label>
+          <SingleImageUploader
+            alt="Homepage heritage banner"
+            bucket="banner-images"
+            folder="homepage"
+            label="Upload homepage banner"
+            onChange={(url, path) => {
+              setValue("homepageBanner", url, { shouldDirty: true });
+              setValue("homepageBannerPath", path ?? "", {
+                shouldDirty: true,
+              });
+            }}
+            path={homepageBannerPath || null}
+            url={homepageBanner}
+          />
+          <input type="hidden" {...register("homepageBanner")} />
+          <input type="hidden" {...register("homepageBannerPath")} />
+          <FormFieldError message={errors.homepageBanner?.message} />
+        </DashboardCard>
+
+        <DashboardCard
+          className="xl:col-span-2"
+          description="Optional store mark for future branded surfaces."
+          title="Store logo"
+        >
+          <SingleImageUploader
+            alt="House of Patani logo"
+            bucket="store-assets"
+            folder="logo"
+            label="Upload store logo"
+            onChange={(url, path) => {
+              setValue("logoUrl", url, { shouldDirty: true });
+              setValue("logoPath", path ?? "", { shouldDirty: true });
+            }}
+            path={logoPath || null}
+            url={logoUrl}
+          />
+          <input type="hidden" {...register("logoUrl")} />
+          <input type="hidden" {...register("logoPath")} />
+          <FormFieldError message={errors.logoUrl?.message} />
+        </DashboardCard>
+
+        <DashboardCard
+          className="xl:col-span-2"
+          description="Artwork used by category cards across the storefront."
+          title="Category images"
+        >
+          <CategoryMediaManager />
         </DashboardCard>
       </div>
     </form>

@@ -2,15 +2,23 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
+import { useSettings } from "@/hooks";
+
+const DEFAULT_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=88";
 
 export function HeroSection() {
+  const settingsQuery = useSettings();
+  const heroImage =
+    settingsQuery.data?.data.homepageBanner || DEFAULT_HERO_IMAGE;
+
   return (
     <section className="relative flex min-h-[calc(82svh-5rem)] items-end overflow-hidden bg-charcoal sm:min-h-[calc(86svh-5rem)]">
       <img
         alt="Handcrafted heritage textile in warm maroon and gold tones"
         className="absolute inset-0 h-full w-full object-cover object-center"
         fetchPriority="high"
-        src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=88"
+        src={heroImage}
       />
       <div className="absolute inset-0 bg-charcoal/60" />
 

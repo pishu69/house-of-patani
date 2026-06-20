@@ -131,6 +131,15 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
         Date.UTC(2026, 5, 15 - sequence * 3),
       ).toISOString();
 
+      const media = categoryImages[category].map((image, imageIndex) => ({
+        altText: `${seed.name} view ${imageIndex + 1}`,
+        id: `media-${sequence}-${imageIndex + 1}`,
+        isPrimary: imageIndex === 0,
+        position: imageIndex,
+        storagePath: null,
+        url: `${image}&sig=${sequence}-${imageIndex}`,
+      }));
+
       return {
         active: true,
         bestSeller: seed.bestSeller ?? false,
@@ -139,9 +148,8 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
         description: seed.description,
         featured: seed.featured ?? false,
         id: `hop-${String(sequence).padStart(3, "0")}`,
-        images: categoryImages[category].map(
-          (image, imageIndex) => `${image}&sig=${sequence}-${imageIndex}`,
-        ),
+        images: media.map((image) => image.url),
+        media,
         name: seed.name,
         newArrival: seed.newArrival ?? false,
         originalPrice: seed.originalPrice,

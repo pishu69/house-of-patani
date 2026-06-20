@@ -2,6 +2,7 @@ import type { ProductCategory } from "@/types/product.types";
 
 export interface ShopCategory {
   description: string;
+  imagePath: string | null;
   imageUrl: string;
   name: string;
   slug: ProductCategory;
@@ -10,6 +11,7 @@ export interface ShopCategory {
 export const shopCategories: ShopCategory[] = [
   {
     description: "Handwoven silhouettes shaped by Indian textile traditions.",
+    imagePath: null,
     imageUrl:
       "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=82",
     name: "Clothing",
@@ -17,6 +19,7 @@ export const shopCategories: ShopCategory[] = [
   },
   {
     description: "Quiet statement pieces in silver, brass, and stone.",
+    imagePath: null,
     imageUrl:
       "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1000&q=82",
     name: "Jewelry",
@@ -24,6 +27,7 @@ export const shopCategories: ShopCategory[] = [
   },
   {
     description: "Objects made slowly through carving, casting, and weaving.",
+    imagePath: null,
     imageUrl:
       "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1000&q=82",
     name: "Handicrafts",
@@ -31,6 +35,7 @@ export const shopCategories: ShopCategory[] = [
   },
   {
     description: "Warm, considered accents for rooms with a sense of memory.",
+    imagePath: null,
     imageUrl:
       "https://images.unsplash.com/photo-1602872030490-4a484a7b3ba6?auto=format&fit=crop&w=1000&q=82",
     name: "Home Decor",
@@ -38,6 +43,7 @@ export const shopCategories: ShopCategory[] = [
   },
   {
     description: "Art, culture, food, and craft stories worth keeping close.",
+    imagePath: null,
     imageUrl:
       "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=1000&q=82",
     name: "Books",
@@ -45,6 +51,7 @@ export const shopCategories: ShopCategory[] = [
   },
   {
     description: "Finishing pieces with material depth and everyday ease.",
+    imagePath: null,
     imageUrl:
       "https://images.unsplash.com/photo-1523779105320-d1cd346ff52b?auto=format&fit=crop&w=1000&q=82",
     name: "Accessories",

@@ -59,6 +59,21 @@ export const productFormSchema = z
 
 export type ProductFormValues = z.input<typeof productFormSchema>;
 
+export const productMediaSchema = z.array(
+  z.object({
+    altText: z
+      .string()
+      .trim()
+      .min(2, "Every product image needs descriptive alt text.")
+      .max(160, "Image alt text must be 160 characters or fewer."),
+    id: z.string().min(1),
+    isPrimary: z.boolean(),
+    position: z.number().int().min(0),
+    storagePath: z.string().nullable(),
+    url: z.string().min(1),
+  }),
+);
+
 export const couponFormSchema = z
   .object({
     active: z.boolean(),
@@ -119,10 +134,17 @@ export const settingsFormSchema = z
       .trim()
       .url("Enter a valid banner URL.")
       .or(z.literal("")),
+    homepageBannerPath: z.string(),
     instagram: z
       .string()
       .trim()
       .url("Enter a valid Instagram URL.")
+      .or(z.literal("")),
+    logoPath: z.string(),
+    logoUrl: z
+      .string()
+      .trim()
+      .url("Enter a valid logo URL.")
       .or(z.literal("")),
     razorpayEnabled: z.boolean(),
     shippingCharge: z

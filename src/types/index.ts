@@ -33,6 +33,7 @@ export type {
   Product,
   ProductCategory,
   ProductInput,
+  ProductMedia,
 } from "@/types/product.types";
 export type { ProductReview, Review } from "@/types/review.types";
 export type { Setting } from "@/types/setting.types";

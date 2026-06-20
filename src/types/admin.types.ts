@@ -5,7 +5,10 @@ export interface StoreSettings {
   facebook: string;
   freeShippingThreshold: number;
   homepageBanner: string;
+  homepageBannerPath: string;
   instagram: string;
+  logoPath: string;
+  logoUrl: string;
   razorpayEnabled: boolean;
   shippingCharge: number;
   storeName: string;

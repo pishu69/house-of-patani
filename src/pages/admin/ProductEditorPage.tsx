@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImageIcon, RefreshCw, Save } from "lucide-react";
-import { useEffect } from "react";
+import { RefreshCw, Save } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import {
   EmptyAdminState,
   FormFieldError,
   PageTitle,
+  ProductMediaManager,
 } from "@/components/admin";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,15 @@ import { shopCategories } from "@/data/categories";
 import { productQueryKeys, useProducts } from "@/hooks";
 import {
   productFormSchema,
+  productMediaSchema,
   type ProductFormValues,
 } from "@/lib/admin-schemas";
 import { applyZodErrors } from "@/lib/form-validation";
-import { productService } from "@/services";
-import type { ProductInput } from "@/types/product.types";
+import { productImageService, productService } from "@/services";
+import type {
+  ProductInput,
+  ProductMedia,
+} from "@/types/product.types";
 import { generateSlug } from "@/utils";
 
 const inputClassName =
@@ -52,6 +57,8 @@ export function ProductEditorPage() {
   const productsQuery = useProducts();
   const isEditing = Boolean(id);
   const product = productsQuery.data?.data.find((item) => item.id === id);
+  const [media, setMedia] = useState<ProductMedia[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const {
     formState: { errors },
     handleSubmit,
@@ -82,6 +89,7 @@ export function ProductEditorPage() {
       stock: product.stock,
       tags: product.tags.join(", "),
     });
+    setMedia(product.media);
   }, [product, reset]);
 
   useEffect(() => {
@@ -91,14 +99,39 @@ export function ProductEditorPage() {
   }, [isEditing, name, setValue, slug]);
 
   const saveMutation = useMutation({
-    mutationFn: (input: ProductInput) =>
-      isEditing && id
-        ? productService.update(id, input)
-        : productService.create(input),
+    mutationFn: async ({
+      input,
+      productMedia,
+    }: {
+      input: ProductInput;
+      productMedia: ProductMedia[];
+    }) => {
+      const productResponse =
+        isEditing && id
+          ? await productService.update(id, input)
+          : await productService.create(input);
+      const savedProduct = productResponse.data;
+
+      if (!savedProduct) {
+        throw new Error("PRODUCT_SAVE_FAILED");
+      }
+
+      const imageResponse = await productImageService.replaceAll(
+        savedProduct.id,
+        productMedia,
+      );
+
+      return {
+        product: productResponse,
+        images: imageResponse,
+      };
+    },
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({ queryKey: productQueryKeys.all });
       toast.success(isEditing ? "Product updated." : "Product created.", {
-        description: response.warning?.message,
+        description:
+          response.product.warning?.message ??
+          response.images.warning?.message,
       });
       navigate("/admin/products");
     },
@@ -112,6 +145,12 @@ export function ProductEditorPage() {
 
     if (!result.success) {
       applyZodErrors(result.error.issues, setError);
+      return;
+    }
+
+    const mediaResult = productMediaSchema.safeParse(media);
+    if (!mediaResult.success) {
+      toast.error(mediaResult.error.issues[0]?.message ?? "Check product images.");
       return;
     }
 
@@ -135,12 +174,15 @@ export function ProductEditorPage() {
     }
 
     saveMutation.mutate({
-      ...result.data,
-      sku: result.data.sku.toUpperCase(),
-      tags: result.data.tags
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean),
+      input: {
+        ...result.data,
+        sku: result.data.sku.toUpperCase(),
+        tags: result.data.tags
+          .split(",")
+          .map((tag) => tag.trim().toLowerCase())
+          .filter(Boolean),
+      },
+      productMedia: mediaResult.data,
     });
   }
 
@@ -184,7 +226,10 @@ export function ProductEditorPage() {
             >
               Cancel
             </Link>
-            <Button disabled={saveMutation.isPending} type="submit">
+            <Button
+              disabled={saveMutation.isPending || isUploading}
+              type="submit"
+            >
               <Save aria-hidden="true" size={17} />
               {saveMutation.isPending ? "Saving..." : "Save product"}
             </Button>
@@ -272,18 +317,17 @@ export function ProductEditorPage() {
           </DashboardCard>
 
           <DashboardCard
-            description="Image uploads remain reserved for Phase 8."
+            description="Upload, describe, order, and choose the primary image."
             title="Media"
           >
-            <div className="flex min-h-44 flex-col items-center justify-center rounded-md border border-dashed border-maroon/20 bg-background p-6 text-center">
-              <ImageIcon aria-hidden="true" className="text-gold" size={28} />
-              <p className="mt-3 text-sm font-semibold text-charcoal">
-                Product media workspace
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Existing storefront images remain unchanged.
-              </p>
-            </div>
+            <ProductMediaManager
+              images={media}
+              isUploading={isUploading}
+              onChange={setMedia}
+              onUploadingChange={setIsUploading}
+              productId={id}
+              productName={name}
+            />
           </DashboardCard>
         </div>
 

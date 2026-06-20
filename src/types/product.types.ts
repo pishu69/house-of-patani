@@ -17,6 +17,15 @@ export type ProductCategory =
   | "books"
   | "accessories";
 
+export interface ProductMedia {
+  altText: string;
+  id: string;
+  isPrimary: boolean;
+  position: number;
+  storagePath: string | null;
+  url: string;
+}
+
 export interface CatalogProduct {
   active: boolean;
   bestSeller: boolean;
@@ -26,6 +35,7 @@ export interface CatalogProduct {
   featured: boolean;
   id: string;
   images: string[];
+  media: ProductMedia[];
   name: string;
   newArrival: boolean;
   originalPrice: number;

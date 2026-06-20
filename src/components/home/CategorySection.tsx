@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { CategoryCard } from "@/components/home/CategoryCard";
-import { categories } from "@/constants/mock-data";
 import { ROUTES } from "@/constants/routes";
+import { useCategories } from "@/hooks";
+import { shopCategories } from "@/data/categories";
 
 export function CategorySection() {
+  const categoriesQuery = useCategories();
+  const categories = categoriesQuery.data?.data ?? shopCategories;
+
   return (
     <section
       className="scroll-mt-24 bg-background py-16 sm:py-20 lg:py-24"

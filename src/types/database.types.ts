@@ -24,6 +24,7 @@ export interface CategoryRow {
   created_at: string;
   description: string | null;
   id: string;
+  image_path: string | null;
   image_url: string | null;
   name: string;
   slug: string;
@@ -57,8 +58,10 @@ export interface ProductImageRow {
   created_at: string;
   id: string;
   image_url: string;
+  is_primary: boolean;
+  position: number;
   product_id: string;
-  sort_order: number;
+  storage_path: string | null;
 }
 
 export interface CustomerRow {
@@ -164,8 +167,10 @@ export interface BannerRow {
   created_at: string;
   id: string;
   image_url: string;
+  image_path: string | null;
   link_url: string | null;
   mobile_image_url: string | null;
+  mobile_image_path: string | null;
   position: string;
   sort_order: number;
   subtitle: string | null;

@@ -5,6 +5,7 @@ export { customerService } from "@/services/customer.service";
 export { orderService } from "@/services/order.service";
 export { paymentService } from "@/services/payment.service";
 export { productService } from "@/services/product.service";
+export { productImageService } from "@/services/product-image.service";
 export { reviewService } from "@/services/review.service";
 export { settingService } from "@/services/setting.service";
 export { storageService } from "@/services/storage.service";

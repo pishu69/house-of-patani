@@ -9,6 +9,7 @@ import {
   defaultStoreSettings,
 } from "@/services/admin-storage";
 import { fallbackAfterError } from "@/services/service.utils";
+import { storageService } from "@/services/storage.service";
 import type { StoreSettings } from "@/types/admin.types";
 import type { Json } from "@/types/database.types";
 
@@ -22,7 +23,10 @@ function toJson(settings: StoreSettings): Json {
     facebook: settings.facebook,
     freeShippingThreshold: settings.freeShippingThreshold,
     homepageBanner: settings.homepageBanner,
+    homepageBannerPath: settings.homepageBannerPath,
     instagram: settings.instagram,
+    logoPath: settings.logoPath,
+    logoUrl: settings.logoUrl,
     razorpayEnabled: settings.razorpayEnabled,
     shippingCharge: settings.shippingCharge,
     storeName: settings.storeName,
@@ -60,10 +64,22 @@ function fromJson(value: Json): StoreSettings {
       typeof value.homepageBanner === "string"
         ? value.homepageBanner
         : defaultStoreSettings.homepageBanner,
+    homepageBannerPath:
+      typeof value.homepageBannerPath === "string"
+        ? value.homepageBannerPath
+        : defaultStoreSettings.homepageBannerPath,
     instagram:
       typeof value.instagram === "string"
         ? value.instagram
         : defaultStoreSettings.instagram,
+    logoPath:
+      typeof value.logoPath === "string"
+        ? value.logoPath
+        : defaultStoreSettings.logoPath,
+    logoUrl:
+      typeof value.logoUrl === "string"
+        ? value.logoUrl
+        : defaultStoreSettings.logoUrl,
     razorpayEnabled:
       typeof value.razorpayEnabled === "boolean"
         ? value.razorpayEnabled
@@ -85,8 +101,25 @@ function fromJson(value: Json): StoreSettings {
 
 export const settingService = {
   async get(): Promise<ServiceResponse<StoreSettings>> {
-    if (!supabase) {
-      return mockResponse(adminStorage.settings.get());
+    const localSettings = adminStorage.settings.get();
+
+    if (
+      !supabase ||
+      localSettings.homepageBannerPath.startsWith("local/") ||
+      localSettings.logoPath.startsWith("local/")
+    ) {
+      const settings = localSettings;
+      return mockResponse({
+        ...settings,
+        homepageBanner: await storageService.resolveImageUrl(
+          settings.homepageBanner,
+          settings.homepageBannerPath || null,
+        ),
+        logoUrl: await storageService.resolveImageUrl(
+          settings.logoUrl,
+          settings.logoPath || null,
+        ),
+      });
     }
 
     try {
@@ -115,15 +148,30 @@ export const settingService = {
   async update(
     input: StoreSettings,
   ): Promise<ServiceResponse<StoreSettings>> {
-    if (!supabase) {
-      return mockResponse(adminStorage.settings.update(input));
+    const storedInput = {
+      ...input,
+      homepageBanner: input.homepageBannerPath.startsWith("local/")
+        ? input.homepageBannerPath
+        : input.homepageBanner,
+      logoUrl: input.logoPath.startsWith("local/")
+        ? input.logoPath
+        : input.logoUrl,
+    };
+
+    if (
+      !supabase ||
+      input.homepageBannerPath.startsWith("local/") ||
+      input.logoPath.startsWith("local/")
+    ) {
+      adminStorage.settings.update(storedInput);
+      return mockResponse(input);
     }
 
     try {
       const { error } = await supabase.from("settings").upsert(
         {
           key: STORE_SETTINGS_KEY,
-          value: toJson(input),
+          value: toJson(storedInput),
         },
         { onConflict: "key" },
       );
@@ -132,7 +180,7 @@ export const settingService = {
       return supabaseResponse(input);
     } catch (error) {
       return fallbackAfterError(
-        adminStorage.settings.update(input),
+        adminStorage.settings.update(storedInput),
         error,
         "The settings could not be saved to the database, so they were kept locally.",
       );

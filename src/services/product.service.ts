@@ -3,10 +3,12 @@ import { products as mockProducts } from "@/data/products";
 import {
   mockResponse,
   supabaseResponse,
+  toSafeError,
   type ServiceResponse,
 } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { adminStorage } from "@/services/admin-storage";
+import { storageService } from "@/services/storage.service";
 import { fallbackAfterError } from "@/services/service.utils";
 import type {
   CategoryRow,
@@ -28,14 +30,32 @@ function mapProduct(
   categories: Map<string, CategoryRow>,
   images: ProductImageRow[],
 ): CatalogProduct | null {
-  const fallback = mockProducts.find((product) => product.slug === row.slug);
+  const fallback =
+    adminStorage.products
+      .list()
+      .find((product) => product.id === row.id || product.slug === row.slug) ??
+    mockProducts.find((product) => product.slug === row.slug);
   const categorySlug = row.category_id
     ? categories.get(row.category_id)?.slug
     : undefined;
   const productImages = images
     .filter((image) => image.product_id === row.id)
-    .sort((left, right) => left.sort_order - right.sort_order)
-    .map((image) => image.image_url);
+    .sort(
+      (left, right) =>
+        Number(right.is_primary) - Number(left.is_primary) ||
+        left.position - right.position,
+    );
+  const media = productImages.map((image) => ({
+    altText: image.alt_text ?? row.name,
+    id: image.id,
+    isPrimary: image.is_primary,
+    position: image.position,
+    storagePath: image.storage_path,
+    url: image.image_url,
+  }));
+  const fallbackMedia =
+    adminStorage.productMedia.get(row.id) ?? fallback?.media ?? [];
+  const resolvedMedia = media.length > 0 ? media : fallbackMedia;
 
   if (!categorySlug || !isProductCategory(categorySlug)) {
     return null;
@@ -49,10 +69,8 @@ function mapProduct(
     description: row.short_description ?? row.description ?? "",
     featured: row.featured,
     id: row.id,
-    images:
-      productImages.length > 0
-        ? productImages
-        : (fallback?.images ?? []),
+    images: resolvedMedia.map((image) => image.url),
+    media: resolvedMedia,
     name: row.name,
     newArrival: row.new_arrival,
     originalPrice: row.original_price,
@@ -86,7 +104,7 @@ async function listFromSupabase(activeOnly: boolean) {
     supabase
       .from("product_images")
       .select("*")
-      .order("sort_order", { ascending: true }),
+      .order("position", { ascending: true }),
   ]);
 
   const error =
@@ -177,6 +195,31 @@ function toDatabaseUpdate(
   };
 }
 
+async function hydrateProduct(product: CatalogProduct) {
+  const media = (
+    await Promise.all(
+    product.media.map(async (image) => ({
+      ...image,
+      url: await storageService.resolveImageUrl(image.url, image.storagePath),
+    })),
+    )
+  ).sort(
+    (left, right) =>
+      Number(right.isPrimary) - Number(left.isPrimary) ||
+      left.position - right.position,
+  );
+
+  return {
+    ...product,
+    images: media.map((image) => image.url),
+    media,
+  };
+}
+
+async function hydrateProducts(products: CatalogProduct[]) {
+  return Promise.all(products.map(hydrateProduct));
+}
+
 export const productService = {
   async getBySlug(
     slug: string,
@@ -187,14 +230,14 @@ export const productService = {
         .find((product) => product.slug === slug && product.active) ?? null;
 
     if (!supabase) {
-      return mockResponse(fallback);
+      return mockResponse(fallback ? await hydrateProduct(fallback) : null);
     }
 
     try {
       const products = await listFromSupabase(true);
       const product = products?.find((item) => item.slug === slug);
       return product !== undefined
-        ? supabaseResponse(product)
+        ? supabaseResponse(await hydrateProduct(product))
         : mockResponse(fallback);
     } catch (error) {
       return fallbackAfterError(
@@ -208,36 +251,48 @@ export const productService = {
   async list(): Promise<ServiceResponse<CatalogProduct[]>> {
     if (!supabase) {
       return mockResponse(
-        adminStorage.products.list().filter((product) => product.active),
+        await hydrateProducts(
+          adminStorage.products.list().filter((product) => product.active),
+        ),
       );
     }
 
     try {
       const products = await listFromSupabase(true);
       return products && products.length > 0
-        ? supabaseResponse(products)
+        ? supabaseResponse(await hydrateProducts(products))
         : mockResponse(mockProducts);
     } catch (error) {
-      return fallbackAfterError(
-        mockProducts,
-        error,
-        "We could not refresh the product catalogue right now.",
+      return mockResponse(
+        await hydrateProducts(
+          adminStorage.products.list().filter((product) => product.active),
+        ),
+        toSafeError(
+          error,
+          "We could not refresh the product catalogue right now.",
+        ),
       );
     }
   },
 
   async listAdmin(): Promise<ServiceResponse<CatalogProduct[]>> {
     if (!supabase) {
-      return mockResponse(adminStorage.products.list());
+      return mockResponse(
+        await hydrateProducts(adminStorage.products.list()),
+      );
     }
 
     try {
-      return supabaseResponse((await listFromSupabase(false)) ?? []);
+      return supabaseResponse(
+        await hydrateProducts((await listFromSupabase(false)) ?? []),
+      );
     } catch (error) {
-      return fallbackAfterError(
-        adminStorage.products.list(),
-        error,
-        "We could not refresh the admin catalogue right now.",
+      return mockResponse(
+        await hydrateProducts(adminStorage.products.list()),
+        toSafeError(
+          error,
+          "We could not refresh the admin catalogue right now.",
+        ),
       );
     }
   },
@@ -268,6 +323,7 @@ export const productService = {
               created_at: data.created_at,
               description: null,
               id: categoryId ?? "",
+              image_path: null,
               image_url: null,
               name: input.category,
               slug: input.category,
@@ -324,11 +380,35 @@ export const productService = {
   },
 
   async remove(id: string): Promise<ServiceResponse<boolean>> {
+    const localMedia =
+      adminStorage.productMedia.get(id) ??
+      adminStorage.products.list().find((item) => item.id === id)?.media ??
+      [];
+    await Promise.all(
+      localMedia.map((image) =>
+        storageService.deleteImage("product-images", image.storagePath),
+      ),
+    );
+    adminStorage.productMedia.remove(id);
+
     if (!supabase) {
       return mockResponse(adminStorage.products.remove(id));
     }
 
     try {
+      const { data: imageRows, error: imageError } = await supabase
+        .from("product_images")
+        .select("storage_path")
+        .eq("product_id", id);
+      if (imageError) throw imageError;
+      await Promise.all(
+        (imageRows ?? []).map((image) =>
+          storageService.deleteImage(
+            "product-images",
+            image.storage_path,
+          ),
+        ),
+      );
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
       return supabaseResponse(true);
