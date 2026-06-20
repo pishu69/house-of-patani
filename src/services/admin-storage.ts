@@ -13,6 +13,7 @@ import type {
 import type {
   CreateGuestOrderInput,
   OrderConfirmation,
+  RazorpayPaymentReference,
 } from "@/types/order.types";
 import type {
   CatalogProduct,
@@ -262,6 +263,7 @@ export const adminStorage = {
       input: CreateGuestOrderInput,
       catalog: CatalogProduct[],
       shipping: number,
+      paymentReference?: RazorpayPaymentReference,
     ): OrderConfirmation {
       const now = new Date().toISOString();
       const orderId = createId("order");
@@ -302,9 +304,13 @@ export const adminStorage = {
         id: orderId,
         notes: input.address.landmark || null,
         order_number: orderNumber,
-        order_status: "pending",
-        payment_method: "cod",
-        payment_status: "pending",
+        order_status: paymentReference ? "confirmed" : "pending",
+        paid_at: paymentReference ? now : null,
+        payment_method: paymentReference ? "razorpay" : "cod",
+        payment_status: paymentReference ? "paid" : "pending",
+        razorpay_order_id: paymentReference?.razorpayOrderId ?? null,
+        razorpay_payment_id: paymentReference?.razorpayPaymentId ?? null,
+        razorpay_signature: paymentReference?.razorpaySignature ?? null,
         shipping,
         shipping_address: {
           addressLine1: input.address.addressLine1,

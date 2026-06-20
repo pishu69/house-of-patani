@@ -21,6 +21,7 @@ export type {
   Json,
   OrderItemRow,
   OrderRow,
+  PaymentIntentRow,
   ProductImageRow,
   ProductRow,
   ReviewRow,
@@ -34,6 +35,7 @@ export type {
   Order,
   OrderConfirmation,
   OrderItem,
+  RazorpayPaymentReference,
 } from "@/types/order.types";
 export type {
   CatalogProduct,
@@ -42,6 +44,14 @@ export type {
   ProductInput,
   ProductMedia,
 } from "@/types/product.types";
+export type {
+  CreatePaymentIntentInput,
+  PaymentIntent,
+  RazorpayCheckoutOptions,
+  RazorpayFailureResponse,
+  RazorpayInstance,
+  RazorpaySuccessResponse,
+} from "@/types/payment.types";
 export type { ProductReview, Review } from "@/types/review.types";
 export type { Setting } from "@/types/setting.types";
 export type { User } from "@/types/user.types";

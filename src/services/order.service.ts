@@ -17,6 +17,7 @@ import type {
 import type {
   CreateGuestOrderInput,
   OrderConfirmation,
+  RazorpayPaymentReference,
 } from "@/types/order.types";
 
 function isOrderRow(value: unknown): value is OrderRow {
@@ -151,6 +152,10 @@ export const orderService = {
     const localFallback = () =>
       adminStorage.orders.create(verifiedInput, catalog, shipping);
 
+    if (input.paymentMethod !== "cod") {
+      throw new Error("Online payment must be verified before order creation.");
+    }
+
     if (!settingsResponse.data.codEnabled) {
       throw new Error("Cash on Delivery is not available right now.");
     }
@@ -191,6 +196,46 @@ export const orderService = {
         "The order could not reach the database, so it was saved safely on this device.",
       );
     }
+  },
+
+  async createPaidGuestOrder(
+    input: CreateGuestOrderInput,
+    paymentReference: RazorpayPaymentReference,
+  ): Promise<ServiceResponse<OrderConfirmation>> {
+    const catalogResponse = await productService.listAdmin();
+    const settingsResponse = await settingService.get();
+    const catalog = catalogResponse.data;
+    const subtotal = input.items.reduce((total, item) => {
+      const product = catalog.find(
+        (candidate) =>
+          candidate.id === item.productId || candidate.sku === item.sku,
+      );
+      if (!product || !product.active || product.stock < item.quantity) {
+        throw new Error("One or more products are unavailable.");
+      }
+      return total + product.price * item.quantity;
+    }, 0);
+    const shipping =
+      subtotal >= settingsResponse.data.freeShippingThreshold
+        ? 0
+        : settingsResponse.data.shippingCharge;
+    const verifiedInput: CreateGuestOrderInput = {
+      ...input,
+      discount: 0,
+      paymentMethod: "razorpay",
+      shipping,
+      subtotal,
+      total: subtotal + shipping,
+    };
+
+    return mockResponse(
+      adminStorage.orders.create(
+        verifiedInput,
+        catalog,
+        shipping,
+        paymentReference,
+      ),
+    );
   },
 
   async getByOrderNumber(

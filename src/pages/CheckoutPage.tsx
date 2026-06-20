@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LockKeyhole, PackageCheck, ShieldCheck } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -26,9 +26,10 @@ import {
   type CheckoutFormValues,
 } from "@/lib/checkout-schema";
 import { applyZodErrors } from "@/lib/form-validation";
-import { orderService } from "@/services";
+import { orderService, paymentService } from "@/services";
 import { useCartStore } from "@/stores/cart.store";
 import type { CartItemView } from "@/types/cart.types";
+import type { CreateGuestOrderInput } from "@/types/order.types";
 import { formatCurrency } from "@/utils";
 
 const defaults: CheckoutFormValues = {
@@ -67,6 +68,7 @@ export function CheckoutPage() {
   const shippingMethod = watch("shippingMethod");
   const settings = settingsQuery.data?.data;
   const catalog = productsQuery.data?.data ?? [];
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const checkoutState = useMemo(() => {
     const unavailable: string[] = [];
@@ -109,23 +111,26 @@ export function CheckoutPage() {
     };
   }, [cartEntries, catalog, settings]);
 
+  async function finishOrder(
+    response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
+  ) {
+    clearCart();
+    closeDrawer();
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: orderQueryKeys.all }),
+      queryClient.invalidateQueries({ queryKey: productQueryKeys.all }),
+    ]);
+    toast.success("Order placed successfully.", {
+      description: response.warning?.message,
+    });
+    navigate(`/order-confirmation/${response.data.order.order_number}`, {
+      replace: true,
+    });
+  }
+
   const placeOrderMutation = useMutation({
     mutationFn: orderService.createGuestOrder,
-    onSuccess: async (response) => {
-      clearCart();
-      closeDrawer();
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: orderQueryKeys.all }),
-        queryClient.invalidateQueries({ queryKey: productQueryKeys.all }),
-      ]);
-      toast.success("Order placed successfully.", {
-        description: response.warning?.message,
-      });
-      navigate(
-        `/order-confirmation/${response.data.order.order_number}`,
-        { replace: true },
-      );
-    },
+    onSuccess: finishOrder,
     onError: (error) => {
       toast.error("Your order could not be placed.", {
         description:
@@ -136,7 +141,7 @@ export function CheckoutPage() {
     },
   });
 
-  function submitCheckout(values: CheckoutFormValues) {
+  async function submitCheckout(values: CheckoutFormValues) {
     const result = checkoutSchema.safeParse(values);
 
     if (!result.success) {
@@ -156,12 +161,7 @@ export function CheckoutPage() {
       return;
     }
 
-    if (result.data.paymentMethod !== "cod") {
-      toast.info("Online payment will be available in Phase 10.");
-      return;
-    }
-
-    placeOrderMutation.mutate({
+    const checkout: CreateGuestOrderInput = {
       address: {
         addressLine1: result.data.addressLine1,
         addressLine2: result.data.addressLine2,
@@ -184,7 +184,94 @@ export function CheckoutPage() {
       shipping: checkoutState.shipping,
       subtotal: checkoutState.subtotal,
       total: checkoutState.total,
-    });
+    };
+
+    if (result.data.paymentMethod === "cod") {
+      placeOrderMutation.mutate(checkout);
+      return;
+    }
+
+    if (!paymentService.isRazorpayConfigured()) {
+      toast.error(
+        "Online payment is not available yet. Please use Cash on Delivery.",
+      );
+      return;
+    }
+
+    if (!settings?.razorpayEnabled) {
+      toast.error("Online payment is currently disabled by the store.");
+      return;
+    }
+
+    if (!paymentService.isRazorpayBackendAvailable()) {
+      toast.error(
+        "Online payment is not available yet. Please use Cash on Delivery.",
+      );
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      const scriptLoaded = await paymentService.loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        throw new Error(
+          "The secure payment window could not load. Please try again or use COD.",
+        );
+      }
+
+      const intentResponse = await paymentService.createPaymentIntent({
+        checkout,
+      });
+      let settled = false;
+      const options = paymentService.createRazorpayOptions({
+        checkout,
+        intent: intentResponse.data,
+        logoUrl: settings.logoUrl || undefined,
+        onDismiss: () => {
+          if (settled) return;
+          setIsProcessingPayment(false);
+          toast.info("Payment cancelled. Your cart is unchanged.");
+        },
+        onSuccess: (paymentResponse) => {
+          settled = true;
+          void paymentService
+            .handleRazorpaySuccess({
+              checkout,
+              intent: intentResponse.data,
+              response: paymentResponse,
+            })
+            .then(finishOrder)
+            .catch((error: unknown) => {
+              setIsProcessingPayment(false);
+              toast.error("Payment verification was not completed.", {
+                description:
+                  error instanceof Error
+                    ? error.message
+                    : "Please contact support before trying another payment.",
+              });
+            });
+        },
+        storeName: settings.storeName,
+      });
+      const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", (response) => {
+        settled = true;
+        setIsProcessingPayment(false);
+        toast.error("Payment was not completed.", {
+          description: paymentService.handleRazorpayFailure(response),
+        });
+      });
+      razorpay.open();
+    } catch (error) {
+      setIsProcessingPayment(false);
+      toast.error("Online payment could not be started.", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please use Cash on Delivery.",
+      });
+    }
   }
 
   if (!productsQuery.isLoading && cartEntries.length === 0) {
@@ -214,6 +301,13 @@ export function CheckoutPage() {
   }
 
   const codEnabled = settings?.codEnabled ?? true;
+  const razorpayKeyConfigured = paymentService.isRazorpayConfigured();
+  const razorpayBackendAvailable =
+    paymentService.isRazorpayBackendAvailable();
+  const razorpayEnabled =
+    razorpayKeyConfigured &&
+    razorpayBackendAvailable &&
+    Boolean(settings?.razorpayEnabled);
   const hasUnavailableItems = checkoutState.unavailable.length > 0;
 
   return (
@@ -373,13 +467,28 @@ export function CheckoutPage() {
                   selected={paymentMethod === "cod" && codEnabled}
                 />
                 <PaymentMethodCard
-                  description="Secure Razorpay payments are coming in Phase 10."
-                  disabled
+                  description={
+                    razorpayEnabled
+                      ? "Pay securely using UPI, cards, netbanking, or supported wallets."
+                      : "Online payment is not available yet. Please use Cash on Delivery."
+                  }
+                  disabled={!razorpayEnabled}
                   id="razorpay"
-                  name="Online payment"
+                  name="Razorpay Online Payment"
+                  onSelect={() =>
+                    setValue("paymentMethod", "razorpay", {
+                      shouldValidate: true,
+                    })
+                  }
                   selected={paymentMethod === "razorpay"}
                 />
               </div>
+              {!razorpayKeyConfigured ? (
+                <p className="mt-4 text-sm text-muted-foreground" role="status">
+                  Online payment is not available yet. Please use Cash on
+                  Delivery.
+                </p>
+              ) : null}
             </section>
 
             {hasUnavailableItems ? (
@@ -396,32 +505,36 @@ export function CheckoutPage() {
             <Button
               disabled={
                 placeOrderMutation.isPending ||
+                isProcessingPayment ||
                 productsQuery.isLoading ||
                 settingsQuery.isLoading ||
                 hasUnavailableItems ||
-                !codEnabled
+                (paymentMethod === "cod" && !codEnabled) ||
+                (paymentMethod === "razorpay" && !razorpayEnabled)
               }
               fullWidth
               size="lg"
               type="submit"
             >
               <LockKeyhole aria-hidden="true" size={18} />
-              {placeOrderMutation.isPending
-                ? "Placing order..."
-                : "Place Cash on Delivery order"}
+              {placeOrderMutation.isPending || isProcessingPayment
+                ? "Processing securely..."
+                : paymentMethod === "razorpay"
+                  ? "Pay securely with Razorpay"
+                  : "Place Cash on Delivery order"}
             </Button>
             <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
               <span className="flex items-center gap-2">
                 <ShieldCheck aria-hidden="true" size={15} />
-                Secure checkout
+                Secure payments
               </span>
               <span className="flex items-center gap-2">
                 <PackageCheck aria-hidden="true" size={15} />
-                Stock verified
+                COD available
               </span>
               <span className="flex items-center gap-2">
                 <LockKeyhole aria-hidden="true" size={15} />
-                Guest checkout
+                No hidden charges
               </span>
             </div>
           </div>

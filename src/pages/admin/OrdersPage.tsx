@@ -66,6 +66,7 @@ export function OrdersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [payment, setPayment] = useState("all");
+  const [paymentMethod, setPaymentMethod] = useState("all");
   const orders = ordersQuery.data?.data ?? [];
 
   const updateMutation = useMutation({
@@ -95,12 +96,14 @@ export function OrdersPage() {
       (order) =>
         (status === "all" || order.order_status === status) &&
         (payment === "all" || order.payment_status === payment) &&
+        (paymentMethod === "all" ||
+          order.payment_method === paymentMethod) &&
         (!normalizedSearch ||
           order.order_number.toLowerCase().includes(normalizedSearch) ||
           order.customer_name.toLowerCase().includes(normalizedSearch) ||
           order.customer_email.toLowerCase().includes(normalizedSearch)),
     );
-  }, [orders, payment, search, status]);
+  }, [orders, payment, paymentMethod, search, status]);
 
   const columns = useMemo<DataTableColumn<OrderRow>[]>(
     () => [
@@ -171,7 +174,7 @@ export function OrdersPage() {
         header: "Payment",
         id: "payment",
         render: (order) => (
-          <div className="space-y-2">
+          <div className="min-w-44 space-y-2">
             <StatusBadge
               label={order.payment_status}
               tone={paymentTone(order.payment_status)}
@@ -196,6 +199,23 @@ export function OrdersPage() {
                 </option>
               ))}
             </select>
+            {order.payment_method === "razorpay" ? (
+              <div className="space-y-0.5 text-xs text-muted-foreground">
+                <p
+                  className="max-w-44 truncate"
+                  title={order.razorpay_payment_id ?? undefined}
+                >
+                  Ref: {order.razorpay_payment_id ?? "Awaiting payment"}
+                </p>
+                {order.paid_at ? (
+                  <p>Paid {formatDate(order.paid_at)}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Payment due on delivery
+              </p>
+            )}
           </div>
         ),
       },
@@ -216,7 +236,7 @@ export function OrdersPage() {
             value={order.payment_method}
           >
             <option value="cod">Cash on delivery</option>
-            <option value="online">Online payment</option>
+            <option value="razorpay">Razorpay</option>
           </select>
         ),
       },
@@ -234,7 +254,7 @@ export function OrdersPage() {
 
       <section
         aria-label="Order filters"
-        className="grid gap-3 rounded-lg border border-maroon/10 bg-card p-4 shadow-lift md:grid-cols-[minmax(15rem,1fr)_12rem_12rem_auto]"
+        className="grid gap-3 rounded-lg border border-maroon/10 bg-card p-4 shadow-lift md:grid-cols-2 xl:grid-cols-[minmax(15rem,1fr)_12rem_12rem_12rem_auto]"
       >
         <SearchInput
           onChange={setSearch}
@@ -264,6 +284,15 @@ export function OrdersPage() {
               {option.label}
             </option>
           ))}
+        </AdminSelect>
+        <AdminSelect
+          label="Filter by payment method"
+          onChange={(event) => setPaymentMethod(event.target.value)}
+          value={paymentMethod}
+        >
+          <option value="all">All payment methods</option>
+          <option value="cod">Cash on delivery</option>
+          <option value="razorpay">Razorpay</option>
         </AdminSelect>
         <span className="self-center text-sm text-muted-foreground md:text-right">
           {filteredOrders.length} orders

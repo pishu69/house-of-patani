@@ -6,7 +6,7 @@ import { Divider } from "@/components/common/Divider";
 import { Loading } from "@/components/common/Loading";
 import { ROUTES } from "@/constants/routes";
 import { useOrderConfirmation, useSettings } from "@/hooks";
-import { formatCurrency } from "@/utils";
+import { formatCurrency, formatDate } from "@/utils";
 
 export function OrderConfirmationPage() {
   const { orderNumber } = useParams();
@@ -41,6 +41,7 @@ export function OrderConfirmationPage() {
   }
 
   const { order, items } = confirmation;
+  const isRazorpay = order.payment_method === "razorpay";
   const supportNumber =
     settingsQuery.data?.data.whatsappNumber.replace(/\D/g, "") ?? "";
   const whatsappUrl = supportNumber
@@ -53,7 +54,11 @@ export function OrderConfirmationPage() {
     <section className="bg-background py-12 sm:py-20">
       <div className="section-shell">
         <SuccessCard
-          description={`Thank you, ${order.customer_name}. Your Cash on Delivery order has been received and will be prepared with care.`}
+          description={
+            isRazorpay
+              ? `Thank you, ${order.customer_name}. Your payment is confirmed and your order will now be prepared with care.`
+              : `Thank you, ${order.customer_name}. Your Cash on Delivery order has been received and will be prepared with care.`
+          }
           orderNumber={order.order_number}
         />
 
@@ -102,10 +107,39 @@ export function OrderConfirmationPage() {
             <dl className="mt-5 space-y-3 text-sm">
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Payment</dt>
-                <dd className="font-semibold uppercase">
-                  {order.payment_method}
+                <dd className="font-semibold">
+                  {isRazorpay ? "Razorpay" : "Cash on Delivery"}
                 </dd>
               </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Payment status</dt>
+                <dd className="font-semibold capitalize">
+                  {order.payment_status}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Order status</dt>
+                <dd className="font-semibold capitalize">
+                  {order.order_status}
+                </dd>
+              </div>
+              {isRazorpay && order.razorpay_payment_id ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">Payment reference</dt>
+                  <dd
+                    className="max-w-40 truncate font-mono text-xs font-semibold"
+                    title={order.razorpay_payment_id}
+                  >
+                    {order.razorpay_payment_id}
+                  </dd>
+                </div>
+              ) : null}
+              {isRazorpay && order.paid_at ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">Paid</dt>
+                  <dd className="font-semibold">{formatDate(order.paid_at)}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Subtotal</dt>
                 <dd className="font-semibold">
@@ -129,8 +163,9 @@ export function OrderConfirmationPage() {
               </span>
             </div>
             <p className="mt-5 text-xs leading-5 text-muted-foreground">
-              Delivery is usually completed within 5-8 business days. Our team
-              will contact you when delivery clarification is needed.
+              {isRazorpay
+                ? "Your payment was received securely. Delivery is usually completed within 5-8 business days."
+                : "Please keep the order total ready for delivery. Delivery is usually completed within 5-8 business days."}
             </p>
           </aside>
         </div>

@@ -101,12 +101,34 @@ export interface OrderRow {
   notes: string | null;
   order_number: string;
   order_status: OrderStatus;
+  paid_at: string | null;
   payment_method: string;
   payment_status: PaymentStatus;
+  razorpay_order_id: string | null;
+  razorpay_payment_id: string | null;
+  razorpay_signature: string | null;
   shipping: number;
   shipping_address: Json;
   subtotal: number;
   total: number;
+  updated_at: string;
+}
+
+export interface PaymentIntentRow {
+  amount: number;
+  created_at: string;
+  currency: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone: string;
+  id: string;
+  items: Json;
+  paid_at: string | null;
+  razorpay_order_id: string | null;
+  razorpay_payment_id: string | null;
+  razorpay_signature: string | null;
+  shipping_address: Json;
+  status: "cancelled" | "created" | "failed" | "paid";
   updated_at: string;
 }
 
@@ -213,6 +235,15 @@ export interface Database {
         };
         Returns: Json;
       };
+      finalize_razorpay_order: {
+        Args: {
+          p_intent_id: string;
+          p_razorpay_order_id: string;
+          p_razorpay_payment_id: string;
+          p_razorpay_signature: string;
+        };
+        Returns: Json;
+      };
     };
     Tables: {
       addresses: TableDefinition<
@@ -250,6 +281,16 @@ export interface Database {
         | "payment_status"
         | "shipping_address"
         | "total"
+      >;
+      payment_intents: TableDefinition<
+        PaymentIntentRow,
+        | "amount"
+        | "currency"
+        | "customer_email"
+        | "customer_name"
+        | "customer_phone"
+        | "items"
+        | "shipping_address"
       >;
       product_images: TableDefinition<
         ProductImageRow,

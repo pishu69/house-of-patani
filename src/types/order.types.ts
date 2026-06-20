@@ -56,3 +56,9 @@ export interface OrderConfirmation {
   items: OrderItemRow[];
   order: OrderRow;
 }
+
+export interface RazorpayPaymentReference {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+}
