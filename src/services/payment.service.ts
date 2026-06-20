@@ -113,7 +113,7 @@ export async function createPaymentIntent(
 
   const { checkout } = input;
   const { data, error } = await supabase.functions.invoke(
-    "razorpay-create-order",
+    "create-razorpay-order",
     {
       body: {
         address: checkout.address,
@@ -208,7 +208,7 @@ export async function handleRazorpaySuccess({
   }
 
   const { data, error } = await supabase.functions.invoke(
-    "razorpay-verify-payment",
+    "verify-razorpay-payment",
     {
       body: {
         intentId: intent.id,
