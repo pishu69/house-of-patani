@@ -1,4 +1,8 @@
 import { motion } from "framer-motion";
+import { createImageSrcSet } from "@/utils/image";
+
+const ARTISAN_IMAGE =
+  "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1100&q=85";
 
 const artisanValues = [
   {
@@ -56,8 +60,11 @@ export function ArtisanSection() {
             <img
               alt="Artisan craft materials arranged in a warm workshop"
               className="aspect-[4/3] w-full object-cover"
+              decoding="async"
               loading="lazy"
-              src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1100&q=85"
+              sizes="(min-width: 1024px) 42vw, 100vw"
+              src={ARTISAN_IMAGE}
+              srcSet={createImageSrcSet(ARTISAN_IMAGE)}
             />
           </motion.div>
         </div>

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { createImageSrcSet } from "@/utils/image";
 
 interface StorySectionProps {
   action?: ReactNode;
@@ -36,8 +37,11 @@ export function StorySection({
         <img
           alt={imageAlt}
           className="aspect-[4/5] h-full w-full object-cover"
+          decoding="async"
           loading="lazy"
+          sizes="(min-width: 1024px) 50vw, 100vw"
           src={imageUrl}
+          srcSet={createImageSrcSet(imageUrl, [540, 768, 1024, 1280])}
         />
       </motion.div>
       <motion.div

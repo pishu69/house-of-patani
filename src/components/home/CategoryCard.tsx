@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import type { CategoryCard as CategoryCardData } from "@/constants/mock-data";
+import { createImageSrcSet } from "@/utils/image";
 
 interface CategoryCardProps {
   category: CategoryCardData;
@@ -24,8 +25,11 @@ function CategoryCardComponent({ category, to }: CategoryCardProps) {
           <img
             alt={category.name}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            decoding="async"
             loading="lazy"
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             src={category.imageUrl}
+            srcSet={createImageSrcSet(category.imageUrl)}
           />
         </div>
         <div className="flex flex-1 items-start justify-between gap-4 p-6">

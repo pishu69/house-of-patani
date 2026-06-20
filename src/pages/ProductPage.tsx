@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { ErrorState } from "@/components/common/ErrorState";
+import { Seo } from "@/components/common/Seo";
 import { DeliveryInformation } from "@/components/product/DeliveryInformation";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
@@ -22,6 +23,7 @@ import {
 } from "@/data/product-experience";
 import { products } from "@/data/products";
 import { showCartMutationToast } from "@/lib/cart-feedback";
+import { createBreadcrumbSchema, absoluteUrl } from "@/lib/seo";
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
 
@@ -32,6 +34,55 @@ export function ProductPage() {
   const addItem = useCartStore((state) => state.addItem);
   const openDrawer = useCartStore((state) => state.openDrawer);
   const product = products.find((item) => item.slug === slug);
+  const productSeoSchemas = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+
+    const categoryName = categoryNameBySlug[product.category];
+
+    return [
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingCount: product.reviewCount,
+          ratingValue: product.rating,
+        },
+        brand: {
+          "@type": "Brand",
+          name: "House of Patani",
+        },
+        category: categoryName,
+        description: product.description,
+        image: product.images.map(absoluteUrl),
+        name: product.name,
+        offers: {
+          "@type": "Offer",
+          availability:
+            product.stock > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+          itemCondition: "https://schema.org/NewCondition",
+          price: product.price,
+          priceCurrency: "INR",
+          url: absoluteUrl(`/product/${product.slug}`),
+        },
+        sku: product.sku,
+        url: absoluteUrl(`/product/${product.slug}`),
+      },
+      createBreadcrumbSchema([
+        { name: "Home", path: ROUTES.HOME },
+        { name: "Shop", path: ROUTES.SHOP },
+        {
+          name: categoryName,
+          path: `${ROUTES.SHOP}?category=${product.category}`,
+        },
+        { name: product.name, path: `/product/${product.slug}` },
+      ]),
+    ];
+  }, [product]);
   const isWishlisted = useWishlistStore((state) =>
     product ? state.productIds.includes(product.id) : false,
   );
@@ -57,22 +108,30 @@ export function ProductPage() {
 
   if (!product) {
     return (
-      <section className="bg-background py-20">
-        <div className="section-shell">
-          <ErrorState
-            action={
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-maroon px-5 text-sm font-semibold text-ivory"
-                to={ROUTES.SHOP}
-              >
-                Return to Shop
-              </Link>
-            }
-            description="This piece is no longer available in the current collection."
-            title="Product not found"
-          />
-        </div>
-      </section>
+      <>
+        <Seo
+          canonicalPath={`/product/${slug ?? ""}`}
+          description="This product is not available in the current House of Patani collection."
+          noIndex
+          title="Product Not Found"
+        />
+        <section className="bg-background py-20">
+          <div className="section-shell">
+            <ErrorState
+              action={
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-maroon px-5 text-sm font-semibold text-ivory"
+                  to={ROUTES.SHOP}
+                >
+                  Return to Shop
+                </Link>
+              }
+              description="This piece is no longer available in the current collection."
+              title="Product not found"
+            />
+          </div>
+        </section>
+      </>
     );
   }
 
@@ -154,7 +213,17 @@ export function ProductPage() {
   };
 
   return (
-    <article className="bg-background">
+    <>
+      <Seo
+        canonicalPath={`/product/${product.slug}`}
+        description={`${product.description} Shop ${product.name} from House of Patani's ${categoryName.toLowerCase()} collection.`}
+        image={product.images[0] ?? "/favicon.svg"}
+        imageAlt={product.name}
+        jsonLd={productSeoSchemas}
+        title={product.name}
+        type="product"
+      />
+      <article className="bg-background">
       <section className="py-8 sm:py-10">
         <div className="section-shell">
           <Breadcrumb
@@ -244,6 +313,7 @@ export function ProductPage() {
           </div>
         </section>
       ) : null}
-    </article>
+      </article>
+    </>
   );
 }

@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { FormFieldError } from "@/components/admin/FormFieldError";
+import { Seo } from "@/components/common/Seo";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,7 +70,14 @@ export function AdminLoginPage() {
   const isLoginUnavailable = !isConfigured && !canUseDemoAdmin;
 
   return (
-    <main className="grid min-h-screen bg-background lg:grid-cols-[minmax(0,0.9fr)_minmax(30rem,1.1fr)]">
+    <>
+      <Seo
+        canonicalPath={ROUTES.ADMIN.LOGIN_PATH}
+        description="Secure administrator access for House of Patani."
+        noIndex
+        title="Admin Login"
+      />
+      <main className="grid min-h-screen bg-background lg:grid-cols-[minmax(0,0.9fr)_minmax(30rem,1.1fr)]">
       <section className="hidden bg-maroon px-12 py-14 text-ivory lg:flex lg:flex-col lg:justify-between">
         <div>
           <p className="font-serif text-3xl text-ivory">House of Patani</p>
@@ -180,6 +188,7 @@ export function AdminLoginPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { useSettings } from "@/hooks";
+import { createImageSrcSet } from "@/utils/image";
 
 const DEFAULT_HERO_IMAGE =
   "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=88";
@@ -17,8 +18,12 @@ export function HeroSection() {
       <img
         alt="Handcrafted heritage textile in warm maroon and gold tones"
         className="absolute inset-0 h-full w-full object-cover object-center"
+        decoding="async"
         fetchPriority="high"
+        loading="eager"
+        sizes="100vw"
         src={heroImage}
+        srcSet={createImageSrcSet(heroImage, [768, 1280, 1800, 2200])}
       />
       <div className="absolute inset-0 bg-charcoal/60" />
 

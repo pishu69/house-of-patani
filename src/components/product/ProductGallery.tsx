@@ -47,6 +47,10 @@ export function ProductGallery({
       return;
     }
 
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsPreviewOpen(false);
@@ -59,6 +63,27 @@ export function ProductGallery({
       if (event.key === "ArrowRight") {
         moveImage(1);
       }
+
+      if (event.key === "Tab" && previewRef.current) {
+        const focusableElements = Array.from(
+          previewRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement?.focus();
+        } else if (
+          !event.shiftKey &&
+          document.activeElement === lastElement
+        ) {
+          event.preventDefault();
+          firstElement?.focus();
+        }
+      }
     };
 
     const previousOverflow = document.body.style.overflow;
@@ -68,6 +93,7 @@ export function ProductGallery({
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus();
     };
   }, [isPreviewOpen, moveImage]);
 

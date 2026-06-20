@@ -15,6 +15,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
 import type { CatalogProduct } from "@/types/product.types";
 import { formatCurrency } from "@/utils";
+import { createImageSrcSet } from "@/utils/image";
 
 interface ProductCardProps {
   isWishlisted?: boolean;
@@ -82,8 +83,11 @@ function ProductCardComponent({
             <img
               alt={product.name}
               className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              decoding="async"
               loading="lazy"
+              sizes="(min-width: 1280px) 24vw, (min-width: 768px) 33vw, 50vw"
               src={imageUrl}
+              srcSet={createImageSrcSet(imageUrl, [360, 540, 720, 900])}
             />
           ) : null}
         </Link>

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
+import { Loading } from "@/components/common/Loading";
 import { AccountLayout } from "@/layouts/AccountLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { MainLayout } from "@/layouts/MainLayout";
@@ -8,6 +9,7 @@ import { MainLayout } from "@/layouts/MainLayout";
 export const router = createBrowserRouter([
   {
     element: <MainLayout />,
+    hydrateFallbackElement: <Loading />,
     children: [
       {
         path: ROUTES.HOME,
@@ -158,6 +160,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    hydrateFallbackElement: <Loading />,
     path: ROUTES.ADMIN.ROOT,
     children: [
       {
@@ -254,6 +257,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    hydrateFallbackElement: <Loading />,
     path: "*",
     lazy: async () => {
       const { NotFoundPage } = await import("@/pages/NotFoundPage");

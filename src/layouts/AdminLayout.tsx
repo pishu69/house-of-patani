@@ -8,6 +8,7 @@ import {
   AdminSidebar,
   AdminTopbar,
 } from "@/components/admin";
+import { Seo } from "@/components/common/Seo";
 import { useAuth } from "@/hooks/useAuth";
 
 export function AdminLayout() {
@@ -16,6 +17,12 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        canonicalPath="/admin"
+        description="Private House of Patani administration workspace."
+        noIndex
+        title="Administration"
+      />
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 lg:block">
         <AdminSidebar />
       </aside>

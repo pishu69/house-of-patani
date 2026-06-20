@@ -1,5 +1,9 @@
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createImageSrcSet } from "@/utils/image";
+
+const NEWSLETTER_IMAGE =
+  "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=85";
 
 export function NewsletterSection() {
   return (
@@ -10,8 +14,11 @@ export function NewsletterSection() {
             <img
               alt="Folded textiles and handcrafted objects in a warm heritage setting"
               className="h-full w-full object-cover"
+              decoding="async"
               loading="lazy"
-              src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=85"
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              src={NEWSLETTER_IMAGE}
+              srcSet={createImageSrcSet(NEWSLETTER_IMAGE)}
             />
           </div>
           <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
