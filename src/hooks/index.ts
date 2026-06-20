@@ -4,6 +4,7 @@ export {
   type ShopSort,
 } from "@/hooks/useShopCatalog";
 export { useCart } from "@/hooks/useCart";
+export { useAuth } from "@/hooks/useAuth";
 export {
   categoryQueryKeys,
   useCategories,

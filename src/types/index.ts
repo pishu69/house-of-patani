@@ -1,5 +1,12 @@
 export type { Address } from "@/types/address.types";
 export type { CouponInput, StoreSettings } from "@/types/admin.types";
+export type {
+  AdminAuthResolution,
+  AdminAuthStatus,
+  AdminLoginInput,
+  AdminSession,
+  AdminUser,
+} from "@/types/admin-auth.types";
 export type { Banner } from "@/types/banner.types";
 export type {
   CartEntry,

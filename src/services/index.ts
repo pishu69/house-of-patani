@@ -1,4 +1,9 @@
 export { authService } from "@/services/auth.service";
+export {
+  adminAuthService,
+  DEMO_ADMIN_CREDENTIALS,
+  isCurrentUserAdmin,
+} from "@/services/admin-auth.service";
 export { categoryService } from "@/services/category.service";
 export { couponService } from "@/services/coupon.service";
 export { customerService } from "@/services/customer.service";

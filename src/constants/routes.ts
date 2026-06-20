@@ -9,6 +9,8 @@ export const ROUTES = {
   CONTACT: "/contact",
   ADMIN: {
     ROOT: "/admin",
+    LOGIN: "login",
+    LOGIN_PATH: "/admin/login",
     PRODUCTS: "products",
     PRODUCT_NEW: "products/new",
     PRODUCT_EDIT: "products/:id/edit",

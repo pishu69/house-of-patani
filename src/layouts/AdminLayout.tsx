@@ -3,13 +3,16 @@ import { Outlet } from "react-router-dom";
 
 import {
   AdminBreadcrumbs,
+  DemoAdminBanner,
   AdminMobileMenu,
   AdminSidebar,
   AdminTopbar,
 } from "@/components/admin";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AdminLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { session } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -21,6 +24,7 @@ export function AdminLayout() {
         onClose={() => setIsMenuOpen(false)}
       />
       <div className="min-h-screen lg:pl-64">
+        {session?.isDemo ? <DemoAdminBanner /> : null}
         <AdminTopbar onOpenMenu={() => setIsMenuOpen(true)} />
         <main id="admin-main-content" className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="mx-auto max-w-[90rem]">

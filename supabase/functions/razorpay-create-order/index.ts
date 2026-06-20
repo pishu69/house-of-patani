@@ -49,13 +49,33 @@ function parseBody(value: unknown): CreateOrderBody | null {
     return null;
   }
 
+  const customerEmail = value.customerEmail.trim().toLowerCase();
+  const customerName = value.customerName.trim();
+  const customerPhone = value.customerPhone.trim();
+  const phoneDigits = customerPhone.replace(/\D/g, "");
+  if (
+    customerName.length < 2 ||
+    customerName.length > 120 ||
+    customerEmail.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail) ||
+    phoneDigits.length < 10 ||
+    phoneDigits.length > 15 ||
+    value.items.length === 0 ||
+    value.items.length > 25
+  ) {
+    return null;
+  }
+
   const items = value.items.flatMap<CheckoutItem>((item) => {
     if (
       !isRecord(item) ||
       typeof item.sku !== "string" ||
       typeof item.quantity !== "number" ||
       !Number.isInteger(item.quantity) ||
-      item.quantity < 1
+      item.quantity < 1 ||
+      item.quantity > 20 ||
+      item.sku.length < 1 ||
+      item.sku.length > 64
     ) {
       return [];
     }
@@ -63,18 +83,36 @@ function parseBody(value: unknown): CreateOrderBody | null {
   });
 
   if (items.length !== value.items.length || items.length === 0) return null;
+  if (new Set(items.map((item) => item.sku)).size !== items.length) return null;
 
   const address = Object.fromEntries(
     Object.entries(value.address).flatMap(([key, item]) =>
-      typeof item === "string" ? [[key, item]] : [],
+      typeof item === "string" && item.trim().length <= 240
+        ? [[key, item.trim()]]
+        : [],
     ),
   );
+  const requiredAddressFields = [
+    "addressLine1",
+    "city",
+    "state",
+    "pincode",
+    "country",
+  ];
+  if (
+    requiredAddressFields.some(
+      (key) => !address[key] || address[key].length < 2,
+    ) ||
+    !/^\d{6}$/.test(address.pincode ?? "")
+  ) {
+    return null;
+  }
 
   return {
     address,
-    customerEmail: value.customerEmail.trim().toLowerCase(),
-    customerName: value.customerName.trim(),
-    customerPhone: value.customerPhone.trim(),
+    customerEmail,
+    customerName,
+    customerPhone,
     items,
   };
 }
@@ -86,6 +124,10 @@ Deno.serve(async (request) => {
 
   if (request.method !== "POST") {
     return json({ message: "Method not allowed." }, 405);
+  }
+
+  if (!request.headers.get("authorization")?.startsWith("Bearer ")) {
+    return json({ message: "Invalid payment request." }, 401);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -144,6 +186,10 @@ Deno.serve(async (request) => {
       ? settings.shippingCharge
       : 250;
   const total = subtotal + (subtotal >= threshold ? 0 : shippingCharge);
+  const amountInPaise = Math.round(total * 100);
+  if (!Number.isSafeInteger(amountInPaise) || amountInPaise < 100) {
+    return json({ message: "The order total is invalid." }, 400);
+  }
 
   const { data: intent, error: intentError } = await client
     .from("payment_intents")
@@ -167,7 +213,7 @@ Deno.serve(async (request) => {
   const receipt = `hop_${intent.id.replaceAll("-", "").slice(0, 28)}`;
   const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
     body: JSON.stringify({
-      amount: Math.round(total * 100),
+      amount: amountInPaise,
       currency: "INR",
       notes: { intent_id: intent.id },
       receipt,
@@ -188,6 +234,19 @@ Deno.serve(async (request) => {
   }
 
   const razorpayOrder = (await razorpayResponse.json()) as RazorpayOrder;
+  if (
+    typeof razorpayOrder.id !== "string" ||
+    typeof razorpayOrder.amount !== "number" ||
+    razorpayOrder.currency !== "INR" ||
+    typeof razorpayOrder.receipt !== "string" ||
+    razorpayOrder.amount !== amountInPaise
+  ) {
+    await client
+      .from("payment_intents")
+      .update({ status: "failed" })
+      .eq("id", intent.id);
+    return json({ message: "Online payment is temporarily unavailable." }, 502);
+  }
   await client
     .from("payment_intents")
     .update({ razorpay_order_id: razorpayOrder.id })

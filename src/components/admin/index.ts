@@ -3,6 +3,8 @@ export {
   type ActionMenuItem,
 } from "@/components/admin/ActionMenu";
 export { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
+export { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
+export { DemoAdminBanner } from "@/components/admin/DemoAdminBanner";
 export { AdminMobileMenu } from "@/components/admin/AdminMobileMenu";
 export { AdminSelect } from "@/components/admin/AdminSelect";
 export { AdminSidebar } from "@/components/admin/AdminSidebar";

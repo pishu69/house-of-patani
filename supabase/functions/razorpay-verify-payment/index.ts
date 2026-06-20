@@ -42,6 +42,15 @@ function parseBody(value: unknown): VerifyBody | null {
     return null;
   }
 
+  if (
+    !/^[0-9a-f-]{36}$/i.test(value.intentId) ||
+    !/^order_[A-Za-z0-9]+$/.test(value.razorpayOrderId) ||
+    !/^pay_[A-Za-z0-9]+$/.test(value.razorpayPaymentId) ||
+    !/^[a-f0-9]{64}$/i.test(value.razorpaySignature)
+  ) {
+    return null;
+  }
+
   return {
     intentId: value.intentId,
     razorpayOrderId: value.razorpayOrderId,
@@ -72,6 +81,10 @@ Deno.serve(async (request) => {
 
   if (request.method !== "POST") {
     return json({ message: "Method not allowed." }, 405);
+  }
+
+  if (!request.headers.get("authorization")?.startsWith("Bearer ")) {
+    return json({ message: "Invalid verification request." }, 401);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -110,6 +123,10 @@ Deno.serve(async (request) => {
     return json({ message: "Payment reference did not match." }, 400);
   }
 
+  if (intent.status !== "created" && intent.status !== "paid") {
+    return json({ message: "This payment session is no longer active." }, 409);
+  }
+
   const signingKey = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(keySecret),
@@ -128,10 +145,6 @@ Deno.serve(async (request) => {
   );
 
   if (!timingSafeEqual(signature, body.razorpaySignature)) {
-    await client
-      .from("payment_intents")
-      .update({ status: "failed" })
-      .eq("id", intent.id);
     return json({ message: "Payment verification failed." }, 400);
   }
 

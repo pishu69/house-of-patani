@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
+import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { MainLayout } from "@/layouts/MainLayout";
 
@@ -76,71 +77,97 @@ export const router = createBrowserRouter([
   },
   {
     path: ROUTES.ADMIN.ROOT,
-    element: <AdminLayout />,
     children: [
       {
-        index: true,
+        path: ROUTES.ADMIN.LOGIN,
         lazy: async () => {
-          const { AdminDashboardPage } = await import(
-            "@/pages/admin/AdminDashboardPage"
+          const { AdminLoginPage } = await import(
+            "@/pages/admin/AdminLoginPage"
           );
-          return { Component: AdminDashboardPage };
+          return { Component: AdminLoginPage };
         },
       },
       {
-        path: ROUTES.ADMIN.PRODUCTS,
-        lazy: async () => {
-          const { ProductsPage } = await import("@/pages/admin/ProductsPage");
-          return { Component: ProductsPage };
-        },
-      },
-      {
-        path: ROUTES.ADMIN.PRODUCT_NEW,
-        lazy: async () => {
-          const { ProductEditorPage } = await import(
-            "@/pages/admin/ProductEditorPage"
-          );
-          return { Component: ProductEditorPage };
-        },
-      },
-      {
-        path: ROUTES.ADMIN.PRODUCT_EDIT,
-        lazy: async () => {
-          const { ProductEditorPage } = await import(
-            "@/pages/admin/ProductEditorPage"
-          );
-          return { Component: ProductEditorPage };
-        },
-      },
-      {
-        path: ROUTES.ADMIN.ORDERS,
-        lazy: async () => {
-          const { OrdersPage } = await import("@/pages/admin/OrdersPage");
-          return { Component: OrdersPage };
-        },
-      },
-      {
-        path: ROUTES.ADMIN.CUSTOMERS,
-        lazy: async () => {
-          const { CustomersPage } = await import(
-            "@/pages/admin/CustomersPage"
-          );
-          return { Component: CustomersPage };
-        },
-      },
-      {
-        path: ROUTES.ADMIN.COUPONS,
-        lazy: async () => {
-          const { CouponsPage } = await import("@/pages/admin/CouponsPage");
-          return { Component: CouponsPage };
-        },
-      },
-      {
-        path: ROUTES.ADMIN.SETTINGS,
-        lazy: async () => {
-          const { SettingsPage } = await import("@/pages/admin/SettingsPage");
-          return { Component: SettingsPage };
-        },
+        element: <AdminRouteGuard />,
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { AdminDashboardPage } = await import(
+                    "@/pages/admin/AdminDashboardPage"
+                  );
+                  return { Component: AdminDashboardPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.PRODUCTS,
+                lazy: async () => {
+                  const { ProductsPage } = await import(
+                    "@/pages/admin/ProductsPage"
+                  );
+                  return { Component: ProductsPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.PRODUCT_NEW,
+                lazy: async () => {
+                  const { ProductEditorPage } = await import(
+                    "@/pages/admin/ProductEditorPage"
+                  );
+                  return { Component: ProductEditorPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.PRODUCT_EDIT,
+                lazy: async () => {
+                  const { ProductEditorPage } = await import(
+                    "@/pages/admin/ProductEditorPage"
+                  );
+                  return { Component: ProductEditorPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.ORDERS,
+                lazy: async () => {
+                  const { OrdersPage } = await import(
+                    "@/pages/admin/OrdersPage"
+                  );
+                  return { Component: OrdersPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.CUSTOMERS,
+                lazy: async () => {
+                  const { CustomersPage } = await import(
+                    "@/pages/admin/CustomersPage"
+                  );
+                  return { Component: CustomersPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.COUPONS,
+                lazy: async () => {
+                  const { CouponsPage } = await import(
+                    "@/pages/admin/CouponsPage"
+                  );
+                  return { Component: CouponsPage };
+                },
+              },
+              {
+                path: ROUTES.ADMIN.SETTINGS,
+                lazy: async () => {
+                  const { SettingsPage } = await import(
+                    "@/pages/admin/SettingsPage"
+                  );
+                  return { Component: SettingsPage };
+                },
+              },
+            ],
+          },
+        ],
       },
     ],
   },
