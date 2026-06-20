@@ -1,7 +1,8 @@
-node_modules
+supabase/.temp/supabase/.temp/.gitignorenode_modules
 dist
 work
 outputs
 .env
 .env.local
 .DS_Store
+supabase/.temp/
