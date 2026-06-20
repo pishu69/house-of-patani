@@ -364,6 +364,14 @@ export const adminStorage = {
         )[orderNumber] ?? null
       );
     },
+    listConfirmations() {
+      return Object.values(
+        readValue<Record<string, OrderConfirmation>>(
+          "order-confirmations",
+          {},
+        ),
+      );
+    },
   },
   coupons: {
     list() {

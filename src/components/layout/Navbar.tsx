@@ -1,7 +1,8 @@
-import { Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
+import { Menu, Search, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { MobileMenu } from "@/components/layout/MobileMenu";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { ROUTES } from "@/constants/routes";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
@@ -80,13 +81,7 @@ export function Navbar() {
               </span>
             ) : null}
           </button>
-          <Link
-            aria-label="Account"
-            className="rounded-full p-3 text-charcoal/75 transition hover:bg-maroon/5 hover:text-maroon"
-            to={ROUTES.ABOUT}
-          >
-            <UserRound size={20} />
-          </Link>
+          <AccountMenu />
         </div>
 
         <button

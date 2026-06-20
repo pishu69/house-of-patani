@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { memo } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Badge } from "@/components/common/Badge";
 import { IconButton } from "@/components/common/IconButton";
 import { RatingStars } from "@/components/common/RatingStars";
@@ -11,6 +12,7 @@ import { categoryNameBySlug } from "@/data/categories";
 import { showCartMutationToast } from "@/lib/cart-feedback";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart.store";
+import { useWishlistStore } from "@/stores/wishlist.store";
 import type { CatalogProduct } from "@/types/product.types";
 import { formatCurrency } from "@/utils";
 
@@ -29,6 +31,13 @@ function ProductCardComponent({
 }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const openDrawer = useCartStore((state) => state.openDrawer);
+  const storedWishlisted = useWishlistStore((state) =>
+    state.productIds.includes(product.id),
+  );
+  const toggleWishlist = useWishlistStore((state) => state.toggle);
+  const resolvedWishlisted = onWishlistToggle
+    ? isWishlisted
+    : storedWishlisted;
   const imageUrl = product.images[0];
   const discount = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100,
@@ -45,6 +54,16 @@ function ProductCardComponent({
     if (result.success) {
       openDrawer();
     }
+  };
+  const handleWishlistToggle = () => {
+    if (onWishlistToggle) {
+      onWishlistToggle(product);
+      return;
+    }
+    const active = toggleWishlist(product.id);
+    toast(active ? "Added to wishlist" : "Removed from wishlist", {
+      description: product.name,
+    });
   };
 
   return (
@@ -80,17 +99,17 @@ function ProductCardComponent({
         </div>
         <IconButton
           aria-label={
-            isWishlisted
+            resolvedWishlisted
               ? `Remove ${product.name} from wishlist`
               : `Add ${product.name} to wishlist`
           }
           className="absolute right-3 top-3 bg-ivory/90 shadow-lift hover:bg-ivory"
-          onClick={() => onWishlistToggle?.(product)}
+          onClick={handleWishlistToggle}
           size="sm"
         >
           <Heart
             aria-hidden="true"
-            className={cn(isWishlisted && "fill-maroon text-maroon")}
+            className={cn(resolvedWishlisted && "fill-maroon text-maroon")}
             size={17}
           />
         </IconButton>

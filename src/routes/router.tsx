@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
+import { AccountLayout } from "@/layouts/AccountLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { MainLayout } from "@/layouts/MainLayout";
 
@@ -58,6 +59,73 @@ export const router = createBrowserRouter([
           );
           return { Component: OrderConfirmationPage };
         },
+      },
+      {
+        path: ROUTES.ORDER_LOOKUP,
+        lazy: async () => {
+          const { OrderLookupPage } = await import("@/pages/OrderLookupPage");
+          return { Component: OrderLookupPage };
+        },
+      },
+      {
+        path: ROUTES.ACCOUNT.ROOT,
+        element: <AccountLayout />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { AccountDashboardPage } = await import(
+                "@/pages/account/AccountDashboardPage"
+              );
+              return { Component: AccountDashboardPage };
+            },
+          },
+          {
+            path: ROUTES.ACCOUNT.PROFILE,
+            lazy: async () => {
+              const { ProfilePage } = await import(
+                "@/pages/account/ProfilePage"
+              );
+              return { Component: ProfilePage };
+            },
+          },
+          {
+            path: ROUTES.ACCOUNT.ORDERS,
+            lazy: async () => {
+              const { OrdersPage } = await import(
+                "@/pages/account/OrdersPage"
+              );
+              return { Component: OrdersPage };
+            },
+          },
+          {
+            path: ROUTES.ACCOUNT.ORDER_DETAILS,
+            lazy: async () => {
+              const { OrderDetailsPage } = await import(
+                "@/pages/account/OrderDetailsPage"
+              );
+              return { Component: OrderDetailsPage };
+            },
+          },
+          {
+            path: ROUTES.ACCOUNT.ADDRESSES,
+            lazy: async () => {
+              const { AddressesPage } = await import(
+                "@/pages/account/AddressesPage"
+              );
+              return { Component: AddressesPage };
+            },
+          },
+          {
+            path: ROUTES.ACCOUNT.WISHLIST,
+            lazy: async () => {
+              const { WishlistPage } = await import(
+                "@/pages/account/WishlistPage"
+              );
+              return { Component: WishlistPage };
+            },
+          },
+        ],
       },
       {
         path: ROUTES.ABOUT,

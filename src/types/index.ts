@@ -18,6 +18,13 @@ export type { Category } from "@/types/category.types";
 export type { Coupon } from "@/types/coupon.types";
 export type { Customer } from "@/types/customer.types";
 export type {
+  CustomerAccountSnapshot,
+  CustomerAddress,
+  CustomerProfile,
+  GuestOrderLookupInput,
+  GuestOrderLookupResult,
+} from "@/types/customer-account.types";
+export type {
   AddressRow,
   AdminRow,
   BannerRow,

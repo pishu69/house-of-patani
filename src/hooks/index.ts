@@ -5,6 +5,12 @@ export {
 } from "@/hooks/useShopCatalog";
 export { useCart } from "@/hooks/useCart";
 export { useAuth } from "@/hooks/useAuth";
+export { useWishlist } from "@/hooks/useWishlist";
+export {
+  customerOrderQueryKeys,
+  useCustomerOrder,
+  useCustomerOrders,
+} from "@/hooks/useCustomerAccount";
 export {
   categoryQueryKeys,
   useCategories,

@@ -75,9 +75,32 @@ export function MobileMenu({
               aria-label="Account"
               className="flex justify-center rounded-full border border-maroon/15 py-3 text-maroon transition hover:bg-maroon/5"
               onClick={onNavigate}
-              to={ROUTES.ABOUT}
+              to={ROUTES.ACCOUNT.ROOT}
             >
               <UserRound aria-hidden="true" size={19} />
+            </Link>
+          </li>
+          <li className="grid gap-1 border-t border-maroon/10 pt-3">
+            <Link
+              className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+              onClick={onNavigate}
+              to={ROUTES.ACCOUNT.ORDERS_PATH}
+            >
+              My Orders
+            </Link>
+            <Link
+              className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+              onClick={onNavigate}
+              to={ROUTES.ACCOUNT.WISHLIST_PATH}
+            >
+              Wishlist
+            </Link>
+            <Link
+              className="rounded-full px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-maroon/5 hover:text-maroon"
+              onClick={onNavigate}
+              to={ROUTES.ORDER_LOOKUP}
+            >
+              Order Lookup
             </Link>
           </li>
         </ul>

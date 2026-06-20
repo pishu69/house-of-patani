@@ -224,6 +224,13 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      lookup_guest_order: {
+        Args: {
+          p_contact: string;
+          p_order_number: string;
+        };
+        Returns: Json;
+      };
       create_guest_order: {
         Args: {
           p_address: Json;

@@ -23,15 +23,19 @@ import {
 import { products } from "@/data/products";
 import { showCartMutationToast } from "@/lib/cart-feedback";
 import { useCartStore } from "@/stores/cart.store";
+import { useWishlistStore } from "@/stores/wishlist.store";
 
 export function ProductPage() {
   const { slug } = useParams();
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const openDrawer = useCartStore((state) => state.openDrawer);
   const product = products.find((item) => item.slug === slug);
+  const isWishlisted = useWishlistStore((state) =>
+    product ? state.productIds.includes(product.id) : false,
+  );
+  const toggleWishlist = useWishlistStore((state) => state.toggle);
 
   const relatedProducts = useMemo(
     () =>
@@ -49,7 +53,6 @@ export function ProductPage() {
   useEffect(() => {
     setActiveTab("description");
     setQuantity(1);
-    setIsWishlisted(false);
   }, [product?.id]);
 
   if (!product) {
@@ -144,8 +147,7 @@ export function ProductPage() {
   };
 
   const handleWishlistToggle = () => {
-    const nextValue = !isWishlisted;
-    setIsWishlisted(nextValue);
+    const nextValue = toggleWishlist(product.id);
     toast(nextValue ? "Added to wishlist" : "Removed from wishlist", {
       description: product.name,
     });
