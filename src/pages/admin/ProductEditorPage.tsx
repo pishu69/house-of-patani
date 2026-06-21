@@ -14,8 +14,8 @@ import {
 } from "@/components/admin";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
-import { shopCategories } from "@/data/categories";
-import { productQueryKeys, useProducts } from "@/hooks";
+import { productQueryKeys, useCategories, useProducts } from "@/hooks";
+
 import {
   productFormSchema,
   productMediaSchema,
@@ -55,6 +55,8 @@ export function ProductEditorPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const productsQuery = useProducts();
+  const categoriesQuery = useCategories();
+  const categories = categoriesQuery.data?.data ?? [];
   const isEditing = Boolean(id);
   const product = productsQuery.data?.data.find((item) => item.id === id);
   const [media, setMedia] = useState<ProductMedia[]>([]);
@@ -337,7 +339,7 @@ export function ProductEditorPage() {
               <label className="text-sm font-medium text-charcoal">
                 Category
                 <select className={inputClassName} {...register("category")}>
-                  {shopCategories.map((category) => (
+                  {categories.map((category) => (
                     <option key={category.slug} value={category.slug}>
                       {category.name}
                     </option>
@@ -400,3 +402,4 @@ export function ProductEditorPage() {
     </form>
   );
 }
+
