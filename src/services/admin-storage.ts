@@ -173,7 +173,7 @@ export const adminStorage = {
   },
   products: {
     list() {
-      return readValue<CatalogProduct[]>("products", products).map(
+      return readValue<CatalogProduct[]>("products", []).map(
         (product) => {
           const media: ProductMedia[] =
             product.media ??
@@ -417,3 +417,4 @@ export const adminStorage = {
     },
   },
 };
+
