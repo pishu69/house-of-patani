@@ -6,14 +6,26 @@ import {
 } from "@/components/common/SocialLinks";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-
-const socialLinks: SocialLink[] = [
-  { href: "/", label: "Instagram", platform: "instagram" },
-  { href: "/", label: "Facebook", platform: "facebook" },
-  { href: "/", label: "Twitter", platform: "twitter" },
-];
+import { useSettings } from "@/hooks";
 
 export function Footer() {
+  const settingsQuery = useSettings();
+  const settings = settingsQuery.data?.data;
+
+  const storeName = settings?.storeName || "House of Patani";
+  const address = settings?.address || "Patani Heritage House, India";
+  const email = settings?.email || "care@houseofpatani.com";
+  const phone = settings?.whatsappNumber || "+91 98765 43210";
+
+  const socialLinks: SocialLink[] = [
+    ...(settings?.instagram
+      ? [{ href: settings.instagram, label: "Instagram", platform: "instagram" as const }]
+      : []),
+    ...(settings?.facebook
+      ? [{ href: settings.facebook, label: "Facebook", platform: "facebook" as const }]
+      : []),
+  ];
+
   return (
     <footer
       className="border-t border-maroon/10 bg-charcoal text-ivory"
@@ -21,12 +33,14 @@ export function Footer() {
     >
       <div className="section-shell grid gap-10 py-12 sm:py-14 md:grid-cols-2 xl:grid-cols-[1.3fr_0.8fr_0.9fr_1.1fr]">
         <div>
-          <h2 className="font-serif text-3xl text-ivory">House of Patani</h2>
+          <h2 className="font-serif text-3xl text-ivory">{storeName}</h2>
           <p className="mt-4 max-w-sm text-sm leading-7 text-ivory/70">
-            Tradition Woven with Heritage. A refined home for Indian craft,
+            Tradition Woven with Heritage. A refined home for craft,
             heirloom textiles, thoughtful objects, and stories that last.
           </p>
-          <SocialLinks className="mt-6" links={socialLinks} tone="inverse" />
+          {socialLinks.length > 0 ? (
+            <SocialLinks className="mt-6" links={socialLinks} tone="inverse" />
+          ) : null}
         </div>
 
         <div>
@@ -34,26 +48,10 @@ export function Footer() {
             Quick Links
           </h3>
           <ul className="mt-5 space-y-3 text-sm text-ivory/75">
-            <li>
-              <Link className="transition hover:text-gold" to={ROUTES.SHOP}>
-                Shop
-              </Link>
-            </li>
-            <li>
-              <Link className="transition hover:text-gold" to={ROUTES.ABOUT}>
-                About
-              </Link>
-            </li>
-            <li>
-              <Link className="transition hover:text-gold" to={ROUTES.CONTACT}>
-                Contact
-              </Link>
-            </li>
-            <li>
-              <Link className="transition hover:text-gold" to={ROUTES.CART}>
-                Cart
-              </Link>
-            </li>
+            <li><Link className="transition hover:text-gold" to={ROUTES.SHOP}>Shop</Link></li>
+            <li><Link className="transition hover:text-gold" to={ROUTES.ABOUT}>About</Link></li>
+            <li><Link className="transition hover:text-gold" to={ROUTES.CONTACT}>Contact</Link></li>
+            <li><Link className="transition hover:text-gold" to={ROUTES.CART}>Cart</Link></li>
           </ul>
         </div>
 
@@ -64,15 +62,15 @@ export function Footer() {
           <ul className="mt-5 space-y-4 text-sm text-ivory/75">
             <li className="flex gap-3">
               <MapPin className="mt-0.5 shrink-0 text-gold" size={17} />
-              Patani Heritage House, India
+              {address}
             </li>
             <li className="flex gap-3">
               <Mail className="mt-0.5 shrink-0 text-gold" size={17} />
-              care@houseofpatani.com
+              <a className="hover:text-gold" href={`mailto:${email}`}>{email}</a>
             </li>
             <li className="flex gap-3">
               <Phone className="mt-0.5 shrink-0 text-gold" size={17} />
-              +91 98765 43210
+              {phone}
             </li>
           </ul>
         </div>
@@ -101,7 +99,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-ivory/10 py-5 text-center text-xs uppercase tracking-[0.22em] text-ivory/55">
-        Copyright 2026 House of Patani
+        Copyright 2026 {storeName}
       </div>
     </footer>
   );

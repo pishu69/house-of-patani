@@ -1,12 +1,20 @@
 import { Mail, MapPin, Phone } from "lucide-react";
 import { PageHero } from "@/components/common/PageHero";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/hooks";
 
 export function ContactPage() {
+  const settingsQuery = useSettings();
+  const settings = settingsQuery.data?.data;
+
+  const address = settings?.address || "Patani Heritage House, India";
+  const email = settings?.email || "care@houseofpatani.com";
+  const phone = settings?.whatsappNumber || "+91 98765 43210";
+
   return (
     <>
       <PageHero
-        description="A composed contact experience for future customer care, collection inquiries, and artisan partnerships."
+        description="A composed contact experience for customer care, collection inquiries, and artisan partnerships."
         eyebrow="Contact"
         title="We would love to hear from you"
       />
@@ -17,15 +25,15 @@ export function ContactPage() {
             <div className="mt-8 space-y-5 text-sm text-muted-foreground">
               <p className="flex gap-3">
                 <MapPin className="shrink-0 text-gold" size={19} />
-                Patani Heritage House, India
+                {address}
               </p>
               <p className="flex gap-3">
                 <Mail className="shrink-0 text-gold" size={19} />
-                care@houseofpatani.com
+                <a className="hover:text-maroon" href={`mailto:${email}`}>{email}</a>
               </p>
               <p className="flex gap-3">
                 <Phone className="shrink-0 text-gold" size={19} />
-                +91 98765 43210
+                {phone}
               </p>
             </div>
           </aside>

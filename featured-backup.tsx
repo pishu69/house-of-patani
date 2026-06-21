@@ -1,23 +1,12 @@
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { ProductCarousel } from "@/components/home/ProductCarousel";
-import { useProducts } from "@/hooks/useProducts";
+import { products } from "@/data/products";
+
+const featuredProducts = products
+  .filter((product) => product.featured)
+  .slice(0, 8);
 
 export function FeaturedProductsSection() {
-  const productsQuery = useProducts();
-  const products = productsQuery.data?.data ?? [];
-
-  const featuredProducts = products
-    .filter((product) => product.featured && product.active)
-    .slice(0, 8);
-
-  if (productsQuery.isLoading) {
-    return null;
-  }
-
-  if (featuredProducts.length === 0) {
-    return null;
-  }
-
   return (
     <section className="bg-linen/75 py-16 sm:py-20 lg:py-24">
       <div className="section-shell">

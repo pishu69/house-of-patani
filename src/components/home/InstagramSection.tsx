@@ -1,5 +1,6 @@
 import { Instagram } from "lucide-react";
 import { SectionHeading } from "@/components/common/SectionHeading";
+import { useSettings } from "@/hooks";
 
 interface InstagramItem {
   alt: string;
@@ -11,15 +12,26 @@ interface InstagramSectionProps {
   items: InstagramItem[];
 }
 
+function getInstagramHandle(url: string | undefined) {
+  if (!url) return "@houseofpatani";
+  const clean = url.replace(/\/$/, "");
+  const handle = clean.split("/").filter(Boolean).pop();
+  return handle ? `@${handle}` : "@houseofpatani";
+}
+
 export function InstagramSection({
-  handle = "@houseofpatani",
+  handle,
   items,
 }: InstagramSectionProps) {
+  const settingsQuery = useSettings();
+  const instagramUrl = settingsQuery.data?.data.instagram || "/";
+  const resolvedHandle = handle ?? getInstagramHandle(settingsQuery.data?.data.instagram);
+
   return (
     <section className="bg-background py-16 sm:py-20 lg:py-24">
       <div className="section-shell">
         <SectionHeading
-          description={`Follow ${handle} for new craft stories and collection notes.`}
+          description={`Follow ${resolvedHandle} for new craft stories and collection notes.`}
           eyebrow="From the House"
           title="A living archive of craft"
         />
@@ -28,8 +40,10 @@ export function InstagramSection({
             <a
               aria-label={`View ${item.alt} on Instagram`}
               className="group relative overflow-hidden rounded-lg"
-              href="/"
+              href={instagramUrl}
               key={item.imageUrl}
+              rel="noreferrer"
+              target="_blank"
             >
               <img
                 alt={item.alt}
