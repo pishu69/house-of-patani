@@ -208,10 +208,10 @@ Deno.serve(async (request) => {
   const verifyUrl = new URL(
     "https://control.msg91.com/api/v5/otp/verify",
   );
+  verifyUrl.searchParams.set("authkey", authKey);
   verifyUrl.searchParams.set("mobile", body.phone);
   verifyUrl.searchParams.set("otp", body.otp);
   const msg91Response = await fetch(verifyUrl, {
-    headers: { authkey: authKey },
     method: "GET",
   });
   let msg91Result: Msg91Response = {};
@@ -276,3 +276,4 @@ Deno.serve(async (request) => {
     tokenHash: linkData.properties.hashed_token,
   });
 });
+
