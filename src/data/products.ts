@@ -18,7 +18,7 @@ interface ProductSeed {
   tags: string[];
 }
 
-const categoryImages: Record<ProductCategory, string[]> = {
+const categoryImages: Record<string, string[]> = {
   accessories: [
     "https://images.unsplash.com/photo-1523779105320-d1cd346ff52b?auto=format&fit=crop&w=1000&q=82",
     "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1000&q=82",
@@ -45,7 +45,7 @@ const categoryImages: Record<ProductCategory, string[]> = {
   ],
 };
 
-const seeds: Record<ProductCategory, ProductSeed[]> = {
+const seeds: Record<string, ProductSeed[]> = {
   clothing: [
     { name: "Ivory Bagru Kurta", description: "Airy cotton kurta with hand-blocked floral rhythm.", price: 3890, originalPrice: 4590, rating: 4.8, reviewCount: 128, featured: true, bestSeller: true, stock: 18, tags: ["cotton", "bagru", "kurta", "block print"] },
     { name: "Kantha Heritage Stole", description: "Soft layered stole finished with expressive kantha stitches.", price: 4200, originalPrice: 4800, rating: 4.9, reviewCount: 96, featured: true, newArrival: true, stock: 12, tags: ["kantha", "stole", "hand stitched", "textile"] },
@@ -114,7 +114,7 @@ const seeds: Record<ProductCategory, ProductSeed[]> = {
   ],
 };
 
-const categoryOrder: ProductCategory[] = [
+const categoryOrder = [
   "clothing",
   "jewelry",
   "handicrafts",
@@ -125,13 +125,13 @@ const categoryOrder: ProductCategory[] = [
 
 export const products: CatalogProduct[] = categoryOrder.flatMap(
   (category, categoryIndex) =>
-    seeds[category].map((seed, productIndex) => {
+    (seeds[category] ?? []).map((seed, productIndex) => {
       const sequence = categoryIndex * 9 + productIndex + 1;
       const createdAt = new Date(
         Date.UTC(2026, 5, 15 - sequence * 3),
       ).toISOString();
 
-      const media = categoryImages[category].map((image, imageIndex) => ({
+      const media = (categoryImages[category] ?? []).map((image, imageIndex) => ({
         altText: `${seed.name} view ${imageIndex + 1}`,
         id: `media-${sequence}-${imageIndex + 1}`,
         isPrimary: imageIndex === 0,
@@ -167,3 +167,4 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
 export const MAX_PRODUCT_PRICE = Math.ceil(
   Math.max(...products.map((product) => product.price)) / 1000,
 ) * 1000;
+

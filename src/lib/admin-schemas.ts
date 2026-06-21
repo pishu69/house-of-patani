@@ -4,14 +4,14 @@ export const productFormSchema = z
   .object({
     active: z.boolean(),
     bestSeller: z.boolean(),
-    category: z.enum([
-      "clothing",
-      "jewelry",
-      "handicrafts",
-      "home-decor",
-      "books",
-      "accessories",
-    ]),
+    category: z
+      .string()
+      .trim()
+      .min(1, "Choose a category.")
+      .regex(
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        "Category must be a valid slug.",
+      ),
     description: z
       .string()
       .trim()
@@ -168,3 +168,4 @@ export const settingsFormSchema = z
   );
 
 export type SettingsFormValues = z.input<typeof settingsFormSchema>;
+

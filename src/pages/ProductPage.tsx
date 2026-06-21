@@ -42,7 +42,7 @@ export function ProductPage() {
       return [];
     }
 
-    const categoryName = categoryNameBySlug[product.category];
+    const categoryName = categoryNameBySlug[product.category] ?? product.category;
 
     return [
       {
@@ -127,8 +127,12 @@ export function ProductPage() {
     );
   }
 
-  const categoryName = categoryNameBySlug[product.category];
-  const experience = getProductExperience(product);
+  const categoryName = categoryNameBySlug[product.category] ?? product.category;
+  const experience = getProductExperience(product) ?? {
+    longDescription: product.description,
+    detailNotes: "",
+    careInstructions: "",
+  };
   const reviews = getProductReviews(product);
   const discount = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100,
@@ -309,6 +313,7 @@ export function ProductPage() {
     </>
   );
 }
+
 
 
 

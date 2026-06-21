@@ -9,13 +9,7 @@ export interface Product {
   isActive: boolean;
 }
 
-export type ProductCategory =
-  | "clothing"
-  | "jewelry"
-  | "handicrafts"
-  | "home-decor"
-  | "books"
-  | "accessories";
+export type ProductCategory = string;
 
 export interface ProductMedia {
   altText: string;
@@ -63,3 +57,4 @@ export interface ProductInput {
   stock: number;
   tags: string[];
 }
+
