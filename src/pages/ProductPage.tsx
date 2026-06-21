@@ -140,7 +140,7 @@ export function ProductPage() {
 
   const tabs: ProductTab[] = [
     {
-      content: <p>{experience.longDescription}</p>,
+      content: <p>{product.description || experience.longDescription}</p>,
       id: "description",
       label: "Description",
     },
