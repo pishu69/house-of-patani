@@ -13,12 +13,17 @@ import { SearchBar } from "@/components/shop/SearchBar";
 import { ShopFilterDrawer } from "@/components/shop/ShopFilterDrawer";
 import { SortDropdown } from "@/components/shop/SortDropdown";
 import { Button } from "@/components/ui/button";
-import { categoryNameBySlug, shopCategories } from "@/data/categories";
+import { useCategories } from "@/hooks/useCategories";
 import { shopSortOptions, useShopCatalog } from "@/hooks/useShopCatalog";
 
 export function ShopPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const catalog = useShopCatalog();
+  const categoriesQuery = useCategories();
+  const shopCategories = categoriesQuery.data?.data ?? [];
+  const categoryNameBySlug = Object.fromEntries(
+    shopCategories.map((category) => [category.slug, category.name]),
+  );
 
   const resetFilters = () => {
     catalog.resetFilters();
@@ -171,3 +176,4 @@ export function ShopPage() {
     </>
   );
 }
+
