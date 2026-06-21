@@ -21,7 +21,7 @@ import {
   getProductExperience,
   getProductReviews,
 } from "@/data/product-experience";
-import { products } from "@/data/products";
+import { useProductBySlug } from "@/hooks/useProductBySlug";
 import { showCartMutationToast } from "@/lib/cart-feedback";
 import { createBreadcrumbSchema, absoluteUrl } from "@/lib/seo";
 import { useCartStore } from "@/stores/cart.store";
@@ -33,7 +33,8 @@ export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
   const openDrawer = useCartStore((state) => state.openDrawer);
-  const product = products.find((item) => item.slug === slug);
+  const productQuery = useProductBySlug(slug);
+  const product = productQuery.data?.data ?? null;
   const productSeoSchemas = useMemo(() => {
     if (!product) {
       return [];
@@ -88,18 +89,7 @@ export function ProductPage() {
   );
   const toggleWishlist = useWishlistStore((state) => state.toggle);
 
-  const relatedProducts = useMemo(
-    () =>
-      product
-        ? products
-            .filter(
-              (item) =>
-                item.category === product.category && item.id !== product.id,
-            )
-            .slice(0, 4)
-        : [],
-    [product],
-  );
+  const relatedProducts: [] = [];
 
   useEffect(() => {
     setActiveTab("description");
@@ -317,3 +307,4 @@ export function ProductPage() {
     </>
   );
 }
+
