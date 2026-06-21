@@ -14,7 +14,6 @@ import { useCart } from "@/hooks/useCart";
 import { showCartMutationToast } from "@/lib/cart-feedback";
 
 export function CartPage() {
-  const [couponCode, setCouponCode] = useState("");
   const [country, setCountry] = useState("India");
   const [postalCode, setPostalCode] = useState("");
   const {
@@ -112,13 +111,7 @@ export function CartPage() {
             </div>
 
             <div className="mt-8 grid gap-8 rounded-lg border border-maroon/10 bg-linen/35 p-5 sm:p-6 md:grid-cols-2">
-              <CouponInput
-                onApply={() =>
-                  toast.info("Coupon validation will be available at checkout.")
-                }
-                onChange={setCouponCode}
-                value={couponCode}
-              />
+              
               <ShippingEstimator
                 country={country}
                 onCountryChange={setCountry}
@@ -166,3 +159,4 @@ export function CartPage() {
     </>
   );
 }
+
