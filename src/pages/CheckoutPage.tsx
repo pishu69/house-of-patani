@@ -52,6 +52,7 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const cartEntries = useCartStore((state) => state.items);
+  const removeCartItem = useCartStore((state) => state.removeItem);
   const clearCart = useCartStore((state) => state.clearCart);
   const closeDrawer = useCartStore((state) => state.closeDrawer);
   const productsQuery = useProducts();
@@ -82,6 +83,7 @@ export function CheckoutPage() {
         entry.quantity > product.stock
       ) {
         unavailable.push(product?.name ?? entry.productId);
+        if (!product) removeCartItem(entry.productId);
         return [];
       }
 
@@ -109,7 +111,7 @@ export function CheckoutPage() {
       total: subtotal - discount + shipping,
       unavailable,
     };
-  }, [cartEntries, catalog, settings]);
+  }, [cartEntries, catalog, settings, removeCartItem]);
 
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
@@ -553,3 +555,4 @@ export function CheckoutPage() {
     </>
   );
 }
+
