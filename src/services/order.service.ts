@@ -144,10 +144,10 @@ export const orderService = {
         : settingsResponse.data.shippingCharge;
     const verifiedInput: CreateGuestOrderInput = {
       ...input,
-      discount: 0,
+      discount: Math.min(input.discount, subtotal),
       shipping,
       subtotal,
-      total: subtotal + shipping,
+      total: subtotal - Math.min(input.discount, subtotal) + shipping,
     };
     const localFallback = () =>
       adminStorage.orders.create(verifiedInput, catalog, shipping);
@@ -268,3 +268,4 @@ export const orderService = {
     }
   },
 };
+

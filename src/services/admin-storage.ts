@@ -300,7 +300,7 @@ export const adminStorage = {
         customer_id: null,
         customer_name: input.customerName,
         customer_phone: input.customerPhone,
-        discount: 0,
+        discount: input.discount,
         id: orderId,
         notes: input.address.landmark || null,
         order_number: orderNumber,
@@ -322,7 +322,7 @@ export const adminStorage = {
           state: input.address.state,
         },
         subtotal,
-        total: subtotal + shipping,
+        total: subtotal - input.discount + shipping,
         updated_at: now,
       };
 
@@ -417,4 +417,5 @@ export const adminStorage = {
     },
   },
 };
+
 

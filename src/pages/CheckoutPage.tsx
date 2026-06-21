@@ -12,6 +12,7 @@ import {
   ShippingMethodCard,
 } from "@/components/checkout";
 import { EmptyCartState } from "@/components/cart/EmptyCartState";
+import { CouponInput } from "@/components/cart/CouponInput";
 import { PageHero } from "@/components/common/PageHero";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
@@ -20,6 +21,7 @@ import {
   productQueryKeys,
   useProducts,
   useSettings,
+  useCoupons,
 } from "@/hooks";
 import {
   checkoutSchema,
@@ -70,6 +72,13 @@ export function CheckoutPage() {
   const settings = settingsQuery.data?.data;
   const catalog = productsQuery.data?.data ?? [];
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCouponCode, setAppliedCouponCode] = useState("");
+  const couponsQuery = useCoupons();
+  const coupons = couponsQuery.data?.data ?? [];
+  const appliedCoupon = coupons.find(
+    (coupon) => coupon.code.toLowerCase() === appliedCouponCode.toLowerCase(),
+  );
 
   const checkoutState = useMemo(() => {
     const unavailable: string[] = [];
@@ -96,7 +105,12 @@ export function CheckoutPage() {
       ];
     });
     const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
-    const discount = 0;
+    const rawDiscount = appliedCoupon
+      ? appliedCoupon.type === "percentage"
+        ? subtotal * (appliedCoupon.value / 100)
+        : appliedCoupon.value
+      : 0;
+    const discount = Math.min(subtotal, Math.max(0, Math.round(rawDiscount)));
     const shipping =
       subtotal === 0 ||
       subtotal >= (settings?.freeShippingThreshold ?? 5000)
@@ -111,7 +125,7 @@ export function CheckoutPage() {
       total: subtotal - discount + shipping,
       unavailable,
     };
-  }, [cartEntries, catalog, settings, removeCartItem]);
+  }, [cartEntries, catalog, settings, removeCartItem, appliedCoupon]);
 
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
@@ -143,6 +157,46 @@ export function CheckoutPage() {
     },
   });
 
+  function applyCoupon() {
+    const code = couponCode.trim().toUpperCase();
+
+    if (!code) {
+      toast.error("Enter a coupon code.");
+      return;
+    }
+
+    const coupon = coupons.find(
+      (item) => item.code.toUpperCase() === code,
+    );
+
+    if (!coupon || !coupon.active) {
+      toast.error("Invalid coupon code.");
+      return;
+    }
+
+    if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) {
+      toast.error("This coupon has expired.");
+      return;
+    }
+
+    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+      toast.error("This coupon usage limit has been reached.");
+      return;
+    }
+
+    if (checkoutState.subtotal < coupon.minimum_order_value) {
+      toast.error("Minimum order value not reached.", {
+        description: `Add items worth ${formatCurrency(
+          coupon.minimum_order_value - checkoutState.subtotal,
+        )} more to use this coupon.`,
+      });
+      return;
+    }
+
+    setAppliedCouponCode(coupon.code);
+    setCouponCode(coupon.code);
+    toast.success(`Coupon ${coupon.code} applied.`);
+  }
   async function submitCheckout(values: CheckoutFormValues) {
     const result = checkoutSchema.safeParse(values);
 
@@ -541,7 +595,14 @@ export function CheckoutPage() {
             </div>
           </div>
 
-          <aside className="lg:sticky lg:top-28">
+          <aside className="space-y-4 lg:sticky lg:top-28">
+            <div className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-6">
+              <CouponInput
+                onApply={applyCoupon}
+                onChange={setCouponCode}
+                value={couponCode}
+              />
+            </div>
             <CheckoutOrderSummary
               discount={checkoutState.discount}
               items={checkoutState.items}
@@ -555,4 +616,8 @@ export function CheckoutPage() {
     </>
   );
 }
+
+
+
+
 
