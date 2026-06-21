@@ -1,6 +1,7 @@
 import {
   BadgePercent,
   Boxes,
+  FolderTree,
   LayoutDashboard,
   Settings,
   ShoppingBag,
@@ -20,5 +21,7 @@ export const adminNavigation: AdminNavigationItem[] = [
   { icon: ShoppingBag, label: "Orders", to: "/admin/orders" },
   { icon: Users, label: "Customers", to: "/admin/customers" },
   { icon: BadgePercent, label: "Coupons", to: "/admin/coupons" },
+  { icon: FolderTree, label: "Categories", to: "/admin/categories" },
   { icon: Settings, label: "Settings", to: "/admin/settings" },
 ];
+

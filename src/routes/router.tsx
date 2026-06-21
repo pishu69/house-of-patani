@@ -242,6 +242,15 @@ export const router = createBrowserRouter([
                 },
               },
               {
+                path: "/admin/categories",
+                lazy: async () => {
+                  const { CategoriesPage } = await import(
+                    "@/pages/admin/CategoriesPage"
+                  );
+                  return { Component: CategoriesPage };
+                },
+              },
+              {
                 path: ROUTES.ADMIN.SETTINGS,
                 lazy: async () => {
                   const { SettingsPage } = await import(
@@ -265,3 +274,4 @@ export const router = createBrowserRouter([
     },
   },
 ]);
+
