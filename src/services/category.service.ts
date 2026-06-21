@@ -86,6 +86,38 @@ export const categoryService = {
     }
   },
 
+  async create(input: {
+    name: string;
+    slug: string;
+    description: string;
+  }) {
+    return mockResponse(
+      adminStorage.categories.create({
+        description: input.description,
+        name: input.name,
+        slug: input.slug,
+      }),
+    );
+  },
+
+  async update(
+    slug: string,
+    input: Partial<{
+      description: string;
+      name: string;
+      slug: string;
+    }>,
+  ) {
+    return mockResponse(
+      adminStorage.categories.update(slug, input),
+    );
+  },
+
+  async remove(slug: string) {
+    return mockResponse(
+      adminStorage.categories.remove(slug),
+    );
+  },
   async updateImage(
     slug: ProductCategory,
     imageUrl: string,
@@ -138,3 +170,4 @@ export const categoryService = {
     }
   },
 };
+

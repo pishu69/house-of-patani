@@ -113,6 +113,43 @@ export const adminStorage = {
         imagePath: category.imagePath ?? null,
       }));
     },
+    create(input: {
+      description: string;
+      imagePath?: string | null;
+      imageUrl?: string;
+      name: string;
+      slug: string;
+    }) {
+      const current = this.list();
+      const created = {
+        description: input.description,
+        imagePath: input.imagePath ?? null,
+        imageUrl: input.imageUrl ?? "",
+        name: input.name,
+        slug: input.slug,
+      };
+      writeValue("categories", [created, ...current]);
+      return created;
+    },
+    update(
+      slug: string,
+      input: Partial<{
+        description: string;
+        imagePath: string | null;
+        imageUrl: string;
+        name: string;
+        slug: string;
+      }>,
+    ) {
+      let updated = null;
+      const next = this.list().map((category) => {
+        if (category.slug !== slug) return category;
+        updated = { ...category, ...input };
+        return updated;
+      });
+      writeValue("categories", next);
+      return updated;
+    },
     updateImage(slug: string, imageUrl: string, imagePath: string | null) {
       const categories = this.list().map((category) =>
         category.slug === slug
@@ -121,6 +158,12 @@ export const adminStorage = {
       );
       writeValue("categories", categories);
       return categories.find((category) => category.slug === slug) ?? null;
+    },
+    remove(slug: string) {
+      const current = this.list();
+      const next = current.filter((category) => category.slug !== slug);
+      writeValue("categories", next);
+      return next.length !== current.length;
     },
   },
   productMedia: {
@@ -417,5 +460,6 @@ export const adminStorage = {
     },
   },
 };
+
 
 
