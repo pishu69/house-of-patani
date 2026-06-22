@@ -68,6 +68,22 @@ function fromJson(value: Json): StoreSettings {
       typeof value.homepageBannerPath === "string"
         ? value.homepageBannerPath
         : defaultStoreSettings.homepageBannerPath,
+    heroSubtitle:
+      typeof value.heroSubtitle === "string"
+        ? value.heroSubtitle
+        : defaultStoreSettings.heroSubtitle,
+    heroTitle:
+      typeof value.heroTitle === "string"
+        ? value.heroTitle
+        : defaultStoreSettings.heroTitle,
+    heroDescription:
+      typeof value.heroDescription === "string"
+        ? value.heroDescription
+        : defaultStoreSettings.heroDescription,
+    heroQuote:
+      typeof value.heroQuote === "string"
+        ? value.heroQuote
+        : defaultStoreSettings.heroQuote,
     instagram:
       typeof value.instagram === "string"
         ? value.instagram
@@ -187,3 +203,6 @@ export const settingService = {
     }
   },
 };
+
+
+

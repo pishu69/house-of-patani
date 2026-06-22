@@ -124,12 +124,19 @@ async function resolveSupabaseSession(
 ): Promise<CustomerAuthResolution> {
   if (!session || !supabase) return unauthenticated();
 
-  const { data: customer, error } = await supabase
+  let { data: customer, error } = await supabase
     .from("customers")
     .select("*")
     .eq("auth_user_id", session.user.id)
     .eq("active", true)
     .maybeSingle();
+
+  if (!customer && !error) {
+    const result = await (supabase as any).rpc("upsert_customer_from_auth");
+    customer = result.data as any;
+    error = result.error;
+  }
+
   if (error || !customer) return unauthenticated();
 
   const [addressesResult, wishlistResult] = await Promise.all([
@@ -365,3 +372,9 @@ export const customerAuthService = {
     return () => data.subscription.unsubscribe();
   },
 };
+
+
+
+
+
+

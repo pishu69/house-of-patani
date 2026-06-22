@@ -135,6 +135,10 @@ export const settingsFormSchema = z
       .url("Enter a valid banner URL.")
       .or(z.literal("")),
     homepageBannerPath: z.string(),
+    heroSubtitle: z.string().trim().min(2, "Enter a hero subtitle."),
+    heroTitle: z.string().trim().min(2, "Enter a hero title."),
+    heroDescription: z.string().trim().min(10, "Enter a hero description."),
+    heroQuote: z.string().trim().min(2, "Enter a hero quote."),
     instagram: z
       .string()
       .trim()
@@ -168,4 +172,5 @@ export const settingsFormSchema = z
   );
 
 export type SettingsFormValues = z.input<typeof settingsFormSchema>;
+
 

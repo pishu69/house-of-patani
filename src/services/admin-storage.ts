@@ -31,6 +31,10 @@ export const defaultStoreSettings: StoreSettings = {
   freeShippingThreshold: 5000,
   homepageBanner: "",
   homepageBannerPath: "",
+  heroSubtitle: "Tradition Woven with Heritage",
+  heroTitle: "House of Patani",
+  heroDescription: "A refined marketplace for Indian craft, handwoven textiles, carved keepsakes, and objects that carry the warmth of home.",
+  heroQuote: "Hand-selected craft, softened by time.",
   instagram: "https://instagram.com/houseofpatani",
   logoPath: "",
   logoUrl: "",
@@ -460,6 +464,7 @@ export const adminStorage = {
     },
   },
 };
+
 
 
 

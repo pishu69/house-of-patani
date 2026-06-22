@@ -34,6 +34,10 @@ const defaults: SettingsFormValues = {
   freeShippingThreshold: 0,
   homepageBanner: "",
   homepageBannerPath: "",
+  heroSubtitle: "",
+  heroTitle: "",
+  heroDescription: "",
+  heroQuote: "",
   instagram: "",
   logoPath: "",
   logoUrl: "",
@@ -282,3 +286,4 @@ export function SettingsPage() {
     </form>
   );
 }
+

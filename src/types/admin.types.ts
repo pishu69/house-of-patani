@@ -6,6 +6,10 @@ export interface StoreSettings {
   freeShippingThreshold: number;
   homepageBanner: string;
   homepageBannerPath: string;
+  heroSubtitle: string;
+  heroTitle: string;
+  heroDescription: string;
+  heroQuote: string;
   instagram: string;
   logoPath: string;
   logoUrl: string;
@@ -24,3 +28,4 @@ export interface CouponInput {
   usageLimit: number | null;
   value: number;
 }
+
