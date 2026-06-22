@@ -149,6 +149,36 @@ export function SettingsPage() {
         </DashboardCard>
 
         <DashboardCard
+          description="Text shown on the main homepage banner."
+          title="Homepage hero"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium text-charcoal">
+              Hero subtitle
+              <input className={inputClassName} {...register("heroSubtitle")} />
+              <FormFieldError message={errors.heroSubtitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Hero title
+              <input className={inputClassName} {...register("heroTitle")} />
+              <FormFieldError message={errors.heroTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal sm:col-span-2">
+              Hero description
+              <textarea
+                className={textareaClassName}
+                {...register("heroDescription")}
+              />
+              <FormFieldError message={errors.heroDescription?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal sm:col-span-2">
+              Hero quote
+              <input className={inputClassName} {...register("heroQuote")} />
+              <FormFieldError message={errors.heroQuote?.message} />
+            </label>
+          </div>
+        </DashboardCard>
+        <DashboardCard
           description="Links shown across brand and customer touchpoints."
           title="Social channels"
         >
@@ -286,4 +316,5 @@ export function SettingsPage() {
     </form>
   );
 }
+
 

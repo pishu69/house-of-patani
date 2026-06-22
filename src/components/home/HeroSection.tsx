@@ -10,8 +10,14 @@ const DEFAULT_HERO_IMAGE =
 
 export function HeroSection() {
   const settingsQuery = useSettings();
-  const heroImage =
-    settingsQuery.data?.data.homepageBanner || DEFAULT_HERO_IMAGE;
+  const settings = settingsQuery.data?.data;
+  const heroImage = settings?.homepageBanner || DEFAULT_HERO_IMAGE;
+  const heroSubtitle = settings?.heroSubtitle || "Tradition Woven with Heritage";
+  const heroTitle = settings?.heroTitle || "House of Patani";
+  const heroDescription =
+    settings?.heroDescription ||
+    "A refined marketplace for Indian craft, handwoven textiles, carved keepsakes, and objects that carry the warmth of home.";
+  const heroQuote = settings?.heroQuote || "Hand-selected craft, softened by time.";
 
   return (
     <section className="relative flex min-h-[calc(82svh-5rem)] items-end overflow-hidden bg-charcoal sm:min-h-[calc(86svh-5rem)]">
@@ -35,14 +41,13 @@ export function HeroSection() {
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">
-            Tradition Woven with Heritage
+            {heroSubtitle}
           </p>
           <h1 className="mt-4 text-5xl leading-none text-ivory sm:text-6xl md:text-7xl lg:text-8xl">
-            House of Patani
+            {heroTitle}
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-ivory/80 sm:text-lg sm:leading-8">
-            A refined marketplace for Indian craft, handwoven textiles, carved
-            keepsakes, and objects that carry the warmth of home.
+            {heroDescription}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -63,10 +68,11 @@ export function HeroSection() {
             </Link>
           </div>
           <p className="mt-8 max-w-xl border-l border-gold/70 pl-4 font-serif text-xl leading-7 text-ivory/85 sm:text-2xl">
-            Hand-selected craft, softened by time.
+            {heroQuote}
           </p>
         </motion.div>
       </div>
     </section>
   );
 }
+
