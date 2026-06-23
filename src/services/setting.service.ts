@@ -37,6 +37,18 @@ function toJson(settings: StoreSettings): Json {
     artisanEyebrow: settings.artisanEyebrow,
     artisanTitle: settings.artisanTitle,
     artisanDescription: settings.artisanDescription,
+    deliveryCodTitle: settings.deliveryCodTitle,
+    deliveryCodDescription: settings.deliveryCodDescription,
+    deliveryPaymentTitle: settings.deliveryPaymentTitle,
+    deliveryPaymentDescription: settings.deliveryPaymentDescription,
+    deliveryShippingTitle: settings.deliveryShippingTitle,
+    deliveryShippingDescription: settings.deliveryShippingDescription,
+    deliveryReturnsTitle: settings.deliveryReturnsTitle,
+    deliveryReturnsDescription: settings.deliveryReturnsDescription,
+    deliveryCareTitle: settings.deliveryCareTitle,
+    deliveryCareDescription: settings.deliveryCareDescription,
+    deliveryPackagingTitle: settings.deliveryPackagingTitle,
+    deliveryPackagingDescription: settings.deliveryPackagingDescription,
     instagram: settings.instagram,
     logoPath: settings.logoPath,
     logoUrl: settings.logoUrl,
@@ -133,6 +145,54 @@ function fromJson(value: Json): StoreSettings {
       typeof value.artisanDescription === "string"
         ? value.artisanDescription
         : defaultStoreSettings.artisanDescription,
+    deliveryCodTitle:
+      typeof value.deliveryCodTitle === "string"
+        ? value.deliveryCodTitle
+        : defaultStoreSettings.deliveryCodTitle,
+    deliveryCodDescription:
+      typeof value.deliveryCodDescription === "string"
+        ? value.deliveryCodDescription
+        : defaultStoreSettings.deliveryCodDescription,
+    deliveryPaymentTitle:
+      typeof value.deliveryPaymentTitle === "string"
+        ? value.deliveryPaymentTitle
+        : defaultStoreSettings.deliveryPaymentTitle,
+    deliveryPaymentDescription:
+      typeof value.deliveryPaymentDescription === "string"
+        ? value.deliveryPaymentDescription
+        : defaultStoreSettings.deliveryPaymentDescription,
+    deliveryShippingTitle:
+      typeof value.deliveryShippingTitle === "string"
+        ? value.deliveryShippingTitle
+        : defaultStoreSettings.deliveryShippingTitle,
+    deliveryShippingDescription:
+      typeof value.deliveryShippingDescription === "string"
+        ? value.deliveryShippingDescription
+        : defaultStoreSettings.deliveryShippingDescription,
+    deliveryReturnsTitle:
+      typeof value.deliveryReturnsTitle === "string"
+        ? value.deliveryReturnsTitle
+        : defaultStoreSettings.deliveryReturnsTitle,
+    deliveryReturnsDescription:
+      typeof value.deliveryReturnsDescription === "string"
+        ? value.deliveryReturnsDescription
+        : defaultStoreSettings.deliveryReturnsDescription,
+    deliveryCareTitle:
+      typeof value.deliveryCareTitle === "string"
+        ? value.deliveryCareTitle
+        : defaultStoreSettings.deliveryCareTitle,
+    deliveryCareDescription:
+      typeof value.deliveryCareDescription === "string"
+        ? value.deliveryCareDescription
+        : defaultStoreSettings.deliveryCareDescription,
+    deliveryPackagingTitle:
+      typeof value.deliveryPackagingTitle === "string"
+        ? value.deliveryPackagingTitle
+        : defaultStoreSettings.deliveryPackagingTitle,
+    deliveryPackagingDescription:
+      typeof value.deliveryPackagingDescription === "string"
+        ? value.deliveryPackagingDescription
+        : defaultStoreSettings.deliveryPackagingDescription,
     instagram:
       typeof value.instagram === "string"
         ? value.instagram
@@ -252,6 +312,8 @@ export const settingService = {
     }
   },
 };
+
+
 
 
 

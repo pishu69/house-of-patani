@@ -7,7 +7,9 @@ import {
   Truck,
   type LucideIcon,
 } from "lucide-react";
+
 import { Card } from "@/components/common/Card";
+import { useSettings } from "@/hooks";
 
 interface DeliveryItem {
   description: string;
@@ -15,40 +17,55 @@ interface DeliveryItem {
   title: string;
 }
 
-const deliveryItems: DeliveryItem[] = [
-  {
-    description: "Available on eligible delivery locations.",
-    Icon: BadgeIndianRupee,
-    title: "Cash on Delivery",
-  },
-  {
-    description: "Secure Razorpay payment integration coming soon.",
-    Icon: CreditCard,
-    title: "Secure Payments",
-  },
-  {
-    description: "Complimentary shipping above ₹2,999.",
-    Icon: Truck,
-    title: "Free Shipping",
-  },
-  {
-    description: "Easy returns within 7 days of delivery.",
-    Icon: RotateCcw,
-    title: "Considered Returns",
-  },
-  {
-    description: "Made with heritage craftsmanship and careful finishing.",
-    Icon: Sparkles,
-    title: "Crafted with Care",
-  },
-  {
-    description: "Thoughtful packaging for safe, graceful delivery.",
-    Icon: ShieldCheck,
-    title: "Protected in Transit",
-  },
-];
-
 export function DeliveryInformation() {
+  const settingsQuery = useSettings();
+  const settings = settingsQuery.data?.data;
+
+  const deliveryItems: DeliveryItem[] = [
+    {
+      description:
+        settings?.deliveryCodDescription ??
+        "Pay after receiving your order. Available across most serviceable locations in India.",
+      Icon: BadgeIndianRupee,
+      title: settings?.deliveryCodTitle ?? "Cash on Delivery",
+    },
+    {
+      description:
+        settings?.deliveryPaymentDescription ??
+        "100% secure payments powered by Razorpay with UPI, Cards and Net Banking.",
+      Icon: CreditCard,
+      title: settings?.deliveryPaymentTitle ?? "Secure Payments",
+    },
+    {
+      description:
+        settings?.deliveryShippingDescription ??
+        "Free shipping on orders above ?999 across India.",
+      Icon: Truck,
+      title: settings?.deliveryShippingTitle ?? "Free Shipping",
+    },
+    {
+      description:
+        settings?.deliveryReturnsDescription ??
+        "Hassle-free returns and exchanges within 7 days.",
+      Icon: RotateCcw,
+      title: settings?.deliveryReturnsTitle ?? "Easy Returns",
+    },
+    {
+      description:
+        settings?.deliveryCareDescription ??
+        "Inspired by Koch Rajbanshi heritage and crafted with attention to detail.",
+      Icon: Sparkles,
+      title: settings?.deliveryCareTitle ?? "Crafted with Care",
+    },
+    {
+      description:
+        settings?.deliveryPackagingDescription ??
+        "Carefully packed to ensure safe delivery to your doorstep.",
+      Icon: ShieldCheck,
+      title: settings?.deliveryPackagingTitle ?? "Safe Packaging",
+    },
+  ];
+
   return (
     <Card className="grid gap-5 p-5 sm:grid-cols-2">
       {deliveryItems.map(({ description, Icon, title }) => (

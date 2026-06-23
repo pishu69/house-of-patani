@@ -19,6 +19,18 @@ export interface StoreSettings {
   artisanEyebrow: string;
   artisanTitle: string;
   artisanDescription: string;
+  deliveryCodTitle: string;
+  deliveryCodDescription: string;
+  deliveryPaymentTitle: string;
+  deliveryPaymentDescription: string;
+  deliveryShippingTitle: string;
+  deliveryShippingDescription: string;
+  deliveryReturnsTitle: string;
+  deliveryReturnsDescription: string;
+  deliveryCareTitle: string;
+  deliveryCareDescription: string;
+  deliveryPackagingTitle: string;
+  deliveryPackagingDescription: string;
   instagram: string;
   logoPath: string;
   logoUrl: string;
@@ -37,5 +49,6 @@ export interface CouponInput {
   usageLimit: number | null;
   value: number;
 }
+
 
 

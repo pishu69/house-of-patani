@@ -44,6 +44,18 @@ export const defaultStoreSettings: StoreSettings = {
   artisanEyebrow: "Artisan Community",
   artisanTitle: "Crafted by hands that know patience.",
   artisanDescription: "The visual language keeps the maker close: honest materials, measured pacing, and space for every detail to breathe.",
+  deliveryCodTitle: "Cash on Delivery",
+  deliveryCodDescription: "Pay after receiving your order. Available across most serviceable locations in India.",
+  deliveryPaymentTitle: "Secure Payments",
+  deliveryPaymentDescription: "100% secure payments powered by Razorpay with UPI, Cards and Net Banking.",
+  deliveryShippingTitle: "Free Shipping",
+  deliveryShippingDescription: "Free shipping on orders above ?999 across India.",
+  deliveryReturnsTitle: "Easy Returns",
+  deliveryReturnsDescription: "Hassle-free returns and exchanges within 7 days.",
+  deliveryCareTitle: "Crafted with Care",
+  deliveryCareDescription: "Inspired by Koch Rajbanshi heritage and crafted with attention to detail.",
+  deliveryPackagingTitle: "Safe Packaging",
+  deliveryPackagingDescription: "Carefully packed to ensure safe delivery to your doorstep.",
   instagram: "https://instagram.com/houseofpatani",
   logoPath: "",
   logoUrl: "",
@@ -473,6 +485,7 @@ export const adminStorage = {
     },
   },
 };
+
 
 
 

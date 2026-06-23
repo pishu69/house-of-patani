@@ -47,6 +47,18 @@ const defaults: SettingsFormValues = {
   artisanEyebrow: "",
   artisanTitle: "",
   artisanDescription: "",
+  deliveryCodTitle: "",
+  deliveryCodDescription: "",
+  deliveryPaymentTitle: "",
+  deliveryPaymentDescription: "",
+  deliveryShippingTitle: "",
+  deliveryShippingDescription: "",
+  deliveryReturnsTitle: "",
+  deliveryReturnsDescription: "",
+  deliveryCareTitle: "",
+  deliveryCareDescription: "",
+  deliveryPackagingTitle: "",
+  deliveryPackagingDescription: "",
   instagram: "",
   logoPath: "",
   logoUrl: "",
@@ -206,6 +218,78 @@ export function SettingsPage() {
         </DashboardCard>
 
         <DashboardCard
+          description="Editable promise cards shown on every product page."
+          title="Product page delivery information"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium text-charcoal">
+              COD title
+              <input className={inputClassName} {...register("deliveryCodTitle")} />
+              <FormFieldError message={errors.deliveryCodTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              COD description
+              <input className={inputClassName} {...register("deliveryCodDescription")} />
+              <FormFieldError message={errors.deliveryCodDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Payment title
+              <input className={inputClassName} {...register("deliveryPaymentTitle")} />
+              <FormFieldError message={errors.deliveryPaymentTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Payment description
+              <input className={inputClassName} {...register("deliveryPaymentDescription")} />
+              <FormFieldError message={errors.deliveryPaymentDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Shipping title
+              <input className={inputClassName} {...register("deliveryShippingTitle")} />
+              <FormFieldError message={errors.deliveryShippingTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Shipping description
+              <input className={inputClassName} {...register("deliveryShippingDescription")} />
+              <FormFieldError message={errors.deliveryShippingDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Returns title
+              <input className={inputClassName} {...register("deliveryReturnsTitle")} />
+              <FormFieldError message={errors.deliveryReturnsTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Returns description
+              <input className={inputClassName} {...register("deliveryReturnsDescription")} />
+              <FormFieldError message={errors.deliveryReturnsDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Care title
+              <input className={inputClassName} {...register("deliveryCareTitle")} />
+              <FormFieldError message={errors.deliveryCareTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Care description
+              <input className={inputClassName} {...register("deliveryCareDescription")} />
+              <FormFieldError message={errors.deliveryCareDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Packaging title
+              <input className={inputClassName} {...register("deliveryPackagingTitle")} />
+              <FormFieldError message={errors.deliveryPackagingTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Packaging description
+              <input className={inputClassName} {...register("deliveryPackagingDescription")} />
+              <FormFieldError message={errors.deliveryPackagingDescription?.message} />
+            </label>
+          </div>
+        </DashboardCard>
+        <DashboardCard
           description="Defaults used when calculating delivery costs."
           title="Shipping"
         >
@@ -325,6 +409,8 @@ export function SettingsPage() {
     </form>
   );
 }
+
+
 
 
 
