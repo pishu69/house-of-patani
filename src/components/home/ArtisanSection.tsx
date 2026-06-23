@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useSettings } from "@/hooks";
 import { createImageSrcSet } from "@/utils/image";
 
 const ARTISAN_IMAGE =
@@ -28,6 +29,9 @@ const artisanValues = [
 ] as const;
 
 export function ArtisanSection() {
+  const settingsQuery = useSettings();
+  const settings = settingsQuery.data?.data;
+
   return (
     <section className="bg-maroon py-16 text-ivory sm:py-20 lg:py-24">
       <div className="section-shell grid items-start gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
@@ -39,14 +43,14 @@ export function ArtisanSection() {
             whileInView={{ opacity: 1, y: 0 }}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">
-              Artisan Community
+              {settings?.artisanEyebrow ?? "Artisan Community"}
             </p>
             <h2 className="mt-4 text-3xl leading-tight text-ivory sm:text-4xl md:text-5xl lg:text-6xl">
-              Crafted by hands that know patience.
+              {settings?.artisanTitle ?? "Crafted by hands that know patience."}
             </h2>
             <p className="mt-5 max-w-xl text-base leading-8 text-ivory/72">
-              The visual language keeps the maker close: honest materials,
-              measured pacing, and space for every detail to breathe.
+              {settings?.artisanDescription ??
+                "The visual language keeps the maker close: honest materials, measured pacing, and space for every detail to breathe."}
             </p>
           </motion.div>
 
