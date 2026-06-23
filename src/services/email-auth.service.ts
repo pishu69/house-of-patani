@@ -7,7 +7,7 @@ export const emailAuthService = {
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: `${window.location.origin}/account`,
+        emailRedirectTo: "https://house-of-patani.netlify.app/account",
       },
     });
 
@@ -20,10 +20,11 @@ export const emailAuthService = {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/account`,
+        redirectTo: "https://house-of-patani.netlify.app/account",
       },
     });
 
     if (error) throw new Error("Could not start Google login.");
   },
 };
+
