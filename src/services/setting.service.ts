@@ -24,6 +24,19 @@ function toJson(settings: StoreSettings): Json {
     freeShippingThreshold: settings.freeShippingThreshold,
     homepageBanner: settings.homepageBanner,
     homepageBannerPath: settings.homepageBannerPath,
+    heroSubtitle: settings.heroSubtitle,
+    heroTitle: settings.heroTitle,
+    heroDescription: settings.heroDescription,
+    heroQuote: settings.heroQuote,
+    aboutHeroEyebrow: settings.aboutHeroEyebrow,
+    aboutHeroTitle: settings.aboutHeroTitle,
+    aboutHeroDescription: settings.aboutHeroDescription,
+    heritageEyebrow: settings.heritageEyebrow,
+    heritageTitle: settings.heritageTitle,
+    heritageDescription: settings.heritageDescription,
+    artisanEyebrow: settings.artisanEyebrow,
+    artisanTitle: settings.artisanTitle,
+    artisanDescription: settings.artisanDescription,
     instagram: settings.instagram,
     logoPath: settings.logoPath,
     logoUrl: settings.logoUrl,
@@ -239,6 +252,9 @@ export const settingService = {
     }
   },
 };
+
+
+
 
 
 

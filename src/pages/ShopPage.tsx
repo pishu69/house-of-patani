@@ -1,7 +1,6 @@
 import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { PageHero } from "@/components/common/PageHero";
-import { CategoryCard } from "@/components/home/CategoryCard";
 import { EmptyProductsState } from "@/components/shop/EmptyProductsState";
 import { FilterSidebar } from "@/components/shop/FilterSidebar";
 import { LoadingProductsSkeleton } from "@/components/shop/LoadingProductsSkeleton";
@@ -55,22 +54,7 @@ export function ShopPage() {
         eyebrow="The Collection"
         title="Shop House of Patani"
       />
-
-      <section className="bg-linen/55 py-12">
-        <div className="section-shell">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {shopCategories.map((category) => (
-              <CategoryCard
-                category={category}
-                key={category.slug}
-                to={`/shop?category=${category.slug}#catalog`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section
+<section
         className="scroll-mt-24 bg-background py-14 sm:py-16"
         id="catalog"
       >
@@ -176,4 +160,5 @@ export function ShopPage() {
     </>
   );
 }
+
 
