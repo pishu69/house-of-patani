@@ -35,6 +35,15 @@ export const defaultStoreSettings: StoreSettings = {
   heroTitle: "House of Patani",
   heroDescription: "A refined marketplace for Indian craft, handwoven textiles, carved keepsakes, and objects that carry the warmth of home.",
   heroQuote: "Hand-selected craft, softened by time.",
+  aboutHeroEyebrow: "Our Story",
+  aboutHeroTitle: "A more graceful home for tradition",
+  aboutHeroDescription: "A luxury heritage identity inspired by Indian craft marketplaces, refined for a modern premium storefront.",
+  heritageEyebrow: "Our Heritage",
+  heritageTitle: "A house for craft that remembers where it came from.",
+  heritageDescription: "House of Patani is imagined as a calm, premium home for Indian artistry. It carries the warmth of familiar craft marketplaces and refines that feeling with thoughtful spacing, quiet typography, and a palette rooted in ivory, maroon, and muted gold.\n\nEvery visual detail is designed to make heritage feel usable, modern, and emotionally close.",
+  artisanEyebrow: "Artisan Community",
+  artisanTitle: "Crafted by hands that know patience.",
+  artisanDescription: "The visual language keeps the maker close: honest materials, measured pacing, and space for every detail to breathe.",
   instagram: "https://instagram.com/houseofpatani",
   logoPath: "",
   logoUrl: "",
@@ -464,6 +473,7 @@ export const adminStorage = {
     },
   },
 };
+
 
 
 

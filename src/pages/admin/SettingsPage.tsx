@@ -38,6 +38,15 @@ const defaults: SettingsFormValues = {
   heroTitle: "",
   heroDescription: "",
   heroQuote: "",
+  aboutHeroEyebrow: "",
+  aboutHeroTitle: "",
+  aboutHeroDescription: "",
+  heritageEyebrow: "",
+  heritageTitle: "",
+  heritageDescription: "",
+  artisanEyebrow: "",
+  artisanTitle: "",
+  artisanDescription: "",
   instagram: "",
   logoPath: "",
   logoUrl: "",
@@ -316,5 +325,6 @@ export function SettingsPage() {
     </form>
   );
 }
+
 
 

@@ -139,6 +139,15 @@ export const settingsFormSchema = z
     heroTitle: z.string().trim().min(2, "Enter a hero title."),
     heroDescription: z.string().trim().min(10, "Enter a hero description."),
     heroQuote: z.string().trim().min(2, "Enter a hero quote."),
+    aboutHeroEyebrow: z.string().trim().min(2, "Enter about eyebrow."),
+    aboutHeroTitle: z.string().trim().min(2, "Enter about title."),
+    aboutHeroDescription: z.string().trim().min(10, "Enter about description."),
+    heritageEyebrow: z.string().trim().min(2, "Enter heritage eyebrow."),
+    heritageTitle: z.string().trim().min(2, "Enter heritage title."),
+    heritageDescription: z.string().trim().min(10, "Enter heritage description."),
+    artisanEyebrow: z.string().trim().min(2, "Enter artisan eyebrow."),
+    artisanTitle: z.string().trim().min(2, "Enter artisan title."),
+    artisanDescription: z.string().trim().min(10, "Enter artisan description."),
     instagram: z
       .string()
       .trim()
@@ -172,5 +181,6 @@ export const settingsFormSchema = z
   );
 
 export type SettingsFormValues = z.input<typeof settingsFormSchema>;
+
 
 

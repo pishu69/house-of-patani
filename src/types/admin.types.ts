@@ -10,6 +10,15 @@ export interface StoreSettings {
   heroTitle: string;
   heroDescription: string;
   heroQuote: string;
+  aboutHeroEyebrow: string;
+  aboutHeroTitle: string;
+  aboutHeroDescription: string;
+  heritageEyebrow: string;
+  heritageTitle: string;
+  heritageDescription: string;
+  artisanEyebrow: string;
+  artisanTitle: string;
+  artisanDescription: string;
   instagram: string;
   logoPath: string;
   logoUrl: string;
@@ -28,4 +37,5 @@ export interface CouponInput {
   usageLimit: number | null;
   value: number;
 }
+
 

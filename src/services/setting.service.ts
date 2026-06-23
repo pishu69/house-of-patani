@@ -84,6 +84,42 @@ function fromJson(value: Json): StoreSettings {
       typeof value.heroQuote === "string"
         ? value.heroQuote
         : defaultStoreSettings.heroQuote,
+    aboutHeroEyebrow:
+      typeof value.aboutHeroEyebrow === "string"
+        ? value.aboutHeroEyebrow
+        : defaultStoreSettings.aboutHeroEyebrow,
+    aboutHeroTitle:
+      typeof value.aboutHeroTitle === "string"
+        ? value.aboutHeroTitle
+        : defaultStoreSettings.aboutHeroTitle,
+    aboutHeroDescription:
+      typeof value.aboutHeroDescription === "string"
+        ? value.aboutHeroDescription
+        : defaultStoreSettings.aboutHeroDescription,
+    heritageEyebrow:
+      typeof value.heritageEyebrow === "string"
+        ? value.heritageEyebrow
+        : defaultStoreSettings.heritageEyebrow,
+    heritageTitle:
+      typeof value.heritageTitle === "string"
+        ? value.heritageTitle
+        : defaultStoreSettings.heritageTitle,
+    heritageDescription:
+      typeof value.heritageDescription === "string"
+        ? value.heritageDescription
+        : defaultStoreSettings.heritageDescription,
+    artisanEyebrow:
+      typeof value.artisanEyebrow === "string"
+        ? value.artisanEyebrow
+        : defaultStoreSettings.artisanEyebrow,
+    artisanTitle:
+      typeof value.artisanTitle === "string"
+        ? value.artisanTitle
+        : defaultStoreSettings.artisanTitle,
+    artisanDescription:
+      typeof value.artisanDescription === "string"
+        ? value.artisanDescription
+        : defaultStoreSettings.artisanDescription,
     instagram:
       typeof value.instagram === "string"
         ? value.instagram
@@ -203,6 +239,7 @@ export const settingService = {
     }
   },
 };
+
 
 
 
