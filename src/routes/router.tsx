@@ -251,6 +251,15 @@ export const router = createBrowserRouter([
                 },
               },
               {
+                path: "/admin/messages",
+                lazy: async () => {
+                  const { AdminContactMessagesPage } = await import(
+                    "@/pages/admin/AdminContactMessagesPage"
+                  );
+                  return { Component: AdminContactMessagesPage };
+                },
+              },
+              {
                 path: ROUTES.ADMIN.SETTINGS,
                 lazy: async () => {
                   const { SettingsPage } = await import(
@@ -274,4 +283,10 @@ export const router = createBrowserRouter([
     },
   },
 ]);
+
+
+
+
+
+
 
