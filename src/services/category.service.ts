@@ -9,11 +9,6 @@ import { adminStorage } from "@/services/admin-storage";
 import { storageService } from "@/services/storage.service";
 import { fallbackAfterError } from "@/services/service.utils";
 import type { ProductCategory } from "@/types/product.types";
-
-function isProductCategory(value: string): value is ProductCategory {
-  return shopCategories.some((category) => category.slug === value);
-}
-
 export const categoryService = {
   async list(): Promise<ServiceResponse<ShopCategory[]>> {
     if (!supabase) {
@@ -46,23 +41,17 @@ export const categoryService = {
           .list()
           .map((category) => [category.slug, category]),
       );
-      const categories = (data ?? []).flatMap<ShopCategory>((category) =>
-        isProductCategory(category.slug)
-          ? [
-              {
-                description: category.description ?? "",
-                imagePath:
-                  localCategories.get(category.slug)?.imagePath ??
-                  category.image_path,
-                imageUrl: localCategories.get(category.slug)?.imagePath
-                  ? localCategories.get(category.slug)?.imageUrl ?? ""
-                  : category.image_url ?? "",
-                name: category.name,
-                slug: category.slug,
-              },
-            ]
-          : [],
-      );
+      const categories = (data ?? []).map<ShopCategory>((category) => ({
+        description: category.description ?? "",
+        imagePath:
+          localCategories.get(category.slug)?.imagePath ??
+          category.image_path,
+        imageUrl: localCategories.get(category.slug)?.imagePath
+          ? localCategories.get(category.slug)?.imageUrl ?? ""
+          : category.image_url ?? "",
+        name: category.name,
+        slug: category.slug,
+      }));
 
       return categories.length > 0
         ? supabaseResponse(
@@ -90,14 +79,48 @@ export const categoryService = {
     name: string;
     slug: string;
     description: string;
-  }) {
-    return mockResponse(
+  }): Promise<ServiceResponse<ShopCategory>> {
+    const localFallback = () =>
       adminStorage.categories.create({
         description: input.description,
         name: input.name,
         slug: input.slug,
-      }),
-    );
+      });
+
+    if (!supabase) {
+      return mockResponse(localFallback());
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert({
+          active: true,
+          description: input.description,
+          name: input.name,
+          slug: input.slug,
+        })
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      localFallback();
+
+      return supabaseResponse({
+        description: data.description ?? "",
+        imagePath: data.image_path,
+        imageUrl: data.image_url ?? "",
+        name: data.name,
+        slug: data.slug,
+      });
+    } catch (error) {
+      return fallbackAfterError(
+        localFallback(),
+        error,
+        "The category could not be saved to the database, so it was saved locally.",
+      );
+    }
   },
 
   async update(
@@ -107,16 +130,80 @@ export const categoryService = {
       name: string;
       slug: string;
     }>,
-  ) {
-    return mockResponse(
-      adminStorage.categories.update(slug, input),
-    );
+  ): Promise<ServiceResponse<ShopCategory | null>> {
+    const localFallback = () => adminStorage.categories.update(slug, input);
+
+    if (!supabase) {
+      return mockResponse(localFallback());
+    }
+
+    try {
+      const updates: {
+        description?: string | null;
+        name?: string;
+        slug?: string;
+      } = {};
+
+      if (input.description !== undefined) updates.description = input.description;
+      if (input.name !== undefined) updates.name = input.name;
+      if (input.slug !== undefined) updates.slug = input.slug;
+
+      const { data, error } = await supabase
+        .from("categories")
+        .update(updates)
+        .eq("slug", slug)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+
+      localFallback();
+
+      return supabaseResponse(
+        data
+          ? {
+              description: data.description ?? "",
+              imagePath: data.image_path,
+              imageUrl: data.image_url ?? "",
+              name: data.name,
+              slug: data.slug,
+            }
+          : null,
+      );
+    } catch (error) {
+      return fallbackAfterError(
+        localFallback(),
+        error,
+        "The category could not be updated in the database, so it was saved locally.",
+      );
+    }
   },
 
-  async remove(slug: string) {
-    return mockResponse(
-      adminStorage.categories.remove(slug),
-    );
+  async remove(slug: string): Promise<ServiceResponse<boolean>> {
+    const localFallback = () => adminStorage.categories.remove(slug);
+
+    if (!supabase) {
+      return mockResponse(localFallback());
+    }
+
+    try {
+      const { error } = await supabase
+        .from("categories")
+        .update({ active: false })
+        .eq("slug", slug);
+
+      if (error) throw error;
+
+      localFallback();
+
+      return supabaseResponse(true);
+    } catch (error) {
+      return fallbackAfterError(
+        localFallback(),
+        error,
+        "The category could not be deleted from the database, so it was removed locally.",
+      );
+    }
   },
   async updateImage(
     slug: ProductCategory,
@@ -170,4 +257,8 @@ export const categoryService = {
     }
   },
 };
+
+
+
+
 
