@@ -15,6 +15,7 @@ import type {
   ProductImageRow,
   ProductRow,
 } from "@/types/database.types";
+import { defaultProductContentFields } from "@/types/product.types";
 import type {
   CatalogProduct,
   ProductCategory,
@@ -63,6 +64,7 @@ function mapProduct(
   }
 
   return {
+    ...defaultProductContentFields,
     active: override?.active ?? row.active,
     bestSeller: override?.bestSeller ?? row.best_seller,
     category: categorySlug,
@@ -71,6 +73,70 @@ function mapProduct(
       override?.description ??
       row.short_description ??
       row.description ??
+      "",
+    longDescription:
+      override?.longDescription ??
+      row.long_description ??
+      "",
+    details:
+      override?.details ??
+      row.details ??
+      "",
+    careInstructions:
+      override?.careInstructions ??
+      row.care_instructions ??
+      "",
+    shippingReturns:
+      override?.shippingReturns ??
+      row.shipping_returns ??
+      "",
+    deliveryCodTitle:
+      override?.deliveryCodTitle ??
+      row.delivery_cod_title ??
+      "",
+    deliveryCodDescription:
+      override?.deliveryCodDescription ??
+      row.delivery_cod_description ??
+      "",
+    deliveryPaymentTitle:
+      override?.deliveryPaymentTitle ??
+      row.delivery_payment_title ??
+      "",
+    deliveryPaymentDescription:
+      override?.deliveryPaymentDescription ??
+      row.delivery_payment_description ??
+      "",
+    deliveryShippingTitle:
+      override?.deliveryShippingTitle ??
+      row.delivery_shipping_title ??
+      "",
+    deliveryShippingDescription:
+      override?.deliveryShippingDescription ??
+      row.delivery_shipping_description ??
+      "",
+    deliveryReturnsTitle:
+      override?.deliveryReturnsTitle ??
+      row.delivery_returns_title ??
+      "",
+    deliveryReturnsDescription:
+      override?.deliveryReturnsDescription ??
+      row.delivery_returns_description ??
+      "",
+    deliveryCareTitle:
+      override?.deliveryCareTitle ??
+      row.delivery_care_title ??
+      "",
+    deliveryCareDescription:
+      override?.deliveryCareDescription ??
+      row.delivery_care_description ??
+      "",
+    deliveryPackagingTitle:
+      override?.deliveryPackagingTitle ??
+      row.delivery_packaging_title ??
+      "",
+    deliveryPackagingDescription:
+      override?.deliveryPackagingDescription ??
+      row.delivery_packaging_description ??
       "",
     featured: override?.featured ?? row.featured,
     id: row.id,
@@ -155,6 +221,22 @@ function toDatabaseInput(input: ProductInput, categoryId: string | null) {
     best_seller: input.bestSeller,
     category_id: categoryId,
     description: input.description,
+    long_description: input.longDescription,
+    details: input.details,
+    care_instructions: input.careInstructions,
+    shipping_returns: input.shippingReturns,
+    delivery_cod_title: input.deliveryCodTitle,
+    delivery_cod_description: input.deliveryCodDescription,
+    delivery_payment_title: input.deliveryPaymentTitle,
+    delivery_payment_description: input.deliveryPaymentDescription,
+    delivery_shipping_title: input.deliveryShippingTitle,
+    delivery_shipping_description: input.deliveryShippingDescription,
+    delivery_returns_title: input.deliveryReturnsTitle,
+    delivery_returns_description: input.deliveryReturnsDescription,
+    delivery_care_title: input.deliveryCareTitle,
+    delivery_care_description: input.deliveryCareDescription,
+    delivery_packaging_title: input.deliveryPackagingTitle,
+    delivery_packaging_description: input.deliveryPackagingDescription,
     featured: input.featured,
     name: input.name,
     new_arrival: input.newArrival,
@@ -184,6 +266,22 @@ function toDatabaseUpdate(
           description: input.description,
           short_description: input.description,
         }),
+    ...(input.longDescription === undefined ? {} : { long_description: input.longDescription }),
+    ...(input.details === undefined ? {} : { details: input.details }),
+    ...(input.careInstructions === undefined ? {} : { care_instructions: input.careInstructions }),
+    ...(input.shippingReturns === undefined ? {} : { shipping_returns: input.shippingReturns }),
+    ...(input.deliveryCodTitle === undefined ? {} : { delivery_cod_title: input.deliveryCodTitle }),
+    ...(input.deliveryCodDescription === undefined ? {} : { delivery_cod_description: input.deliveryCodDescription }),
+    ...(input.deliveryPaymentTitle === undefined ? {} : { delivery_payment_title: input.deliveryPaymentTitle }),
+    ...(input.deliveryPaymentDescription === undefined ? {} : { delivery_payment_description: input.deliveryPaymentDescription }),
+    ...(input.deliveryShippingTitle === undefined ? {} : { delivery_shipping_title: input.deliveryShippingTitle }),
+    ...(input.deliveryShippingDescription === undefined ? {} : { delivery_shipping_description: input.deliveryShippingDescription }),
+    ...(input.deliveryReturnsTitle === undefined ? {} : { delivery_returns_title: input.deliveryReturnsTitle }),
+    ...(input.deliveryReturnsDescription === undefined ? {} : { delivery_returns_description: input.deliveryReturnsDescription }),
+    ...(input.deliveryCareTitle === undefined ? {} : { delivery_care_title: input.deliveryCareTitle }),
+    ...(input.deliveryCareDescription === undefined ? {} : { delivery_care_description: input.deliveryCareDescription }),
+    ...(input.deliveryPackagingTitle === undefined ? {} : { delivery_packaging_title: input.deliveryPackagingTitle }),
+    ...(input.deliveryPackagingDescription === undefined ? {} : { delivery_packaging_description: input.deliveryPackagingDescription }),
     ...(input.featured === undefined ? {} : { featured: input.featured }),
     ...(input.name === undefined ? {} : { name: input.name }),
     ...(input.newArrival === undefined
@@ -426,4 +524,10 @@ export const productService = {
     }
   },
 };
+
+
+
+
+
+
 

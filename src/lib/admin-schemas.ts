@@ -17,6 +17,22 @@ export const productFormSchema = z
       .trim()
       .min(20, "Description must be at least 20 characters.")
       .max(500, "Description must be 500 characters or fewer."),
+    longDescription: z.string().trim().max(5000, "Long description must be 5000 characters or fewer."),
+    details: z.string().trim().max(5000, "Details must be 5000 characters or fewer."),
+    careInstructions: z.string().trim().max(3000, "Care instructions must be 3000 characters or fewer."),
+    shippingReturns: z.string().trim().max(3000, "Shipping & returns must be 3000 characters or fewer."),
+    deliveryCodTitle: z.string().trim().max(80),
+    deliveryCodDescription: z.string().trim().max(500),
+    deliveryPaymentTitle: z.string().trim().max(80),
+    deliveryPaymentDescription: z.string().trim().max(500),
+    deliveryShippingTitle: z.string().trim().max(80),
+    deliveryShippingDescription: z.string().trim().max(500),
+    deliveryReturnsTitle: z.string().trim().max(80),
+    deliveryReturnsDescription: z.string().trim().max(500),
+    deliveryCareTitle: z.string().trim().max(80),
+    deliveryCareDescription: z.string().trim().max(500),
+    deliveryPackagingTitle: z.string().trim().max(80),
+    deliveryPackagingDescription: z.string().trim().max(500),
     featured: z.boolean(),
     name: z
       .string()
@@ -193,6 +209,7 @@ export const settingsFormSchema = z
   );
 
 export type SettingsFormValues = z.input<typeof settingsFormSchema>;
+
 
 
 

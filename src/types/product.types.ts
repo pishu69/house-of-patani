@@ -26,6 +26,22 @@ export interface CatalogProduct {
   category: ProductCategory;
   createdAt: string;
   description: string;
+  longDescription: string;
+details: string;
+careInstructions: string;
+shippingReturns: string;
+deliveryCodTitle: string;
+deliveryCodDescription: string;
+deliveryPaymentTitle: string;
+deliveryPaymentDescription: string;
+deliveryShippingTitle: string;
+deliveryShippingDescription: string;
+deliveryReturnsTitle: string;
+deliveryReturnsDescription: string;
+deliveryCareTitle: string;
+deliveryCareDescription: string;
+deliveryPackagingTitle: string;
+deliveryPackagingDescription: string;
   featured: boolean;
   id: string;
   images: string[];
@@ -47,6 +63,22 @@ export interface ProductInput {
   bestSeller: boolean;
   category: ProductCategory;
   description: string;
+    longDescription: string;
+  details: string;
+  careInstructions: string;
+  shippingReturns: string;
+  deliveryCodTitle: string;
+  deliveryCodDescription: string;
+  deliveryPaymentTitle: string;
+  deliveryPaymentDescription: string;
+  deliveryShippingTitle: string;
+  deliveryShippingDescription: string;
+  deliveryReturnsTitle: string;
+  deliveryReturnsDescription: string;
+  deliveryCareTitle: string;
+  deliveryCareDescription: string;
+  deliveryPackagingTitle: string;
+  deliveryPackagingDescription: string;
   featured: boolean;
   name: string;
   newArrival: boolean;
@@ -58,3 +90,22 @@ export interface ProductInput {
   tags: string[];
 }
 
+
+export const defaultProductContentFields = {
+  longDescription: "",
+  details: "",
+  careInstructions: "",
+  shippingReturns: "",
+  deliveryCodTitle: "",
+  deliveryCodDescription: "",
+  deliveryPaymentTitle: "",
+  deliveryPaymentDescription: "",
+  deliveryShippingTitle: "",
+  deliveryShippingDescription: "",
+  deliveryReturnsTitle: "",
+  deliveryReturnsDescription: "",
+  deliveryCareTitle: "",
+  deliveryCareDescription: "",
+  deliveryPackagingTitle: "",
+  deliveryPackagingDescription: "",
+};

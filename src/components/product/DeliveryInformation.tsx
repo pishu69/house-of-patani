@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { Card } from "@/components/common/Card";
+import type { CatalogProduct } from "@/types/product.types";
 import { useSettings } from "@/hooks";
 
 interface DeliveryItem {
@@ -17,52 +18,52 @@ interface DeliveryItem {
   title: string;
 }
 
-export function DeliveryInformation() {
+export function DeliveryInformation({ product }: { product?: CatalogProduct }) {
   const settingsQuery = useSettings();
   const settings = settingsQuery.data?.data;
 
   const deliveryItems: DeliveryItem[] = [
     {
       description:
-        settings?.deliveryCodDescription ??
+        (product?.deliveryCodDescription || settings?.deliveryCodDescription) ??
         "Pay after receiving your order. Available across most serviceable locations in India.",
       Icon: BadgeIndianRupee,
-      title: settings?.deliveryCodTitle ?? "Cash on Delivery",
+      title: (product?.deliveryCodTitle || settings?.deliveryCodTitle) ?? "Cash on Delivery",
     },
     {
       description:
-        settings?.deliveryPaymentDescription ??
+        (product?.deliveryPaymentDescription || settings?.deliveryPaymentDescription) ??
         "100% secure payments powered by Razorpay with UPI, Cards and Net Banking.",
       Icon: CreditCard,
-      title: settings?.deliveryPaymentTitle ?? "Secure Payments",
+      title: (product?.deliveryPaymentTitle || settings?.deliveryPaymentTitle) ?? "Secure Payments",
     },
     {
       description:
-        settings?.deliveryShippingDescription ??
+        (product?.deliveryShippingDescription || settings?.deliveryShippingDescription) ??
         "Free shipping on orders above ?999 across India.",
       Icon: Truck,
-      title: settings?.deliveryShippingTitle ?? "Free Shipping",
+      title: (product?.deliveryShippingTitle || settings?.deliveryShippingTitle) ?? "Free Shipping",
     },
     {
       description:
-        settings?.deliveryReturnsDescription ??
+        (product?.deliveryReturnsDescription || settings?.deliveryReturnsDescription) ??
         "Hassle-free returns and exchanges within 7 days.",
       Icon: RotateCcw,
-      title: settings?.deliveryReturnsTitle ?? "Easy Returns",
+      title: (product?.deliveryReturnsTitle || settings?.deliveryReturnsTitle) ?? "Easy Returns",
     },
     {
       description:
-        settings?.deliveryCareDescription ??
+        (product?.deliveryCareDescription || settings?.deliveryCareDescription) ??
         "Inspired by Koch Rajbanshi heritage and crafted with attention to detail.",
       Icon: Sparkles,
-      title: settings?.deliveryCareTitle ?? "Crafted with Care",
+      title: (product?.deliveryCareTitle || settings?.deliveryCareTitle) ?? "Crafted with Care",
     },
     {
       description:
-        settings?.deliveryPackagingDescription ??
+        (product?.deliveryPackagingDescription || settings?.deliveryPackagingDescription) ??
         "Carefully packed to ensure safe delivery to your doorstep.",
       Icon: ShieldCheck,
-      title: settings?.deliveryPackagingTitle ?? "Safe Packaging",
+      title: (product?.deliveryPackagingTitle || settings?.deliveryPackagingTitle) ?? "Safe Packaging",
     },
   ];
 
@@ -86,3 +87,5 @@ export function DeliveryInformation() {
     </Card>
   );
 }
+
+

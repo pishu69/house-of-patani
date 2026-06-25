@@ -23,6 +23,7 @@ import {
 } from "@/lib/admin-schemas";
 import { applyZodErrors } from "@/lib/form-validation";
 import { productImageService, productService } from "@/services";
+import { defaultProductContentFields } from "@/types/product.types";
 import type {
   ProductInput,
   ProductMedia,
@@ -39,6 +40,22 @@ const defaultValues: ProductFormValues = {
   bestSeller: false,
   category: "clothing",
   description: "",
+  longDescription: "",
+  details: "",
+  careInstructions: "",
+  shippingReturns: "",
+  deliveryCodTitle: "",
+  deliveryCodDescription: "",
+  deliveryPaymentTitle: "",
+  deliveryPaymentDescription: "",
+  deliveryShippingTitle: "",
+  deliveryShippingDescription: "",
+  deliveryReturnsTitle: "",
+  deliveryReturnsDescription: "",
+  deliveryCareTitle: "",
+  deliveryCareDescription: "",
+  deliveryPackagingTitle: "",
+  deliveryPackagingDescription: "",
   featured: false,
   name: "",
   newArrival: false,
@@ -81,6 +98,22 @@ export function ProductEditorPage() {
       bestSeller: product.bestSeller,
       category: product.category,
       description: product.description,
+      longDescription: product.longDescription,
+      details: product.details,
+      careInstructions: product.careInstructions,
+      shippingReturns: product.shippingReturns,
+      deliveryCodTitle: product.deliveryCodTitle,
+      deliveryCodDescription: product.deliveryCodDescription,
+      deliveryPaymentTitle: product.deliveryPaymentTitle,
+      deliveryPaymentDescription: product.deliveryPaymentDescription,
+      deliveryShippingTitle: product.deliveryShippingTitle,
+      deliveryShippingDescription: product.deliveryShippingDescription,
+      deliveryReturnsTitle: product.deliveryReturnsTitle,
+      deliveryReturnsDescription: product.deliveryReturnsDescription,
+      deliveryCareTitle: product.deliveryCareTitle,
+      deliveryCareDescription: product.deliveryCareDescription,
+      deliveryPackagingTitle: product.deliveryPackagingTitle,
+      deliveryPackagingDescription: product.deliveryPackagingDescription,
       featured: product.featured,
       name: product.name,
       newArrival: product.newArrival,
@@ -177,6 +210,7 @@ export function ProductEditorPage() {
 
     saveMutation.mutate({
       input: {
+        ...defaultProductContentFields,
         ...result.data,
         sku: result.data.sku.toUpperCase(),
         tags: result.data.tags
@@ -319,6 +353,91 @@ export function ProductEditorPage() {
           </DashboardCard>
 
           <DashboardCard
+            description="Detailed content shown inside the product page tabs."
+            title="Product content"
+          >
+            <div className="grid gap-4">
+              <label className="text-sm font-medium text-charcoal">
+                Long description
+                <textarea
+                  className={textareaClassName}
+                  placeholder="Full product story, cultural background, material notes, and usage."
+                  {...register("longDescription")}
+                />
+                <FormFieldError message={errors.longDescription?.message} />
+              </label>
+
+              <label className="text-sm font-medium text-charcoal">
+                Details
+                <textarea
+                  className={textareaClassName}
+                  placeholder="Product details, craft notes, material, dimensions, or specifications."
+                  {...register("details")}
+                />
+                <FormFieldError message={errors.details?.message} />
+              </label>
+
+              <label className="text-sm font-medium text-charcoal">
+                Care Instructions
+                <textarea
+                  className={textareaClassName}
+                  placeholder="How customers should wash, store, clean, or care for this product."
+                  {...register("careInstructions")}
+                />
+                <FormFieldError message={errors.careInstructions?.message} />
+              </label>
+
+              <label className="text-sm font-medium text-charcoal">
+                Shipping & Returns
+                <textarea
+                  className={textareaClassName}
+                  placeholder="Product-specific shipping, exchange, return, and dispatch details."
+                  {...register("shippingReturns")}
+                />
+                <FormFieldError message={errors.shippingReturns?.message} />
+              </label>
+            </div>
+          </DashboardCard>
+
+          <DashboardCard
+            description="Product-specific delivery cards. Leave blank to use the store defaults later."
+            title="Delivery information"
+          >
+            <div className="grid gap-5">
+              {[
+                ["deliveryCodTitle", "deliveryCodDescription", "Cash on Delivery"],
+                ["deliveryPaymentTitle", "deliveryPaymentDescription", "Secure Payments"],
+                ["deliveryShippingTitle", "deliveryShippingDescription", "Free Shipping"],
+                ["deliveryReturnsTitle", "deliveryReturnsDescription", "Easy Returns"],
+                ["deliveryCareTitle", "deliveryCareDescription", "Crafted with Care"],
+                ["deliveryPackagingTitle", "deliveryPackagingDescription", "Safe Packaging"],
+              ].map(([titleField, descriptionField, label]) => (
+                <div
+                  className="grid gap-3 rounded-lg border border-maroon/10 bg-background p-4 sm:grid-cols-2"
+                  key={titleField}
+                >
+                  <label className="text-sm font-medium text-charcoal">
+                    {label} title
+                    <input
+                      className={inputClassName}
+                      placeholder={label}
+                      {...register(titleField as keyof ProductFormValues)}
+                    />
+                  </label>
+
+                  <label className="text-sm font-medium text-charcoal">
+                    {label} description
+                    <textarea
+                      className={textareaClassName}
+                      placeholder={`${label} description for this product`}
+                      {...register(descriptionField as keyof ProductFormValues)}
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </DashboardCard>
+          <DashboardCard
             description="Upload, describe, order, and choose the primary image."
             title="Media"
           >
@@ -402,4 +521,9 @@ export function ProductEditorPage() {
     </form>
   );
 }
+
+
+
+
+
 

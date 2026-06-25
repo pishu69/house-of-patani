@@ -1,3 +1,4 @@
+import { defaultProductContentFields } from "@/types/product.types";
 import type {
   CatalogProduct,
   ProductCategory,
@@ -141,7 +142,8 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
       }));
 
       return {
-        active: true,
+        ...defaultProductContentFields,
+      active: true,
         bestSeller: seed.bestSeller ?? false,
         category,
         createdAt,
@@ -167,4 +169,7 @@ export const products: CatalogProduct[] = categoryOrder.flatMap(
 export const MAX_PRODUCT_PRICE = Math.ceil(
   Math.max(...products.map((product) => product.price)) / 1000,
 ) * 1000;
+
+
+
 

@@ -15,6 +15,7 @@ import type {
   OrderConfirmation,
   RazorpayPaymentReference,
 } from "@/types/order.types";
+import { defaultProductContentFields } from "@/types/product.types";
 import type {
   CatalogProduct,
   ProductInput,
@@ -265,6 +266,7 @@ export const adminStorage = {
     create(input: ProductInput) {
       const current = this.list();
       const created: CatalogProduct = {
+        ...defaultProductContentFields,
         ...input,
         createdAt: new Date().toISOString(),
         id: createId("product"),
@@ -485,6 +487,9 @@ export const adminStorage = {
     },
   },
 };
+
+
+
 
 
 

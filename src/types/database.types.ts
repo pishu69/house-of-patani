@@ -37,7 +37,22 @@ export interface ProductRow {
   category_id: string | null;
   created_at: string;
   description: string | null;
-  featured: boolean;
+  long_description: string | null;
+  details: string | null;
+  care_instructions: string | null;
+  shipping_returns: string | null;
+  delivery_cod_title: string | null;
+  delivery_cod_description: string | null;
+  delivery_payment_title: string | null;
+  delivery_payment_description: string | null;
+  delivery_shipping_title: string | null;
+  delivery_shipping_description: string | null;
+  delivery_returns_title: string | null;
+  delivery_returns_description: string | null;
+  delivery_care_title: string | null;
+  delivery_care_description: string | null;
+  delivery_packaging_title: string | null;
+  delivery_packaging_description: string | null;  featured: boolean;
   id: string;
   name: string;
   new_arrival: boolean;
@@ -340,3 +355,6 @@ export interface Database {
     Views: Record<never, never>;
   };
 }
+
+
+

@@ -1,0 +1,17 @@
+alter table public.products
+add column if not exists long_description text,
+add column if not exists details text,
+add column if not exists care_instructions text,
+add column if not exists shipping_returns text,
+add column if not exists delivery_cod_title text,
+add column if not exists delivery_cod_description text,
+add column if not exists delivery_payment_title text,
+add column if not exists delivery_payment_description text,
+add column if not exists delivery_shipping_title text,
+add column if not exists delivery_shipping_description text,
+add column if not exists delivery_returns_title text,
+add column if not exists delivery_returns_description text,
+add column if not exists delivery_care_title text,
+add column if not exists delivery_care_description text,
+add column if not exists delivery_packaging_title text,
+add column if not exists delivery_packaging_description text;

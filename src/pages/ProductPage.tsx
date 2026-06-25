@@ -146,14 +146,14 @@ export function ProductPage() {
 
   const tabs: ProductTab[] = [
     {
-      content: <p>{product.description || experience.longDescription}</p>,
+      content: <p>{product.longDescription || product.description || experience.longDescription}</p>,
       id: "description",
       label: "Description",
     },
     {
       content: (
         <div className="space-y-3">
-          <p>{experience.detailNotes}</p>
+          <p>{product.details || experience.detailNotes}</p>
           <dl className="grid gap-3 sm:grid-cols-2">
             <div>
               <dt className="font-semibold text-charcoal">Category</dt>
@@ -170,22 +170,22 @@ export function ProductPage() {
       label: "Details",
     },
     {
-      content: <p>{experience.careInstructions}</p>,
+      content: <p>{product.careInstructions || experience.careInstructions}</p>,
       id: "care",
       label: "Care Instructions",
     },
     {
       content: (
         <div className="space-y-3">
-          <p>
-            Orders are carefully packed and typically dispatched within 2-4
-            business days.
-          </p>
-          <p>
-            Easy returns are available within 7 days of delivery for eligible
-            unused products in their original condition.
-          </p>
-        </div>
+  {(product.shippingReturns ||
+    `Orders are carefully packed and typically dispatched within 2–4 business days.
+
+Easy returns are available within 7 days of delivery for eligible unused products in their original condition.`)
+    .split("\n\n")
+    .map((paragraph) => (
+      <p key={paragraph}>{paragraph}</p>
+    ))}
+</div>
       ),
       id: "shipping",
       label: "Shipping & Returns",
@@ -254,7 +254,7 @@ export function ProductPage() {
                       quantity={quantity}
                       stock={product.stock}
                     />
-                    <DeliveryInformation />
+                    <DeliveryInformation product={product} />
                   </div>
                 }
                 badge={
@@ -313,6 +313,9 @@ export function ProductPage() {
     </>
   );
 }
+
+
+
 
 
 

@@ -1,15 +1,63 @@
+import { FormEvent, useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { toast } from "sonner";
+
 import { PageHero } from "@/components/common/PageHero";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks";
+import { contactService } from "@/services";
 
 export function ContactPage() {
   const settingsQuery = useSettings();
   const settings = settingsQuery.data?.data;
+  const [isSending, setIsSending] = useState(false);
 
   const address = settings?.address || "Patani Heritage House, India";
   const email = settings?.email || "care@houseofpatani.com";
   const phone = settings?.whatsappNumber || "+91 98765 43210";
+
+  async function submitContact(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("name") ?? "").trim();
+    const senderEmail = String(formData.get("email") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
+
+    if (!name || !senderEmail || !message) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+
+    if (!senderEmail.includes("@")) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      setIsSending(true);
+
+      await contactService.create({
+        email: senderEmail,
+        message,
+        name,
+      });
+
+      form.reset();
+
+      toast.success("Message sent.", {
+        description: "Thank you for contacting House of Patani.",
+      });
+    } catch (error) {
+  console.error(error);
+      toast.error("Message could not be sent.", {
+        description: "Please try again or email us directly.",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  }
 
   return (
     <>
@@ -29,7 +77,9 @@ export function ContactPage() {
               </p>
               <p className="flex gap-3">
                 <Mail className="shrink-0 text-gold" size={19} />
-                <a className="hover:text-maroon" href={`mailto:${email}`}>{email}</a>
+                <a className="hover:text-maroon" href={`mailto:${email}`}>
+                  {email}
+                </a>
               </p>
               <p className="flex gap-3">
                 <Phone className="shrink-0 text-gold" size={19} />
@@ -38,7 +88,10 @@ export function ContactPage() {
             </div>
           </aside>
 
-          <form className="rounded-lg border border-maroon/10 bg-card p-8 shadow-lift">
+          <form
+            className="rounded-lg border border-maroon/10 bg-card p-8 shadow-lift"
+            onSubmit={submitContact}
+          >
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label className="text-sm font-semibold" htmlFor="name">
@@ -47,6 +100,8 @@ export function ContactPage() {
                 <input
                   className="mt-2 h-12 w-full rounded-full border border-maroon/15 bg-background px-4"
                   id="name"
+                  name="name"
+                  required
                   type="text"
                 />
               </div>
@@ -57,6 +112,8 @@ export function ContactPage() {
                 <input
                   className="mt-2 h-12 w-full rounded-full border border-maroon/15 bg-background px-4"
                   id="email"
+                  name="email"
+                  required
                   type="email"
                 />
               </div>
@@ -68,12 +125,17 @@ export function ContactPage() {
               <textarea
                 className="mt-2 min-h-40 w-full rounded-2xl border border-maroon/15 bg-background p-4"
                 id="message"
+                name="message"
+                required
               />
             </div>
-            <Button className="mt-6">Send Message</Button>
+            <Button className="mt-6" disabled={isSending} type="submit">
+              {isSending ? "Sending..." : "Send Message"}
+            </Button>
           </form>
         </div>
       </section>
     </>
   );
 }
+
