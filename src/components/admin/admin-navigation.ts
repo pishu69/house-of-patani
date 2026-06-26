@@ -3,6 +3,7 @@ import {
   Boxes,
   FolderTree,
   Inbox,
+  Mail,
   LayoutDashboard,
   Settings,
   ShoppingBag,
@@ -24,7 +25,9 @@ export const adminNavigation: AdminNavigationItem[] = [
   { icon: BadgePercent, label: "Coupons", to: "/admin/coupons" },
   { icon: FolderTree, label: "Categories", to: "/admin/categories" },
   { icon: Inbox, label: "Messages", to: "/admin/messages" },
+  { icon: Mail, label: "Newsletter", to: "/admin/newsletter" },
   { icon: Settings, label: "Settings", to: "/admin/settings" },
 ];
+
 
 

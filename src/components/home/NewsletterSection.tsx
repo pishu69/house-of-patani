@@ -1,11 +1,44 @@
+import { FormEvent, useState } from "react";
 import { Mail } from "lucide-react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
+import { newsletterService } from "@/services";
 import { createImageSrcSet } from "@/utils/image";
 
 const NEWSLETTER_IMAGE =
   "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=85";
 
 export function NewsletterSection() {
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  async function submitNewsletter(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const email = String(formData.get("email") ?? "").trim();
+
+    try {
+      setIsSubscribing(true);
+      await newsletterService.subscribe(email);
+      form.reset();
+
+      toast.success("Subscribed successfully.", {
+        description: "You will now receive Patani Letters.",
+      });
+    } catch (error) {
+      toast.error("Could not subscribe.", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again after some time.",
+      });
+    } finally {
+      setIsSubscribing(false);
+    }
+  }
+
   return (
     <section className="bg-linen/75 py-16 sm:py-20 lg:py-24">
       <div className="section-shell">
@@ -30,7 +63,10 @@ export function NewsletterSection() {
               Seasonal edits, artisan stories, and collection notes from House
               of Patani.
             </p>
-            <form className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <form
+              className="mt-8 flex flex-col gap-3 sm:flex-row"
+              onSubmit={submitNewsletter}
+            >
               <label className="sr-only" htmlFor="newsletter-email">
                 Email address
               </label>
@@ -42,11 +78,15 @@ export function NewsletterSection() {
                 <input
                   className="h-12 w-full rounded-full border border-maroon/15 bg-background px-11 text-sm text-charcoal placeholder:text-muted-foreground"
                   id="newsletter-email"
+                  name="email"
                   placeholder="Email address"
+                  required
                   type="email"
                 />
               </div>
-              <Button>Subscribe</Button>
+              <Button disabled={isSubscribing} type="submit">
+                {isSubscribing ? "Subscribing..." : "Subscribe"}
+              </Button>
             </form>
           </div>
         </div>

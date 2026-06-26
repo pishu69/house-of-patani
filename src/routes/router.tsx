@@ -260,6 +260,15 @@ export const router = createBrowserRouter([
                 },
               },
               {
+                path: "/admin/newsletter",
+                lazy: async () => {
+                  const { AdminNewsletterPage } = await import(
+                    "@/pages/admin/AdminNewsletterPage"
+                  );
+                  return { Component: AdminNewsletterPage };
+                },
+              },
+              {
                 path: ROUTES.ADMIN.SETTINGS,
                 lazy: async () => {
                   const { SettingsPage } = await import(
@@ -283,6 +292,7 @@ export const router = createBrowserRouter([
     },
   },
 ]);
+
 
 
 

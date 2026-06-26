@@ -20,4 +20,4 @@ export { reviewService } from "@/services/review.service";
 export { settingService } from "@/services/setting.service";
 export { storageService } from "@/services/storage.service";
 export { wishlistService } from "@/services/wishlist.service";
-export { contactService } from "@/services/contact.service";
+export { contactService } from "@/services/contact.service";export { newsletterService } from "@/services/newsletter.service";

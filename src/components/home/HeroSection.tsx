@@ -11,7 +11,9 @@ const DEFAULT_HERO_IMAGE =
 export function HeroSection() {
   const settingsQuery = useSettings();
   const settings = settingsQuery.data?.data;
-  const heroImage = settings?.homepageBanner || DEFAULT_HERO_IMAGE;
+  const heroImage = settingsQuery.isLoading
+    ? ""
+    : settings?.homepageBanner || DEFAULT_HERO_IMAGE;
   const heroSubtitle = settings?.heroSubtitle || "Tradition Woven with Heritage";
   const heroTitle = settings?.heroTitle || "House of Patani";
   const heroDescription =
@@ -21,7 +23,8 @@ export function HeroSection() {
 
   return (
     <section className="relative flex min-h-[calc(82svh-5rem)] items-end overflow-hidden bg-charcoal sm:min-h-[calc(86svh-5rem)]">
-      <img
+      {heroImage ? (
+        <img
         alt="Handcrafted heritage textile in warm maroon and gold tones"
         className="absolute inset-0 h-full w-full object-cover object-center"
         decoding="async"
@@ -30,7 +33,8 @@ export function HeroSection() {
         sizes="100vw"
         src={heroImage}
         srcSet={createImageSrcSet(heroImage, [768, 1280, 1800, 2200])}
-      />
+        />
+      ) : null}
       <div className="absolute inset-0 bg-charcoal/60" />
 
       <div className="section-shell relative z-10 py-12 sm:py-16 lg:py-20">
@@ -75,4 +79,5 @@ export function HeroSection() {
     </section>
   );
 }
+
 

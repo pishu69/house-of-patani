@@ -1,5 +1,8 @@
+import { FormEvent, useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+
 import {
   SocialLinks,
   type SocialLink,
@@ -7,10 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useSettings } from "@/hooks";
+import { newsletterService } from "@/services";
 
 export function Footer() {
   const settingsQuery = useSettings();
   const settings = settingsQuery.data?.data;
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const storeName = settings?.storeName || "House of Patani";
   const address = settings?.address || "Patani Heritage House, India";
@@ -25,6 +30,33 @@ export function Footer() {
       ? [{ href: settings.facebook, label: "Facebook", platform: "facebook" as const }]
       : []),
   ];
+
+  async function submitNewsletter(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const subscriberEmail = String(formData.get("email") ?? "").trim();
+
+    try {
+      setIsSubscribing(true);
+      await newsletterService.subscribe(subscriberEmail);
+      form.reset();
+
+      toast.success("Subscribed successfully.", {
+        description: "You will now receive Patani Letters.",
+      });
+    } catch (error) {
+      toast.error("Could not subscribe.", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again after some time.",
+      });
+    } finally {
+      setIsSubscribing(false);
+    }
+  }
 
   return (
     <footer
@@ -82,18 +114,24 @@ export function Footer() {
           <p className="mt-5 text-sm leading-7 text-ivory/70">
             Receive craft stories, collection notes, and seasonal edits.
           </p>
-          <form className="mt-5 flex flex-col gap-3">
+          <form className="mt-5 flex flex-col gap-3" onSubmit={submitNewsletter}>
             <label className="sr-only" htmlFor="footer-email">
               Email address
             </label>
             <input
               className="h-12 rounded-full border border-ivory/15 bg-ivory/10 px-4 text-sm text-ivory placeholder:text-ivory/45"
               id="footer-email"
+              name="email"
               placeholder="Email address"
+              required
               type="email"
             />
-            <Button className="bg-gold text-charcoal hover:bg-gold/90">
-              Subscribe
+            <Button
+              className="bg-gold text-charcoal hover:bg-gold/90"
+              disabled={isSubscribing}
+              type="submit"
+            >
+              {isSubscribing ? "Subscribing..." : "Subscribe"}
             </Button>
           </form>
         </div>
