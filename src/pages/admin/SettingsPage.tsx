@@ -354,6 +354,61 @@ export function SettingsPage() {
 
         <DashboardCard
           className="xl:col-span-2"
+          description="Edit the About page story and artisan section text."
+          title="About page content"
+        >
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="text-sm font-medium text-charcoal">
+              About hero eyebrow
+              <input className={inputClassName} {...register("aboutHeroEyebrow")} />
+              <FormFieldError message={errors.aboutHeroEyebrow?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              About hero title
+              <input className={inputClassName} {...register("aboutHeroTitle")} />
+              <FormFieldError message={errors.aboutHeroTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal md:col-span-2">
+              About hero description
+              <textarea className={textareaClassName} {...register("aboutHeroDescription")} />
+              <FormFieldError message={errors.aboutHeroDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Heritage eyebrow
+              <input className={inputClassName} {...register("heritageEyebrow")} />
+              <FormFieldError message={errors.heritageEyebrow?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Heritage title
+              <input className={inputClassName} {...register("heritageTitle")} />
+              <FormFieldError message={errors.heritageTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal md:col-span-2">
+              Heritage description
+              <textarea className={textareaClassName} {...register("heritageDescription")} />
+              <FormFieldError message={errors.heritageDescription?.message} />
+            </label>
+
+            <label className="text-sm font-medium text-charcoal">
+              Artisan eyebrow
+              <input className={inputClassName} {...register("artisanEyebrow")} />
+              <FormFieldError message={errors.artisanEyebrow?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal">
+              Artisan title
+              <input className={inputClassName} {...register("artisanTitle")} />
+              <FormFieldError message={errors.artisanTitle?.message} />
+            </label>
+            <label className="text-sm font-medium text-charcoal md:col-span-2">
+              Artisan description
+              <textarea className={textareaClassName} {...register("artisanDescription")} />
+              <FormFieldError message={errors.artisanDescription?.message} />
+            </label>
+          </div>
+        </DashboardCard>
+        <DashboardCard
+          className="xl:col-span-2"
           description="The main image shown behind the homepage introduction."
           title="Homepage banner"
         >
@@ -409,6 +464,7 @@ export function SettingsPage() {
     </form>
   );
 }
+
 
 
 

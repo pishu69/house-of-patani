@@ -2,8 +2,7 @@ import { motion } from "framer-motion";
 import { useSettings } from "@/hooks";
 import { createImageSrcSet } from "@/utils/image";
 
-const ARTISAN_IMAGE =
-  "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1100&q=85";
+const ARTISAN_IMAGE = "/images/about/artisan.jpg";
 
 const artisanValues = [
   {

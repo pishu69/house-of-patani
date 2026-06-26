@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LockKeyhole, PackageCheck, ShieldCheck } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ import {
 import { applyZodErrors } from "@/lib/form-validation";
 import { orderService, paymentService } from "@/services";
 import { useCartStore } from "@/stores/cart.store";
+import { useCustomerStore } from "@/stores/customer.store";
 import type { CartItemView } from "@/types/cart.types";
 import type { CreateGuestOrderInput } from "@/types/order.types";
 import { formatCurrency } from "@/utils";
@@ -57,6 +58,8 @@ export function CheckoutPage() {
   const removeCartItem = useCartStore((state) => state.removeItem);
   const clearCart = useCartStore((state) => state.clearCart);
   const closeDrawer = useCartStore((state) => state.closeDrawer);
+  const customerProfile = useCustomerStore((state) => state.profile);
+  const savedAddresses = useCustomerStore((state) => state.addresses);
   const productsQuery = useProducts();
   const settingsQuery = useSettings();
   const {
@@ -68,6 +71,35 @@ export function CheckoutPage() {
     watch,
   } = useForm<CheckoutFormValues>({ defaultValues: defaults });
   const paymentMethod = watch("paymentMethod");
+
+  useEffect(() => {
+    const savedAddress =
+      savedAddresses.find((address) => address.isDefault) ??
+      savedAddresses[0];
+
+    if (customerProfile.name) {
+      const [firstName, ...lastNameParts] = customerProfile.name.split(" ");
+      setValue("firstName", firstName ?? "");
+      setValue("lastName", lastNameParts.join(" "));
+    }
+
+    if (customerProfile.email) {
+      setValue("email", customerProfile.email);
+    }
+
+    if (customerProfile.phone) {
+      setValue("phone", customerProfile.phone);
+    }
+
+    if (savedAddress) {
+      setValue("addressLine1", savedAddress.line1);
+      setValue("addressLine2", savedAddress.line2);
+      setValue("city", savedAddress.city);
+      setValue("country", savedAddress.country);
+      setValue("pincode", savedAddress.postalCode);
+      setValue("state", savedAddress.state);
+    }
+  }, [customerProfile, savedAddresses, setValue]);
   const shippingMethod = watch("shippingMethod");
   const settings = settingsQuery.data?.data;
   const catalog = productsQuery.data?.data ?? [];
@@ -616,6 +648,7 @@ export function CheckoutPage() {
     </>
   );
 }
+
 
 
 

@@ -21,12 +21,12 @@ export function HeritageStorySection() {
         description={
           <p>
             {settings?.heritageDescription ??
-              "House of Patani is imagined as a calm, premium home for Indian artistry."}
+              "House of Patani is imagined as a calm, premium home for Koch Rajbanshi artistry."}
           </p>
         }
         eyebrow={settings?.heritageEyebrow ?? "Our Heritage"}
-        imageAlt="Traditional Indian craft and textiles arranged in a heritage interior"
-        imageUrl="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=85"
+        imageAlt="Traditional Koch Rajabnshi craft and textiles arranged in a heritage interior"
+        imageUrl="/images/about/heritage.jpg"
         title={
           settings?.heritageTitle ??
           "A house for craft that remembers where it came from."
