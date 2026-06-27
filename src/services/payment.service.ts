@@ -116,15 +116,19 @@ export async function createPaymentIntent(
     "create-razorpay-order",
     {
       body: {
-        address: checkout.address,
-        customerEmail: checkout.customerEmail,
-        customerName: checkout.customerName,
-        customerPhone: checkout.customerPhone,
-        items: checkout.items.map((item) => ({
-          quantity: item.quantity,
-          sku: item.sku,
-        })),
-      },
+  address: checkout.address,
+  customerEmail: checkout.customerEmail,
+  customerName: checkout.customerName,
+  customerPhone: checkout.customerPhone,
+  discount: checkout.discount,
+  items: checkout.items.map((item) => ({
+    quantity: item.quantity,
+    sku: item.sku,
+  })),
+  shipping: checkout.shipping,
+  subtotal: checkout.subtotal,
+  total: checkout.total,
+},
     },
   );
 

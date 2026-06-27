@@ -10,7 +10,11 @@ interface CreateOrderBody {
   customerEmail: string;
   customerName: string;
   customerPhone: string;
+  discount: number;
   items: CheckoutItem[];
+  shipping: number;
+  subtotal: number;
+  total: number;
 }
 
 interface RazorpayOrder {
@@ -37,6 +41,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isValidMoney(value: unknown) {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= 10_00_000
+  );
+}
+
 function parseBody(value: unknown): CreateOrderBody | null {
   if (
     !isRecord(value) ||
@@ -44,7 +57,11 @@ function parseBody(value: unknown): CreateOrderBody | null {
     typeof value.customerName !== "string" ||
     typeof value.customerPhone !== "string" ||
     !isRecord(value.address) ||
-    !Array.isArray(value.items)
+    !Array.isArray(value.items) ||
+    !isValidMoney(value.discount) ||
+    !isValidMoney(value.shipping) ||
+    !isValidMoney(value.subtotal) ||
+    !isValidMoney(value.total)
   ) {
     return null;
   }
@@ -53,6 +70,7 @@ function parseBody(value: unknown): CreateOrderBody | null {
   const customerName = value.customerName.trim();
   const customerPhone = value.customerPhone.trim();
   const phoneDigits = customerPhone.replace(/\D/g, "");
+
   if (
     customerName.length < 2 ||
     customerName.length > 120 ||
@@ -79,6 +97,7 @@ function parseBody(value: unknown): CreateOrderBody | null {
     ) {
       return [];
     }
+
     return [{ quantity: item.quantity, sku: item.sku }];
   });
 
@@ -92,6 +111,7 @@ function parseBody(value: unknown): CreateOrderBody | null {
         : [],
     ),
   );
+
   const requiredAddressFields = [
     "addressLine1",
     "city",
@@ -99,6 +119,7 @@ function parseBody(value: unknown): CreateOrderBody | null {
     "pincode",
     "country",
   ];
+
   if (
     requiredAddressFields.some(
       (key) => !address[key] || address[key].length < 2,
@@ -113,7 +134,11 @@ function parseBody(value: unknown): CreateOrderBody | null {
     customerEmail,
     customerName,
     customerPhone,
+    discount: Math.round(value.discount),
     items,
+    shipping: Math.round(value.shipping),
+    subtotal: Math.round(value.subtotal),
+    total: Math.round(value.total),
   };
 }
 
@@ -140,6 +165,7 @@ Deno.serve(async (request) => {
   }
 
   let requestBody: unknown;
+
   try {
     requestBody = await request.json();
   } catch {
@@ -152,7 +178,9 @@ Deno.serve(async (request) => {
   const client = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
   });
+
   const skus = body.items.map((item) => item.sku);
+
   const { data: products, error: productsError } = await client
     .from("products")
     .select("id, name, price, sku, stock, active")
@@ -162,13 +190,16 @@ Deno.serve(async (request) => {
     return json({ message: "One or more products are unavailable." }, 409);
   }
 
-  let subtotal = 0;
+  let verifiedSubtotal = 0;
+
   for (const item of body.items) {
     const product = products.find((candidate) => candidate.sku === item.sku);
+
     if (!product || !product.active || product.stock < item.quantity) {
       return json({ message: "One or more products are out of stock." }, 409);
     }
-    subtotal += Number(product.price) * item.quantity;
+
+    verifiedSubtotal += Number(product.price) * item.quantity;
   }
 
   const { data: settingRow } = await client
@@ -176,17 +207,44 @@ Deno.serve(async (request) => {
     .select("value")
     .eq("key", "store")
     .maybeSingle();
+
   const settings = isRecord(settingRow?.value) ? settingRow.value : {};
+
   const threshold =
     typeof settings.freeShippingThreshold === "number"
       ? settings.freeShippingThreshold
       : 5000;
+
   const shippingCharge =
     typeof settings.shippingCharge === "number"
       ? settings.shippingCharge
       : 250;
-  const total = subtotal + (subtotal >= threshold ? 0 : shippingCharge);
-  const amountInPaise = Math.round(total * 100);
+
+  const verifiedShipping =
+    verifiedSubtotal === 0 || verifiedSubtotal >= threshold ? 0 : shippingCharge;
+
+  if (Math.round(body.subtotal) !== Math.round(verifiedSubtotal)) {
+    return json({ message: "The order subtotal is invalid." }, 400);
+  }
+
+  if (Math.round(body.shipping) !== Math.round(verifiedShipping)) {
+    return json({ message: "The shipping amount is invalid." }, 400);
+  }
+
+  const verifiedDiscount = Math.min(
+    Math.round(verifiedSubtotal),
+    Math.max(0, Math.round(body.discount)),
+  );
+
+  const verifiedTotal =
+    Math.round(verifiedSubtotal) - verifiedDiscount + Math.round(verifiedShipping);
+
+  if (Math.round(body.total) !== verifiedTotal) {
+    return json({ message: "The order total is invalid." }, 400);
+  }
+
+  const amountInPaise = Math.round(verifiedTotal * 100);
+
   if (!Number.isSafeInteger(amountInPaise) || amountInPaise < 100) {
     return json({ message: "The order total is invalid." }, 400);
   }
@@ -194,7 +252,7 @@ Deno.serve(async (request) => {
   const { data: intent, error: intentError } = await client
     .from("payment_intents")
     .insert({
-      amount: total,
+      amount: verifiedTotal,
       currency: "INR",
       customer_email: body.customerEmail,
       customer_name: body.customerName,
@@ -211,11 +269,17 @@ Deno.serve(async (request) => {
   }
 
   const receipt = `hop_${intent.id.replaceAll("-", "").slice(0, 28)}`;
+
   const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
     body: JSON.stringify({
       amount: amountInPaise,
       currency: "INR",
-      notes: { intent_id: intent.id },
+      notes: {
+        discount: String(verifiedDiscount),
+        intent_id: intent.id,
+        shipping: String(verifiedShipping),
+        subtotal: String(verifiedSubtotal),
+      },
       receipt,
     }),
     headers: {
@@ -230,10 +294,12 @@ Deno.serve(async (request) => {
       .from("payment_intents")
       .update({ status: "failed" })
       .eq("id", intent.id);
+
     return json({ message: "Online payment is temporarily unavailable." }, 502);
   }
 
   const razorpayOrder = (await razorpayResponse.json()) as RazorpayOrder;
+
   if (
     typeof razorpayOrder.id !== "string" ||
     typeof razorpayOrder.amount !== "number" ||
@@ -245,8 +311,10 @@ Deno.serve(async (request) => {
       .from("payment_intents")
       .update({ status: "failed" })
       .eq("id", intent.id);
+
     return json({ message: "Online payment is temporarily unavailable." }, 502);
   }
+
   await client
     .from("payment_intents")
     .update({ razorpay_order_id: razorpayOrder.id })

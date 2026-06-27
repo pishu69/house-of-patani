@@ -219,14 +219,16 @@ export const orderService = {
       subtotal >= settingsResponse.data.freeShippingThreshold
         ? 0
         : settingsResponse.data.shippingCharge;
-    const verifiedInput: CreateGuestOrderInput = {
-      ...input,
-      discount: 0,
-      paymentMethod: "razorpay",
-      shipping,
-      subtotal,
-      total: subtotal + shipping,
-    };
+    const discount = Math.min(input.discount, subtotal);
+
+const verifiedInput: CreateGuestOrderInput = {
+  ...input,
+  discount,
+  paymentMethod: "razorpay",
+  shipping,
+  subtotal,
+  total: subtotal - discount + shipping,
+};
 
     return mockResponse(
       adminStorage.orders.create(

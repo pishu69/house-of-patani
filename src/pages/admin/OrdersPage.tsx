@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
@@ -220,6 +222,19 @@ export function OrdersPage() {
         ),
       },
       {
+        header: "View",
+        id: "view",
+        render: (order) => (
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-maroon/20 px-3 text-xs font-semibold text-maroon transition hover:bg-maroon/5"
+            to={`/admin/orders/${order.order_number}`}
+          >
+            <Eye aria-hidden="true" size={14} />
+            View
+          </Link>
+        ),
+      },
+      {
         header: "Method",
         id: "method",
         render: (order) => (
@@ -317,3 +332,4 @@ export function OrdersPage() {
     </div>
   );
 }
+

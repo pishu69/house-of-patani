@@ -224,6 +224,15 @@ export const router = createBrowserRouter([
                 },
               },
               {
+  path: "orders/:orderNumber",
+  lazy: async () => {
+    const { AdminOrderDetailsPage } = await import(
+      "@/pages/admin/AdminOrderDetailsPage"
+    );
+    return { Component: AdminOrderDetailsPage };
+  },
+},
+              {
                 path: ROUTES.ADMIN.CUSTOMERS,
                 lazy: async () => {
                   const { CustomersPage } = await import(

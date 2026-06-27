@@ -396,6 +396,12 @@ export function CheckoutPage() {
     razorpayKeyConfigured &&
     razorpayBackendAvailable &&
     Boolean(settings?.razorpayEnabled);
+    console.log("Razorpay debug", {
+  razorpayKeyConfigured,
+  razorpayBackendAvailable,
+  razorpayEnabledFromSettings: settings?.razorpayEnabled,
+  razorpayEnabled,
+});
   const hasUnavailableItems = checkoutState.unavailable.length > 0;
 
   return (
