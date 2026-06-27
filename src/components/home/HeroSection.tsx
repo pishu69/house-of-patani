@@ -26,7 +26,7 @@ export function HeroSection() {
       {heroImage ? (
         <img
         alt="Handcrafted heritage textile in warm maroon and gold tones"
-        className="absolute inset-0 h-full w-full object-cover object-center"
+        className="absolute inset-0 h-full w-full object-cover object-[72%_center] sm:object-[68%_center] md:object-[60%_center] lg:object-center"
         decoding="async"
         fetchPriority="high"
         loading="eager"
@@ -79,5 +79,6 @@ export function HeroSection() {
     </section>
   );
 }
+
 
 
