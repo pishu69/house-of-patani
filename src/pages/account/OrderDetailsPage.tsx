@@ -5,12 +5,14 @@ import { OrderDetails } from "@/components/account/OrderDetails";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Loading } from "@/components/common/Loading";
 import { ROUTES } from "@/constants/routes";
-import { useCustomerOrder, useSettings } from "@/hooks";
+import { useCustomerOrder, useProducts, useSettings } from "@/hooks";
 
 export function OrderDetailsPage() {
   const { orderNumber } = useParams();
   const orderQuery = useCustomerOrder(orderNumber);
   const settingsQuery = useSettings();
+  const productsQuery = useProducts();
+const products = productsQuery.data?.data ?? [];
   const confirmation = orderQuery.data?.data;
 
   if (orderQuery.isLoading) return <Loading />;
@@ -41,5 +43,11 @@ export function OrderDetailsPage() {
       )}`
     : "#";
 
-  return <OrderDetails confirmation={confirmation} supportUrl={supportUrl} />;
+  return (
+  <OrderDetails
+    confirmation={confirmation}
+    products={products}
+    supportUrl={supportUrl}
+  />
+);
 }

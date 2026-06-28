@@ -98,6 +98,29 @@ export function ProductPage() {
     setQuantity(1);
   }, [product?.id]);
 
+  if (productQuery.isLoading) {
+  return (
+    <section className="bg-background py-20">
+      <div className="section-shell">
+        <div className="animate-pulse space-y-8">
+          <div className="h-6 w-48 rounded bg-linen" />
+
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="aspect-square rounded-xl bg-linen" />
+
+            <div className="space-y-4">
+              <div className="h-10 w-3/4 rounded bg-linen" />
+              <div className="h-6 w-32 rounded bg-linen" />
+              <div className="h-5 w-full rounded bg-linen" />
+              <div className="h-5 w-5/6 rounded bg-linen" />
+              <div className="h-12 w-48 rounded bg-linen" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
   if (!product) {
     return (
       <>

@@ -12,8 +12,8 @@ export function HeroSection() {
   const settingsQuery = useSettings();
   const settings = settingsQuery.data?.data;
   const heroImage = settingsQuery.isLoading
-    ? ""
-    : settings?.homepageBanner || DEFAULT_HERO_IMAGE;
+  ? ""
+  : settings?.homepageBanner || DEFAULT_HERO_IMAGE;
   const heroSubtitle = settings?.heroSubtitle || "Tradition Woven with Heritage";
   const heroTitle = settings?.heroTitle || "House of Patani";
   const heroDescription =
@@ -22,7 +22,7 @@ export function HeroSection() {
   const heroQuote = settings?.heroQuote || "Hand-selected craft, softened by time.";
 
   return (
-    <section className="relative flex min-h-[calc(82svh-5rem)] items-end overflow-hidden bg-charcoal sm:min-h-[calc(86svh-5rem)]">
+    <section className="relative flex min-h-[calc(82svh-5rem)] items-end overflow-hidden bg-ivory sm:min-h-[calc(86svh-5rem)]">
       {heroImage ? (
         <img
         alt="Handcrafted heritage textile in warm maroon and gold tones"
@@ -35,7 +35,7 @@ export function HeroSection() {
         srcSet={createImageSrcSet(heroImage, [768, 1280, 1800, 2200])}
         />
       ) : null}
-      <div className="absolute inset-0 bg-charcoal/60" />
+      <div className={heroImage ? "absolute inset-0 bg-charcoal/60" : "absolute inset-0 bg-ivory"} />
 
       <div className="section-shell relative z-10 py-12 sm:py-16 lg:py-20">
         <motion.div

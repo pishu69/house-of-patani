@@ -28,7 +28,11 @@ import {
   type CheckoutFormValues,
 } from "@/lib/checkout-schema";
 import { applyZodErrors } from "@/lib/form-validation";
-import { orderService, paymentService } from "@/services";
+import {
+  couponService,
+  orderService,
+  paymentService,
+} from "@/services";
 import { useCartStore } from "@/stores/cart.store";
 import { useCustomerStore } from "@/stores/customer.store";
 import type { CartItemView } from "@/types/cart.types";
@@ -162,7 +166,10 @@ export function CheckoutPage() {
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
   ) {
-    clearCart();
+   if (appliedCoupon) {
+  await couponService.incrementUsage(appliedCoupon.code);
+}
+ clearCart();
     closeDrawer();
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: orderQueryKeys.all }),

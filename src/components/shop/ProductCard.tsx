@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Badge } from "@/components/common/Badge";
@@ -30,6 +30,7 @@ function ProductCardComponent({
   onWishlistToggle,
   product,
 }: ProductCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const openDrawer = useCartStore((state) => state.openDrawer);
   const storedWishlisted = useWishlistStore((state) =>
@@ -43,6 +44,7 @@ function ProductCardComponent({
   const discount = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100,
   );
+
   const handleAddToCart = () => {
     if (onAddToCart) {
       onAddToCart(product);
@@ -56,11 +58,13 @@ function ProductCardComponent({
       openDrawer();
     }
   };
+
   const handleWishlistToggle = () => {
     if (onWishlistToggle) {
       onWishlistToggle(product);
       return;
     }
+
     const active = toggleWishlist(product.id);
     toast(active ? "Added to wishlist" : "Removed from wishlist", {
       description: product.name,
@@ -74,6 +78,10 @@ function ProductCardComponent({
       whileHover={{ y: -4 }}
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-linen">
+        {!imageLoaded && imageUrl ? (
+          <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-linen via-ivory to-linen" />
+        ) : null}
+
         <Link
           aria-label={`View ${product.name}`}
           className="block h-full"
@@ -82,15 +90,20 @@ function ProductCardComponent({
           {imageUrl ? (
             <img
               alt={product.name}
-              className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              className={cn(
+                "h-full w-full object-cover transition duration-700 group-hover:scale-105",
+                imageLoaded ? "opacity-100" : "opacity-0",
+              )}
               decoding="async"
               loading="lazy"
+              onLoad={() => setImageLoaded(true)}
               sizes="(min-width: 1280px) 24vw, (min-width: 768px) 33vw, 50vw"
               src={imageUrl}
               srcSet={createImageSrcSet(imageUrl, [360, 540, 720, 900])}
             />
           ) : null}
         </Link>
+
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           {discount > 0 ? (
             <Badge className="shadow-lift" variant="primary">
@@ -101,6 +114,7 @@ function ProductCardComponent({
             <Badge className="shadow-lift">New</Badge>
           ) : null}
         </div>
+
         <IconButton
           aria-label={
             resolvedWishlisted
@@ -123,20 +137,24 @@ function ProductCardComponent({
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
           {categoryNameBySlug[product.category]}
         </p>
+
         <Link className="mt-2" to={`/product/${product.slug}`}>
           <h2 className="text-2xl leading-tight transition group-hover:text-maroon">
             {product.name}
           </h2>
         </Link>
+
         <div className="mt-3 flex items-center gap-2">
           <RatingStars rating={product.rating} />
           <span className="text-xs text-muted-foreground">
             ({product.reviewCount})
           </span>
         </div>
+
         <p className="mt-3 line-clamp-2 min-h-12 text-sm leading-6 text-muted-foreground">
           {product.description}
         </p>
+
         <div className="mt-4 flex flex-wrap items-baseline gap-2">
           <span className="font-semibold text-maroon">
             {formatCurrency(product.price)}
@@ -145,6 +163,7 @@ function ProductCardComponent({
             {formatCurrency(product.originalPrice)}
           </span>
         </div>
+
         <div className="mt-3">
           <StockBadge
             status={
@@ -156,6 +175,7 @@ function ProductCardComponent({
             }
           />
         </div>
+
         <Button
           className="mt-5"
           disabled={product.stock === 0}

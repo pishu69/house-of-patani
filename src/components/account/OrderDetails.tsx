@@ -1,4 +1,6 @@
+import type { CatalogProduct } from "@/types/product.types";
 import { Headphones } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Divider } from "@/components/common/Divider";
 import { OrderStatusTimeline } from "@/components/account/OrderStatusTimeline";
@@ -24,11 +26,13 @@ function addressLines(address: Json) {
 
 interface OrderDetailsProps {
   confirmation: OrderConfirmation;
+  products?: CatalogProduct[];
   supportUrl?: string;
 }
 
 export function OrderDetails({
   confirmation: { items, order },
+  products = [],
   supportUrl = "#",
 }: OrderDetailsProps) {
   return (
@@ -77,9 +81,22 @@ export function OrderDetails({
                     ) : null}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-charcoal">
-                      {item.product_name}
-                    </p>
+                    {(() => {
+  const linkedProduct = products.find(
+    (product) => product.id === item.product_id,
+  );
+
+  return linkedProduct ? (
+    <Link
+      className="font-semibold text-charcoal transition hover:text-maroon hover:underline"
+      to={`/product/${linkedProduct.slug}`}
+    >
+      {item.product_name}
+    </Link>
+  ) : (
+    <p className="font-semibold text-charcoal">{item.product_name}</p>
+  );
+})()}
                     <p className="mt-1 text-xs text-muted-foreground">
                       Quantity {item.quantity}
                     </p>

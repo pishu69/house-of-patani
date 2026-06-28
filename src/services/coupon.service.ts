@@ -121,6 +121,57 @@ export const couponService = {
     }
   },
 
+    async incrementUsage(code: string): Promise<ServiceResponse<boolean>> {
+    const normalizedCode = code.trim().toUpperCase();
+
+    if (!normalizedCode) {
+      return mockResponse(false);
+    }
+
+    const localFallback = () => {
+      const coupon = adminStorage.coupons
+        .list()
+        .find((item) => item.code.toUpperCase() === normalizedCode);
+
+      if (!coupon) return false;
+
+      adminStorage.coupons.update(coupon.id, {
+        used_count: coupon.used_count + 1,
+      });
+
+      return true;
+    };
+
+    if (!supabase) {
+      return mockResponse(localFallback());
+    }
+
+    try {
+      const { data: coupon, error: couponError } = await supabase
+        .from("coupons")
+        .select("id, used_count")
+        .eq("code", normalizedCode)
+        .maybeSingle();
+
+      if (couponError) throw couponError;
+      if (!coupon) return supabaseResponse(false);
+
+      const { error } = await supabase
+        .from("coupons")
+        .update({ used_count: coupon.used_count + 1 })
+        .eq("id", coupon.id);
+
+      if (error) throw error;
+
+      return supabaseResponse(true);
+    } catch (error) {
+      return fallbackAfterError(
+        localFallback(),
+        error,
+        "Coupon usage could not be updated in the database, so it was updated locally.",
+      );
+    }
+  },
   async remove(id: string): Promise<ServiceResponse<boolean>> {
     if (!supabase) {
       return mockResponse(adminStorage.coupons.remove(id));

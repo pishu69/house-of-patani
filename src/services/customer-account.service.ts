@@ -185,13 +185,26 @@ export const customerAccountService = {
       const customerId = await getCurrentCustomerId();
       if (!customerId) return mockResponse(localOrders);
 
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("customer_id", customerId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return supabaseResponse(data ?? []);
+      let query = supabase
+  .from("orders")
+  .select("*")
+  .order("created_at", { ascending: false });
+
+const filters = [`customer_id.eq.${customerId}`];
+
+if (profile.email) {
+  filters.push(`customer_email.eq.${normalizeEmail(profile.email)}`);
+}
+
+if (profile.phone) {
+  filters.push(`customer_phone.eq.${profile.phone}`);
+}
+
+const { data, error } = await query.or(filters.join(","));
+
+if (error) throw error;
+
+return supabaseResponse(data ?? []);
     } catch (error) {
       return fallbackAfterError(
         localOrders,
@@ -224,14 +237,25 @@ export const customerAccountService = {
     try {
       const customerId = await getCurrentCustomerId();
       if (!customerId) return mockResponse(localConfirmation);
-      const { data: order, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("customer_id", customerId)
-        .eq("order_number", orderNumber)
-        .maybeSingle();
-      if (error) throw error;
-      if (!order) return mockResponse(localConfirmation);
+      const filters = [`customer_id.eq.${customerId}`];
+
+if (profile.email) {
+  filters.push(`customer_email.eq.${normalizeEmail(profile.email)}`);
+}
+
+if (profile.phone) {
+  filters.push(`customer_phone.eq.${profile.phone}`);
+}
+
+const { data: order, error } = await supabase
+  .from("orders")
+  .select("*")
+  .eq("order_number", orderNumber)
+  .or(filters.join(","))
+  .maybeSingle();
+
+if (error) throw error;
+if (!order) return mockResponse(localConfirmation);
       return supabaseResponse(
         (await getSupabaseConfirmation(order)) ?? localConfirmation,
       );
