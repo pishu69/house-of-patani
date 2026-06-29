@@ -5,11 +5,13 @@ import {
   useMemo,
   useTransition,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import type { CategoryFilterOption } from "@/components/shop/CategoryFilter";
 import type { SortOption } from "@/components/shop/SortDropdown";
 import { shopCategories } from "@/data/categories";
 import { useProducts } from "@/hooks/useProducts";
+import { reviewService } from "@/services";
 import { filterCatalogProducts, type ShopSort } from "@/lib/catalog";
 import type { ProductCategory } from "@/types/product.types";
 
@@ -44,7 +46,43 @@ function isProductCategory(value: string): value is ProductCategory {
 
 export function useShopCatalog() {
   const productsQuery = useProducts();
-  const products = productsQuery.data?.data ?? [];
+
+  const reviewsQuery = useQuery({
+    queryKey: ["shop-review-stats"],
+    queryFn: reviewService.listAll,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const approvedReviews =
+    reviewsQuery.data?.data.filter((review) => review.approved) ?? [];
+
+  const products = useMemo(() => {
+    const baseProducts = productsQuery.data?.data ?? [];
+
+    return baseProducts.map((product) => {
+      const productReviews = approvedReviews.filter(
+        (review) => review.product_id === product.id,
+      );
+
+      if (productReviews.length === 0) {
+        return {
+          ...product,
+          rating: 0,
+          reviewCount: 0,
+        };
+      }
+
+      const averageRating =
+        productReviews.reduce((sum, review) => sum + review.rating, 0) /
+        productReviews.length;
+
+      return {
+        ...product,
+        rating: averageRating,
+        reviewCount: productReviews.length,
+      };
+    });
+  }, [approvedReviews, productsQuery.data?.data]);
 
   const maxProductPrice = Math.max(
     DEFAULT_MAX_PRODUCT_PRICE,
@@ -180,7 +218,7 @@ export function useShopCatalog() {
     currentPage,
     featured,
     filteredProducts,
-    isPending: isPending || productsQuery.isLoading,
+    isPending: isPending || productsQuery.isLoading || reviewsQuery.isLoading,
     maxPrice,
     maxPriceLimit: maxProductPrice,
     minPrice,
