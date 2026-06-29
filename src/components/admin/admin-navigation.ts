@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Settings,
   ShoppingBag,
+  Star,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -26,6 +27,8 @@ export const adminNavigation: AdminNavigationItem[] = [
   { icon: FolderTree, label: "Categories", to: "/admin/categories" },
   { icon: Inbox, label: "Messages", to: "/admin/messages" },
   { icon: Mail, label: "Newsletter", to: "/admin/newsletter" },
+    { icon: Mail, label: "Newsletter", to: "/admin/newsletter" },
+  { icon: Star, label: "Reviews", to: "/admin/reviews" },
   { icon: Settings, label: "Settings", to: "/admin/settings" },
 ];
 

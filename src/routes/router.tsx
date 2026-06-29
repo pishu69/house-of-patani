@@ -260,7 +260,7 @@ export const router = createBrowserRouter([
                 },
               },
               {
-                path: "/admin/messages",
+  path: "/admin/messages",
                 lazy: async () => {
                   const { AdminContactMessagesPage } = await import(
                     "@/pages/admin/AdminContactMessagesPage"
@@ -278,6 +278,15 @@ export const router = createBrowserRouter([
                 },
               },
               {
+                path: "/admin/reviews",
+                lazy: async () => {
+                  const { AdminReviewsPage } = await import(
+                    "@/pages/admin/AdminReviewsPage"
+                  );
+                  return { Component: AdminReviewsPage };
+                },
+              },
+              {
                 path: ROUTES.ADMIN.SETTINGS,
                 lazy: async () => {
                   const { SettingsPage } = await import(
@@ -286,7 +295,7 @@ export const router = createBrowserRouter([
                   return { Component: SettingsPage };
                 },
               },
-            ],
+                          ],
           },
         ],
       },
@@ -301,11 +310,3 @@ export const router = createBrowserRouter([
     },
   },
 ]);
-
-
-
-
-
-
-
-

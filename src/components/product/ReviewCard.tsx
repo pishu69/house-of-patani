@@ -22,10 +22,17 @@ export function ReviewCard({ review }: ReviewCardProps) {
           </p>
         </div>
       </div>
+
       <RatingStars className="mt-4" rating={review.rating} />
+
+      <div className="mt-3 inline-flex rounded-full bg-linen px-2.5 py-1 text-xs font-semibold text-maroon">
+        ✓ Verified Purchase
+      </div>
+
       {review.title ? (
         <h3 className="mt-4 text-2xl">{review.title}</h3>
       ) : null}
+
       <p className="mt-3 text-sm leading-7 text-muted-foreground">
         {review.comment}
       </p>

@@ -6,3 +6,5 @@ outputs
 .env.local
 .DS_Store
 supabase/.temp/
+# Local Netlify folder
+.netlify

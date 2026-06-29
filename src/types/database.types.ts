@@ -107,7 +107,13 @@ export interface AddressRow {
 
 export interface OrderRow {
   created_at: string;
-  customer_email: string;
+  courier_partner: string | null;
+tracking_number: string | null;
+tracking_url: string | null;
+dispatched_at: string | null;
+estimated_delivery_at: string | null;
+delivered_at: string | null;
+customer_email: string;
   customer_id: string | null;
   customer_name: string;
   customer_phone: string;
@@ -174,6 +180,8 @@ export interface CouponRow {
 export interface ReviewRow {
   approved: boolean;
   comment: string | null;
+  order_id: string | null;
+verified_purchase: boolean;
   created_at: string;
   customer_id: string | null;
   customer_name: string;
@@ -231,6 +239,31 @@ export interface Database {
     CompositeTypes: Record<never, never>;
     Enums: Record<never, never>;
     Functions: {
+      update_verified_review: {
+  Args: {
+    p_comment: string;
+    p_rating: number;
+    p_review_id: string;
+    p_title: string;
+  };
+  Returns: ReviewRow;
+};
+delete_verified_review: {
+  Args: {
+    p_review_id: string;
+  };
+  Returns: boolean;
+};
+      submit_verified_review: {
+  Args: {
+    p_comment: string;
+    p_order_id: string;
+    p_product_id: string;
+    p_rating: number;
+    p_title: string;
+  };
+  Returns: ReviewRow;
+};
       is_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;

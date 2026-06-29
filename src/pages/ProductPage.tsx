@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
@@ -7,6 +8,8 @@ import { Seo } from "@/components/common/Seo";
 import { DeliveryInformation } from "@/components/product/DeliveryInformation";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
+import { reviewService } from "@/services";
+import type { ProductReview } from "@/types/review.types";
 import { ProductPurchaseActions } from "@/components/product/ProductPurchaseActions";
 import {
   ProductTabs,
@@ -17,10 +20,7 @@ import { ReviewsSection } from "@/components/product/ReviewsSection";
 import { StockBadge } from "@/components/product/StockBadge";
 import { ROUTES } from "@/constants/routes";
 import { categoryNameBySlug } from "@/data/categories";
-import {
-  getProductExperience,
-  getProductReviews,
-} from "@/data/product-experience";
+import { getProductExperience } from "@/data/product-experience";
 import { useProductBySlug } from "@/hooks/useProductBySlug";
 import { useProducts } from "@/hooks/useProducts";
 import { showCartMutationToast } from "@/lib/cart-feedback";
@@ -37,6 +37,31 @@ export function ProductPage() {
   const productQuery = useProductBySlug(slug);
   const productsQuery = useProducts();
   const product = productQuery.data?.data ?? null;
+  const reviewsQuery = useQuery({
+  enabled: Boolean(product?.id),
+  queryKey: ["product-reviews", product?.id],
+  queryFn: () => reviewService.listByProduct(product?.id ?? ""),
+});
+
+const reviews: ProductReview[] =
+  reviewsQuery.data?.data.map((review) => ({
+    author: review.customer_name,
+    comment: review.comment || "",
+    createdAt: review.created_at,
+    id: review.id,
+    rating: review.rating,
+    title: review.title || "",
+  })) ?? [];
+  const reviewCount = reviews.length;
+
+const averageRating =
+  reviewCount > 0
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
+    : 0;
+
+const displayRating = reviewCount > 0 ? averageRating : product?.rating ?? 0;
+const displayReviewCount =
+  reviewCount > 0 ? reviewCount : product?.reviewCount ?? 0;
   const productSeoSchemas = useMemo(() => {
     if (!product) {
       return [];
@@ -156,7 +181,7 @@ export function ProductPage() {
     detailNotes: "",
     careInstructions: "",
   };
-  const reviews = getProductReviews(product);
+  
   const discount = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100,
   );
@@ -295,8 +320,8 @@ Easy returns are available within 7 days of delivery for eligible unused product
                 name={product.name}
                 originalPrice={product.originalPrice}
                 price={product.price}
-                rating={product.rating}
-                reviewCount={product.reviewCount}
+                rating={displayRating}
+reviewCount={displayReviewCount}
                 stock={<StockBadge status={stockStatus} />}
                 tags={product.tags}
               />
@@ -318,8 +343,8 @@ Easy returns are available within 7 days of delivery for eligible unused product
       <section className="py-16 sm:py-20 lg:py-24">
         <div className="section-shell">
           <ReviewsSection
-            rating={product.rating}
-            reviewCount={product.reviewCount}
+            rating={displayRating}
+reviewCount={displayReviewCount}
             reviews={reviews}
           />
         </div>

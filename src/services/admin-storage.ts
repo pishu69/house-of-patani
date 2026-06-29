@@ -365,6 +365,12 @@ export const adminStorage = {
         0,
       );
       const order: OrderRow = {
+        courier_partner: null,
+tracking_number: null,
+tracking_url: null,
+dispatched_at: null,
+estimated_delivery_at: null,
+delivered_at: null,
         created_at: now,
         customer_email: input.customerEmail.toLowerCase(),
         customer_id: null,

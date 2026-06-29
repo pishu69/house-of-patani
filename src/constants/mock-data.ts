@@ -100,21 +100,21 @@ export const featuredProducts: Product[] = [
 
 export const testimonials: Testimonial[] = [
   {
-    name: "Ananya Rao",
-    location: "Bengaluru",
+    name: "House of Patani",
+    location: "Launching Soon",
     quote:
-      "The pieces feel deeply Indian without feeling dated. Everything has a quiet, heirloom quality.",
+      "Every collection begins with a story. As our community grows, authentic customer experiences will be shared here.",
   },
   {
-    name: "Meera Khanna",
-    location: "Delhi",
+    name: "Be Our First Customer",
+    location: "Your Story Matters",
     quote:
-      "House of Patani captures the warmth of craft with the polish of a luxury boutique.",
+      "Purchase your first House of Patani piece and become one of the first voices to shape our journey.",
   },
   {
-    name: "Rhea Sen",
-    location: "Mumbai",
+    name: "Authentic Reviews Only",
+    location: "Verified Customers",
     quote:
-      "The packaging, textures, and palette feel personal. It is familiar, but much more refined.",
+      "We believe trust is earned. This space will feature genuine reviews from verified House of Patani customers.",
   },
 ];

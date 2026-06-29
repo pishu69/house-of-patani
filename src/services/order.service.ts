@@ -88,9 +88,17 @@ export const orderService = {
   async update(
     id: string,
     input: Pick<
-      Partial<OrderRow>,
-      "order_status" | "payment_method" | "payment_status"
-    >,
+  Partial<OrderRow>,
+  | "order_status"
+  | "payment_method"
+  | "payment_status"
+  | "courier_partner"
+  | "tracking_number"
+  | "tracking_url"
+  | "dispatched_at"
+  | "estimated_delivery_at"
+  | "delivered_at"
+>,
   ): Promise<ServiceResponse<OrderRow | null>> {
     const localFallback = () => adminStorage.orders.update(id, input);
 
@@ -244,7 +252,10 @@ const verifiedInput: CreateGuestOrderInput = {
     orderNumber: string,
   ): Promise<ServiceResponse<OrderConfirmation | null>> {
     const fallback = adminStorage.orders.getConfirmation(orderNumber);
-    if (fallback || !supabase) return mockResponse(fallback);
+
+if (!supabase) {
+  return mockResponse(fallback);
+}
 
     try {
       const { data: order, error: orderError } = await supabase

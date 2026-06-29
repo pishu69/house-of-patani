@@ -4,8 +4,18 @@ import type {
   OrderRow,
 } from "@/types/database.types";
 
+const emptyShippingTracking = {
+  courier_partner: null,
+  tracking_number: null,
+  tracking_url: null,
+  dispatched_at: null,
+  estimated_delivery_at: null,
+  delivered_at: null,
+};
+
 export const mockAdminOrders: OrderRow[] = [
   {
+    ...emptyShippingTracking,
     created_at: "2026-06-19T10:20:00.000Z",
     customer_email: "ananya.rao@example.com",
     customer_id: "customer-ananya",
@@ -35,6 +45,7 @@ export const mockAdminOrders: OrderRow[] = [
     updated_at: "2026-06-19T10:20:00.000Z",
   },
   {
+    ...emptyShippingTracking,
     created_at: "2026-06-18T08:45:00.000Z",
     customer_email: "meera.khanna@example.com",
     customer_id: "customer-meera",
@@ -64,6 +75,7 @@ export const mockAdminOrders: OrderRow[] = [
     updated_at: "2026-06-18T12:10:00.000Z",
   },
   {
+    ...emptyShippingTracking,
     created_at: "2026-06-17T13:15:00.000Z",
     customer_email: "rhea.sen@example.com",
     customer_id: "customer-rhea",
@@ -93,6 +105,7 @@ export const mockAdminOrders: OrderRow[] = [
     updated_at: "2026-06-18T09:30:00.000Z",
   },
   {
+    ...emptyShippingTracking,
     created_at: "2026-06-16T06:30:00.000Z",
     customer_email: "kabir.mehta@example.com",
     customer_id: "customer-kabir",
@@ -122,6 +135,7 @@ export const mockAdminOrders: OrderRow[] = [
     updated_at: "2026-06-17T14:00:00.000Z",
   },
   {
+    ...emptyShippingTracking,
     created_at: "2026-06-15T15:40:00.000Z",
     customer_email: "tara.nair@example.com",
     customer_id: "customer-tara",

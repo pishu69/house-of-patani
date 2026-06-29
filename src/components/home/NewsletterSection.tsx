@@ -7,7 +7,7 @@ import { newsletterService } from "@/services";
 import { createImageSrcSet } from "@/utils/image";
 
 const NEWSLETTER_IMAGE =
-  "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=85";
+  "https://drlphuhxfplgctkjoucs.supabase.co/storage/v1/object/public/banner-images/newsletter/ChatGPT%20Image%20Jun%2029,%202026,%2005_31_37%20AM.png";
 
 export function NewsletterSection() {
   const [isSubscribing, setIsSubscribing] = useState(false);

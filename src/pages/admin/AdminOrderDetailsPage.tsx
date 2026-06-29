@@ -40,6 +40,13 @@ export function AdminOrderDetailsPage() {
   const order = (confirmation?.order || confirmation) as AnyRecord | null;
   const items = (confirmation?.items || []) as AnyRecord[];
   const [localStatus, setLocalStatus] = useState<OrderStatus | null>(null);
+  const [shippingForm, setShippingForm] = useState({
+  courier_partner: "",
+  tracking_number: "",
+  tracking_url: "",
+  dispatched_at: "",
+  estimated_delivery_at: "",
+});
 
   const updateStatusMutation = useMutation({
     mutationFn: (nextStatus: OrderStatus) => {
@@ -94,6 +101,62 @@ if (updatedStatus) {
     },
   });
 
+  const updateShippingMutation = useMutation({
+  mutationFn: () => {
+    if (!order?.id) {
+      throw new Error("Missing order id");
+    }
+
+    return orderService.update(order.id, {
+      courier_partner: shippingForm.courier_partner || null,
+      tracking_number: shippingForm.tracking_number || null,
+      tracking_url: shippingForm.tracking_url || null,
+      dispatched_at: shippingForm.dispatched_at
+  ? new Date(`${shippingForm.dispatched_at}T00:00:00`).toISOString()
+  : null,
+estimated_delivery_at: shippingForm.estimated_delivery_at
+  ? new Date(`${shippingForm.estimated_delivery_at}T00:00:00`).toISOString()
+  : null,
+    });
+  },
+  onSuccess: (updateResponse) => {
+    const updatedOrder = updateResponse.data as AnyRecord | null;
+
+    if (updatedOrder) {
+      queryClient.setQueryData(
+        ["admin-order-details", orderNumber],
+        (oldData: AnyRecord | undefined) => {
+          if (!oldData?.data) return oldData;
+
+          const oldConfirmation = oldData.data as AnyRecord;
+
+          return {
+            ...oldData,
+            data: {
+              ...oldConfirmation,
+              order: {
+                ...(oldConfirmation.order || {}),
+                ...updatedOrder,
+              },
+            },
+          };
+        },
+      );
+    }
+
+    queryClient.invalidateQueries({
+      queryKey: ["admin-order-details", orderNumber],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: ["admin-orders"],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: ["orders"],
+    });
+  },
+});
   if (isLoading) return <div className="p-6">Loading order details...</div>;
 
   if (isError || !order) {
@@ -232,6 +295,115 @@ if (updatedStatus) {
         </div>
       </section>
 
+      <section className="rounded-lg border bg-card p-4">
+  <h2 className="mb-4 text-lg font-semibold">Shipping & Tracking</h2>
+
+  <div className="grid gap-4 md:grid-cols-2">
+    <label className="space-y-1 text-sm">
+      <span className="font-medium">Courier Partner</span>
+      <input
+        className="w-full rounded-md border px-3 py-2"
+        placeholder="Delhivery, DTDC, Blue Dart..."
+        value={shippingForm.courier_partner || order.courier_partner || ""}
+        onChange={(event) =>
+          setShippingForm((current) => ({
+            ...current,
+            courier_partner: event.target.value,
+          }))
+        }
+      />
+    </label>
+
+    <label className="space-y-1 text-sm">
+      <span className="font-medium">Tracking Number</span>
+      <input
+        className="w-full rounded-md border px-3 py-2"
+        placeholder="AWB / Tracking number"
+        value={shippingForm.tracking_number || order.tracking_number || ""}
+        onChange={(event) =>
+          setShippingForm((current) => ({
+            ...current,
+            tracking_number: event.target.value,
+          }))
+        }
+      />
+    </label>
+
+    <label className="space-y-1 text-sm md:col-span-2">
+      <span className="font-medium">Tracking URL</span>
+      <input
+        className="w-full rounded-md border px-3 py-2"
+        placeholder="https://..."
+        value={shippingForm.tracking_url || order.tracking_url || ""}
+        onChange={(event) =>
+          setShippingForm((current) => ({
+            ...current,
+            tracking_url: event.target.value,
+          }))
+        }
+      />
+    </label>
+
+    <label className="space-y-1 text-sm">
+      <span className="font-medium">Dispatch Date</span>
+      <input
+        className="w-full rounded-md border px-3 py-2"
+        type="date"
+        value={
+  shippingForm.dispatched_at ||
+  (order.dispatched_at ? order.dispatched_at.slice(0, 10) : "")
+}
+        onChange={(event) =>
+          setShippingForm((current) => ({
+            ...current,
+            dispatched_at: event.target.value,
+          }))
+        }
+      />
+    </label>
+
+    <label className="space-y-1 text-sm">
+      <span className="font-medium">Estimated Delivery Date</span>
+      <input
+        className="w-full rounded-md border px-3 py-2"
+        type="date"
+        value={
+  shippingForm.estimated_delivery_at ||
+  (order.estimated_delivery_at
+    ? order.estimated_delivery_at.slice(0, 10)
+    : "")
+}
+        onChange={(event) =>
+          setShippingForm((current) => ({
+            ...current,
+            estimated_delivery_at: event.target.value,
+          }))
+        }
+      />
+    </label>
+  </div>
+
+  <button
+    type="button"
+    disabled={updateShippingMutation.isPending}
+    onClick={() => updateShippingMutation.mutate()}
+    className="mt-4 rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    {updateShippingMutation.isPending ? "Saving..." : "Save Shipping Details"}
+  </button>
+
+  {updateShippingMutation.isSuccess && (
+    <p className="mt-3 text-sm text-green-600">
+      Shipping details saved successfully.
+    </p>
+  )}
+
+  {updateShippingMutation.isError && (
+    <p className="mt-3 text-sm text-red-600">
+      Could not save shipping details.
+    </p>
+  )}
+</section>
       <section className="rounded-lg border bg-card p-4">
         <h2 className="mb-4 text-lg font-semibold">Ordered Products</h2>
 
