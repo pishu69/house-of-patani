@@ -2,15 +2,16 @@ import { motion } from "framer-motion";
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { RatingStars } from "@/components/common/RatingStars";
 import { formatCurrency } from "@/utils";
-import type { Product } from "@/types/product.types";
+import type { CatalogProduct } from "@/types/product.types";
 
 interface ProductCardProps {
-  product: Product;
+  product: CatalogProduct;
 }
 
 function ProductCardComponent({ product }: ProductCardProps) {
-  const imageUrl = product.imageUrls?.[0];
+  const imageUrl = product.images[0];
 
   return (
     <motion.article
@@ -44,6 +45,12 @@ function ProductCardComponent({ product }: ProductCardProps) {
             {formatCurrency(product.price)}
           </p>
         </div>
+        <div className="mt-3 flex items-center gap-2">
+  <RatingStars rating={product.rating} />
+  <span className="text-xs text-muted-foreground">
+    {product.reviewCount} reviews
+  </span>
+</div>
         <p className="mt-3 min-h-12 text-sm leading-6 text-muted-foreground">
           {product.description}
         </p>

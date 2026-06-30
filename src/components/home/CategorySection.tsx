@@ -30,7 +30,10 @@ export function CategorySection() {
               viewport={{ once: true, amount: 0.25 }}
               whileInView={{ opacity: 1, y: 0 }}
             >
-              <CategoryCard category={category} to={ROUTES.SHOP} />
+              <CategoryCard
+  category={category}
+  to={`${ROUTES.SHOP}?category=${category.slug}`}
+/>
             </motion.div>
           ))}
         </div>
