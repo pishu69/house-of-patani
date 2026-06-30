@@ -23,7 +23,7 @@ export function PaymentMethodCard({
     <label className={disabled ? "block cursor-not-allowed opacity-60" : "block cursor-pointer"}>
       <Card
         className={cn(
-          "flex items-start gap-4 p-5 transition",
+          "flex min-w-0 items-start gap-3 p-4 transition sm:gap-4 sm:p-5",
           selected && "border-maroon ring-1 ring-maroon",
         )}
       >
@@ -36,7 +36,7 @@ export function PaymentMethodCard({
           type="radio"
         />
         <CreditCard aria-hidden="true" className="text-gold" size={21} />
-        <div>
+        <div className="min-w-0">
           <h3 className="text-xl">{name}</h3>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {description}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
+import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -249,6 +250,38 @@ Easy returns are available within 7 days of delivery for eligible unused product
     }
   };
 
+  const handleShareProduct = async () => {
+  if (!product) return;
+
+  const productUrl = `${window.location.origin}/product/${product.slug}`;
+
+  const shareText = `✨ ${product.name}
+
+💰 Price: ₹${product.price}
+
+Discover authentic Koch Rajbanshi heritage clothing from House of Patani.
+
+${productUrl}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `${product.name} | House of Patani`,
+        text: shareText,
+        url: productUrl,
+      });
+      return;
+    } catch {
+      // User cancelled sharing
+    }
+  }
+
+  await navigator.clipboard.writeText(shareText);
+
+  toast.success("Product details copied.", {
+    description: "You can now paste it anywhere.",
+  });
+};
   const handleWishlistToggle = () => {
     const nextValue = toggleWishlist(product.id);
     toast(nextValue ? "Added to wishlist" : "Removed from wishlist", {
@@ -302,6 +335,14 @@ Easy returns are available within 7 days of delivery for eligible unused product
                       quantity={quantity}
                       stock={product.stock}
                     />
+                    <button
+  type="button"
+  onClick={handleShareProduct}
+  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-maroon/25 px-5 text-sm font-semibold text-maroon transition hover:bg-maroon/5"
+>
+  <Share2 aria-hidden="true" size={17} />
+  Share this product
+</button>
                     <DeliveryInformation product={product} />
                   </div>
                 }

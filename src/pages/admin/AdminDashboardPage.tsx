@@ -20,6 +20,7 @@ import {
 } from "@/components/admin";
 import { RatingStars } from "@/components/common/RatingStars";
 import { useCustomers, useOrders, useProducts } from "@/hooks";
+import { useInventoryItems } from "@/hooks/useInventory";
 import type { OrderRow } from "@/types/database.types";
 import type { CatalogProduct } from "@/types/product.types";
 import { formatCurrency, formatDate } from "@/utils";
@@ -106,19 +107,21 @@ export function AdminDashboardPage() {
   const productsQuery = useProducts();
   const ordersQuery = useOrders();
   const customersQuery = useCustomers();
+  const inventoryQuery = useInventoryItems();
 
   const products = productsQuery.data?.data ?? [];
   const orders = ordersQuery.data?.data ?? [];
   const customers = customersQuery.data?.data ?? [];
+  const inventoryItems = inventoryQuery.data ?? [];
   const revenue = orders
     .filter((order) => order.payment_status === "paid")
     .reduce((total, order) => total + order.total, 0);
   const pendingOrders = orders.filter(
     (order) => order.order_status === "pending",
   ).length;
-  const lowStockProducts = products.filter(
-    (product) => product.stock > 0 && product.stock <= 5,
-  );
+  const lowStockInventoryItems = inventoryItems.filter(
+  (item) => item.status === "low_stock" || item.status === "out_of_stock",
+);
   const topProducts = [...products]
     .sort(
       (left, right) =>
@@ -174,10 +177,10 @@ export function AdminDashboardPage() {
           value={String(pendingOrders)}
         />
         <StatCard
-          icon={AlertTriangle}
-          label="Low stock"
-          value={String(lowStockProducts.length)}
-        />
+  icon={AlertTriangle}
+  label="Inventory alerts"
+  value={String(lowStockInventoryItems.length)}
+/>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.75fr)]">
@@ -240,37 +243,49 @@ export function AdminDashboardPage() {
         </DashboardCard>
 
         <DashboardCard
-          description="Products at five units or fewer."
-          title="Low stock products"
+  description="Products using inventory thresholds and available stock."
+  title="Inventory alerts"
+>
+  {lowStockInventoryItems.length > 0 ? (
+    <ul>
+      {lowStockInventoryItems.slice(0, 6).map((item) => (
+        <li
+          className="flex items-center justify-between gap-3 border-b border-maroon/10 py-3 last:border-b-0"
+          key={item.id}
         >
-          {lowStockProducts.length > 0 ? (
-            <ul>
-              {lowStockProducts.slice(0, 6).map((product) => (
-                <li
-                  className="flex items-center justify-between gap-3 border-b border-maroon/10 py-3 last:border-b-0"
-                  key={product.id}
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-charcoal">
-                      {product.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {categoryNameBySlug[product.category]}
-                    </p>
-                  </div>
-                  <StatusBadge
-                    label={`${product.stock} left`}
-                    tone="warning"
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No products are currently low on stock.
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-charcoal">
+              {item.sku}
             </p>
-          )}
-        </DashboardCard>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Available: {item.availableQuantity} · Reserved:{" "}
+              {item.reservedQuantity}
+            </p>
+          </div>
+          <StatusBadge
+            label={
+              item.status === "out_of_stock"
+                ? "Out of stock"
+                : `${item.availableQuantity} left`
+            }
+            tone={item.status === "out_of_stock" ? "negative" : "warning"}
+          />
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p className="text-sm text-muted-foreground">
+      No inventory alerts right now.
+    </p>
+  )}
+
+  <Link
+    className="mt-4 inline-flex text-sm font-semibold text-maroon transition hover:text-gold"
+    to="/admin/inventory"
+  >
+    View inventory
+  </Link>
+</DashboardCard>
 
         <DashboardCard
           description="A quick view of customer account health."

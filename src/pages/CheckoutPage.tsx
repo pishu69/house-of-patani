@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LockKeyhole, PackageCheck, ShieldCheck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -21,7 +21,6 @@ import {
   productQueryKeys,
   useProducts,
   useSettings,
-  useCoupons,
 } from "@/hooks";
 import {
   checkoutSchema,
@@ -37,6 +36,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { useCustomerStore } from "@/stores/customer.store";
 import type { CartItemView } from "@/types/cart.types";
 import type { CreateGuestOrderInput } from "@/types/order.types";
+import type { CouponRow } from "@/types/database.types";
 import { formatCurrency } from "@/utils";
 
 const defaults: CheckoutFormValues = {
@@ -110,11 +110,21 @@ export function CheckoutPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] = useState("");
-  const couponsQuery = useCoupons();
-  const coupons = couponsQuery.data?.data ?? [];
-  const appliedCoupon = coupons.find(
-    (coupon) => coupon.code.toLowerCase() === appliedCouponCode.toLowerCase(),
-  );
+  const [appliedCouponData, setAppliedCouponData] = useState<CouponRow | null>(null);
+  const couponUsageCodeRef = useRef("");
+  const couponsQuery = useQuery({
+  queryKey: ["checkout-coupons"],
+  queryFn: couponService.list,
+});
+
+const coupons = couponsQuery.data?.data ?? [];
+  console.log("Checkout coupons debug", {
+  couponsLoading: couponsQuery.isLoading,
+  couponsError: couponsQuery.error,
+  coupons,
+  couponCode,
+});
+  const appliedCoupon = appliedCouponData;
 
   const checkoutState = useMemo(() => {
     const unavailable: string[] = [];
@@ -166,8 +176,11 @@ export function CheckoutPage() {
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
   ) {
-   if (appliedCoupon) {
-  await couponService.incrementUsage(appliedCoupon.code);
+   const couponCodeToIncrement =
+  couponUsageCodeRef.current || appliedCoupon?.code || "";
+
+if (couponCodeToIncrement) {
+  await couponService.incrementUsage(couponCodeToIncrement);
 }
  clearCart();
     closeDrawer();
@@ -196,47 +209,48 @@ export function CheckoutPage() {
     },
   });
 
-  function applyCoupon() {
-    const code = couponCode.trim().toUpperCase();
+  async function applyCoupon() {
+  const code = couponCode.trim().toUpperCase();
 
-    if (!code) {
-      toast.error("Enter a coupon code.");
-      return;
-    }
-
-    const coupon = coupons.find(
-      (item) => item.code.toUpperCase() === code,
-    );
-
-    if (!coupon || !coupon.active) {
-      toast.error("Invalid coupon code.");
-      return;
-    }
-
-    if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) {
-      toast.error("This coupon has expired.");
-      return;
-    }
-
-    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
-      toast.error("This coupon usage limit has been reached.");
-      return;
-    }
-
-    if (checkoutState.subtotal < coupon.minimum_order_value) {
-      toast.error("Minimum order value not reached.", {
-        description: `Add items worth ${formatCurrency(
-          coupon.minimum_order_value - checkoutState.subtotal,
-        )} more to use this coupon.`,
-      });
-      return;
-    }
-
-    setAppliedCouponCode(coupon.code);
-    setCouponCode(coupon.code);
-    toast.success(`Coupon ${coupon.code} applied.`);
+  if (!code) {
+    toast.error("Enter a coupon code.");
+    return;
   }
-  async function submitCheckout(values: CheckoutFormValues) {
+
+  const response = await couponService.validate(code);
+  const coupon = response.data;
+
+  if (!coupon || !coupon.active) {
+    toast.error("Invalid coupon code.");
+    return;
+  }
+
+  if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) {
+    toast.error("This coupon has expired.");
+    return;
+  }
+
+  if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+    toast.error("This coupon usage limit has been reached.");
+    return;
+  }
+
+  if (checkoutState.subtotal < coupon.minimum_order_value) {
+    toast.error("Minimum order value not reached.", {
+      description: `Add items worth ${formatCurrency(
+        coupon.minimum_order_value - checkoutState.subtotal,
+      )} more to use this coupon.`,
+    });
+    return;
+  }
+
+  setAppliedCouponCode(coupon.code);
+setAppliedCouponData(coupon);
+setCouponCode(coupon.code);
+toast.success(`Coupon ${coupon.code} applied.`);
+}
+
+async function submitCheckout(values: CheckoutFormValues) {
     const result = checkoutSchema.safeParse(values);
 
     if (!result.success) {
@@ -256,6 +270,7 @@ export function CheckoutPage() {
       return;
     }
 
+    couponUsageCodeRef.current = appliedCoupon?.code ?? "";
     const checkout: CreateGuestOrderInput = {
       address: {
         addressLine1: result.data.addressLine1,
@@ -418,9 +433,9 @@ export function CheckoutPage() {
         eyebrow="Checkout"
         title="Complete your order"
       />
-      <section className="bg-background py-10 sm:py-14">
+      <section className="overflow-x-hidden bg-background py-8 sm:py-14">
         <form
-          className="section-shell grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]"
+          className="section-shell grid min-w-0 items-start gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-8"
           noValidate
           onSubmit={handleSubmit(submitCheckout)}
         >

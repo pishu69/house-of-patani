@@ -3,7 +3,6 @@ import {
   supabaseResponse,
   type ServiceResponse,
 } from "@/lib/errors";
-import { mockAdminCoupons } from "@/data/admin";
 import { supabase } from "@/lib/supabase";
 import { adminStorage } from "@/services/admin-storage";
 import { fallbackAfterError } from "@/services/service.utils";
@@ -11,6 +10,41 @@ import type { CouponInput } from "@/types/admin.types";
 import type { CouponRow } from "@/types/database.types";
 
 export const couponService = {
+  async validate(code: string): Promise<ServiceResponse<CouponRow | null>> {
+    const normalizedCode = code.trim().toUpperCase();
+
+    if (!normalizedCode) {
+      return mockResponse(null);
+    }
+
+    if (!supabase) {
+      const coupon =
+        adminStorage.coupons
+          .list()
+          .find(
+            (item) => item.code.trim().toUpperCase() === normalizedCode,
+          ) ?? null;
+
+      return mockResponse(coupon);
+    }
+
+    try {
+      const { data, error } = await supabase.rpc("validate_coupon", {
+        p_code: normalizedCode,
+      });
+
+      if (error) throw error;
+
+      return supabaseResponse(data ?? null);
+    } catch (error) {
+      return fallbackAfterError(
+        null,
+        error,
+        "Coupon could not be validated right now.",
+      );
+    }
+  },
+
   async list(): Promise<ServiceResponse<CouponRow[]>> {
     if (!supabase) {
       return mockResponse(adminStorage.coupons.list());
@@ -22,9 +56,7 @@ export const couponService = {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return supabaseResponse(data ?? []);
     } catch (error) {
@@ -46,6 +78,7 @@ export const couponService = {
       usage_limit: input.usageLimit,
       value: input.value,
     };
+
     const localFallback = () =>
       adminStorage.coupons.create({
         ...databaseInput,
@@ -66,6 +99,7 @@ export const couponService = {
         .single();
 
       if (error) throw error;
+
       return supabaseResponse(data);
     } catch (error) {
       return fallbackAfterError(
@@ -95,6 +129,7 @@ export const couponService = {
         : { usage_limit: input.usageLimit }),
       ...(input.value === undefined ? {} : { value: input.value }),
     };
+
     const localFallback = () =>
       adminStorage.coupons.update(id, databaseInput);
 
@@ -111,6 +146,7 @@ export const couponService = {
         .single();
 
       if (error) throw error;
+
       return supabaseResponse(data);
     } catch (error) {
       return fallbackAfterError(
@@ -121,7 +157,7 @@ export const couponService = {
     }
   },
 
-    async incrementUsage(code: string): Promise<ServiceResponse<boolean>> {
+  async incrementUsage(code: string): Promise<ServiceResponse<boolean>> {
     const normalizedCode = code.trim().toUpperCase();
 
     if (!normalizedCode) {
@@ -131,7 +167,9 @@ export const couponService = {
     const localFallback = () => {
       const coupon = adminStorage.coupons
         .list()
-        .find((item) => item.code.toUpperCase() === normalizedCode);
+        .find(
+          (item) => item.code.trim().toUpperCase() === normalizedCode,
+        );
 
       if (!coupon) return false;
 
@@ -147,23 +185,13 @@ export const couponService = {
     }
 
     try {
-      const { data: coupon, error: couponError } = await supabase
-        .from("coupons")
-        .select("id, used_count")
-        .eq("code", normalizedCode)
-        .maybeSingle();
-
-      if (couponError) throw couponError;
-      if (!coupon) return supabaseResponse(false);
-
-      const { error } = await supabase
-        .from("coupons")
-        .update({ used_count: coupon.used_count + 1 })
-        .eq("id", coupon.id);
+      const { data, error } = await supabase.rpc("increment_coupon_usage", {
+        p_code: normalizedCode,
+      });
 
       if (error) throw error;
 
-      return supabaseResponse(true);
+      return supabaseResponse(Boolean(data));
     } catch (error) {
       return fallbackAfterError(
         localFallback(),
@@ -172,6 +200,7 @@ export const couponService = {
       );
     }
   },
+
   async remove(id: string): Promise<ServiceResponse<boolean>> {
     if (!supabase) {
       return mockResponse(adminStorage.coupons.remove(id));
@@ -179,7 +208,9 @@ export const couponService = {
 
     try {
       const { error } = await supabase.from("coupons").delete().eq("id", id);
+
       if (error) throw error;
+
       return supabaseResponse(true);
     } catch (error) {
       return fallbackAfterError(

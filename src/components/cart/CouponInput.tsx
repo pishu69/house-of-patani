@@ -33,7 +33,7 @@ export function CouponInput({
             value={value}
           />
         </div>
-        <Button onClick={onApply} size="sm" variant="outline">
+        <Button onClick={onApply} size="sm" type="button" variant="outline">
           Apply
         </Button>
       </div>

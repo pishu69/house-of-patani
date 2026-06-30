@@ -66,6 +66,12 @@ export const productFormSchema = z
       .number()
       .int("Stock must be a whole number.")
       .min(0, "Stock cannot be negative."),
+      lowStockThreshold: z
+  .number()
+  .int("Low stock alert must be a whole number.")
+  .min(0, "Low stock alert cannot be negative."),
+trackInventory: z.boolean(),
+allowBackorder: z.boolean(),
     tags: z.string().max(300, "Tags must be 300 characters or fewer."),
   })
   .refine((value) => value.originalPrice >= value.price, {

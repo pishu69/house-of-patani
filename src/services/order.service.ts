@@ -195,8 +195,18 @@ export const orderService = {
       });
       if (error) throw error;
       const confirmation = parseConfirmation(data);
-      adminStorage.orders.saveConfirmation(confirmation);
-      return supabaseResponse(confirmation);
+
+const { error: inventoryError } = await supabase.rpc(
+  "deduct_inventory_for_order",
+  {
+    p_order_id: confirmation.order.id,
+  },
+);
+
+if (inventoryError) throw inventoryError;
+
+adminStorage.orders.saveConfirmation(confirmation);
+return supabaseResponse(confirmation);
     } catch (error) {
       return fallbackAfterError(
         localFallback(),

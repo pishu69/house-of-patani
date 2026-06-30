@@ -30,6 +30,7 @@ function mapProduct(
   row: ProductRow,
   categories: Map<string, CategoryRow>,
   images: ProductImageRow[],
+  inventoryStockByProductId = new Map<string, number>(),
 ): CatalogProduct | null {
   const fallback =
     adminStorage.products
@@ -150,7 +151,7 @@ function mapProduct(
     reviewCount: row.review_count,
     sku: override?.sku ?? row.sku,
     slug: override?.slug ?? row.slug,
-    stock: override?.stock ?? row.stock,
+    stock: inventoryStockByProductId.get(row.id) ?? override?.stock ?? row.stock,
     tags: override?.tags ?? row.tags,
   };
 }
@@ -169,17 +170,26 @@ async function listFromSupabase(activeOnly: boolean) {
     productsQuery = productsQuery.eq("active", true);
   }
 
-  const [productsResult, categoriesResult, imagesResult] = await Promise.all([
-    productsQuery,
-    supabase.from("categories").select("*").eq("active", true),
-    supabase
-      .from("product_images")
-      .select("*")
-      .order("position", { ascending: true }),
-  ]);
+  const [
+  productsResult,
+  categoriesResult,
+  imagesResult,
+  inventoryResult,
+] = await Promise.all([
+  productsQuery,
+  supabase.from("categories").select("*").eq("active", true),
+  supabase
+    .from("product_images")
+    .select("*")
+    .order("position", { ascending: true }),
+  supabase.from("inventory_items").select("product_id, stock_quantity"),
+]);
 
   const error =
-    productsResult.error ?? categoriesResult.error ?? imagesResult.error;
+  productsResult.error ??
+  categoriesResult.error ??
+  imagesResult.error ??
+  inventoryResult.error;
 
   if (error) {
     throw error;
@@ -191,13 +201,20 @@ async function listFromSupabase(activeOnly: boolean) {
       category,
     ]),
   );
+  const inventoryStockByProductId = new Map(
+  (inventoryResult.data ?? []).map((item) => [
+    item.product_id,
+    Number(item.stock_quantity ?? 0),
+  ]),
+);
 
   return (productsResult.data ?? []).flatMap<CatalogProduct>((product) => {
     const mapped = mapProduct(
-      product,
-      categories,
-      imagesResult.data ?? [],
-    );
+  product,
+  categories,
+  imagesResult.data ?? [],
+  inventoryStockByProductId,
+);
     return mapped ? [mapped] : [];
   });
 }

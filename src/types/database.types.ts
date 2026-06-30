@@ -191,6 +191,55 @@ verified_purchase: boolean;
   title: string | null;
   updated_at: string;
 }
+export interface InventoryItemRow {
+  allow_backorder: boolean;
+  created_at: string;
+  id: string;
+  low_stock_threshold: number;
+  product_id: string;
+  reserved_quantity: number;
+  sku: string;
+  stock_quantity: number;
+  track_inventory: boolean;
+  updated_at: string;
+}
+
+export interface InventoryMovementRow {
+  created_at: string;
+  created_by: string | null;
+  id: string;
+  inventory_item_id: string;
+  movement_type:
+    | "purchase"
+    | "manual_adjustment"
+    | "order_reserved"
+    | "order_released"
+    | "order_fulfilled"
+    | "return"
+    | "damage"
+    | "correction";
+  new_quantity: number;
+  previous_quantity: number;
+  product_id: string;
+  quantity: number;
+  reason: string | null;
+  reference_id: string | null;
+  reference_type: string | null;
+}
+
+export interface InventoryPurchaseEntryRow {
+  created_at: string;
+  created_by: string | null;
+  id: string;
+  inventory_item_id: string;
+  notes: string | null;
+  product_id: string;
+  purchase_date: string;
+  quantity: number;
+  supplier_name: string | null;
+  total_cost: number | null;
+  unit_cost: number | null;
+}
 
 export interface WishlistRow {
   created_at: string;
@@ -239,6 +288,24 @@ export interface Database {
     CompositeTypes: Record<never, never>;
     Enums: Record<never, never>;
     Functions: {
+      increment_coupon_usage: {
+  Args: {
+    p_code: string;
+  };
+  Returns: boolean;
+};
+      validate_coupon: {
+  Args: {
+    p_code: string;
+  };
+  Returns: CouponRow;
+};
+      deduct_inventory_for_order: {
+  Args: {
+    p_order_id: string;
+  };
+  Returns: boolean;
+};
       update_verified_review: {
   Args: {
     p_comment: string;
@@ -341,6 +408,23 @@ delete_verified_review: {
       categories: TableDefinition<CategoryRow, "name" | "slug">;
       coupons: TableDefinition<CouponRow, "code" | "type" | "value">;
       customers: TableDefinition<CustomerRow, "email" | "name">;
+      inventory_items: TableDefinition<
+  InventoryItemRow,
+  "product_id" | "sku"
+>;
+inventory_movements: TableDefinition<
+  InventoryMovementRow,
+  | "inventory_item_id"
+  | "movement_type"
+  | "new_quantity"
+  | "previous_quantity"
+  | "product_id"
+  | "quantity"
+>;
+inventory_purchase_entries: TableDefinition<
+  InventoryPurchaseEntryRow,
+  "inventory_item_id" | "product_id" | "quantity"
+>;
       order_items: TableDefinition<
         OrderItemRow,
         "order_id" | "price" | "product_name" | "quantity" | "total"

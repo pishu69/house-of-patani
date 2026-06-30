@@ -23,6 +23,7 @@ import {
 } from "@/lib/admin-schemas";
 import { applyZodErrors } from "@/lib/form-validation";
 import { productImageService, productService } from "@/services";
+import { inventoryService } from "@/services/inventory.service";
 import { defaultProductContentFields } from "@/types/product.types";
 import type {
   ProductInput,
@@ -64,7 +65,10 @@ const defaultValues: ProductFormValues = {
   sku: "",
   slug: "",
   stock: 0,
-  tags: "",
+lowStockThreshold: 5,
+trackInventory: true,
+allowBackorder: false,
+tags: "",
 };
 
 export function ProductEditorPage() {
@@ -122,7 +126,10 @@ export function ProductEditorPage() {
       sku: product.sku,
       slug: product.slug,
       stock: product.stock,
-      tags: product.tags.join(", "),
+lowStockThreshold: 5,
+trackInventory: true,
+allowBackorder: false,
+tags: product.tags.join(", "),
     });
     setMedia(product.media);
   }, [product, reset]);
@@ -138,9 +145,13 @@ export function ProductEditorPage() {
       input,
       productMedia,
     }: {
-      input: ProductInput;
-      productMedia: ProductMedia[];
-    }) => {
+  input: ProductInput & {
+    lowStockThreshold: number;
+    trackInventory: boolean;
+    allowBackorder: boolean;
+  };
+  productMedia: ProductMedia[];
+}) => {
       const productResponse =
         isEditing && id
           ? await productService.update(id, input)
@@ -155,6 +166,14 @@ export function ProductEditorPage() {
         savedProduct.id,
         productMedia,
       );
+      await inventoryService.syncProductInventory({
+  productId: savedProduct.id,
+  sku: input.sku,
+  stockQuantity: input.stock,
+  lowStockThreshold: input.lowStockThreshold,
+  trackInventory: input.trackInventory,
+  allowBackorder: input.allowBackorder,
+});
 
       return {
         product: productResponse,
@@ -466,16 +485,56 @@ export function ProductEditorPage() {
                 </select>
                 <FormFieldError message={errors.category?.message} />
               </label>
-              <label className="text-sm font-medium text-charcoal">
-                Inventory
-                <input
-                  className={inputClassName}
-                  min="0"
-                  type="number"
-                  {...register("stock", { valueAsNumber: true })}
-                />
-                <FormFieldError message={errors.stock?.message} />
-              </label>
+              <div className="rounded-lg border border-maroon/10 bg-background p-4">
+  <h3 className="text-sm font-semibold text-charcoal">
+    Inventory Management
+  </h3>
+  <p className="mt-1 text-xs text-charcoal/60">
+    Controls stock tracking, low stock alerts, and future order deduction.
+  </p>
+
+  <div className="mt-4 space-y-4">
+    <label className="text-sm font-medium text-charcoal">
+      Stock Quantity
+      <input
+        className={inputClassName}
+        min="0"
+        type="number"
+        {...register("stock", { valueAsNumber: true })}
+      />
+      <FormFieldError message={errors.stock?.message} />
+    </label>
+
+    <label className="text-sm font-medium text-charcoal">
+      Low Stock Alert
+      <input
+        className={inputClassName}
+        min="0"
+        type="number"
+        {...register("lowStockThreshold", { valueAsNumber: true })}
+      />
+      <FormFieldError message={errors.lowStockThreshold?.message} />
+    </label>
+
+    <label className="flex items-center justify-between gap-4 rounded-md border border-maroon/10 bg-white px-4 py-3 text-sm font-medium text-charcoal">
+      Track inventory
+      <input
+        className="h-4 w-4 accent-maroon"
+        type="checkbox"
+        {...register("trackInventory")}
+      />
+    </label>
+
+    <label className="flex items-center justify-between gap-4 rounded-md border border-maroon/10 bg-white px-4 py-3 text-sm font-medium text-charcoal">
+      Allow backorder
+      <input
+        className="h-4 w-4 accent-maroon"
+        type="checkbox"
+        {...register("allowBackorder")}
+      />
+    </label>
+  </div>
+</div>
               <label className="text-sm font-medium text-charcoal">
                 Tags
                 <input

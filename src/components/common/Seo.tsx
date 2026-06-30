@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { APP_CONFIG } from "@/constants/config";
 import { absoluteUrl, type JsonLd } from "@/lib/seo";
 
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&h=630&q=88";
+const DEFAULT_IMAGE = "/images/social/home-share-v1.jpg";
 const EMPTY_SCHEMAS: JsonLd[] = [];
 
 interface SeoProps {
@@ -85,7 +84,10 @@ export function Seo({
     setMeta("property", "og:type", type);
     setMeta("property", "og:url", canonicalUrl);
     setMeta("property", "og:image", imageUrl);
-    setMeta("property", "og:image:alt", imageAlt);
+setMeta("property", "og:image:secure_url", imageUrl);
+setMeta("property", "og:image:alt", imageAlt);
+setMeta("property", "og:image:width", "1200");
+setMeta("property", "og:image:height", "630");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", resolvedTitle);
     setMeta("name", "twitter:description", description);
