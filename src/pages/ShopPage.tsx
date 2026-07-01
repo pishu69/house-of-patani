@@ -92,6 +92,26 @@ export function ShopPage() {
                 </div>
               </div>
 
+              <div className="mt-5 flex gap-2 overflow-x-auto pb-2 lg:hidden">
+  {catalog.categoryOptions.map((category) => {
+    const selected = catalog.category === category.value;
+
+    return (
+      <button
+        key={category.value}
+        type="button"
+        onClick={() => catalog.setCategory(category.value)}
+        className={
+          selected
+            ? "shrink-0 rounded-full bg-maroon px-4 py-2 text-sm font-semibold text-ivory"
+            : "shrink-0 rounded-full border border-maroon/20 bg-card px-4 py-2 text-sm font-semibold text-maroon"
+        }
+      >
+        {category.label}
+      </button>
+    );
+  })}
+</div>
               <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-maroon/10 pb-5">
                 <p aria-live="polite" className="text-sm text-muted-foreground">
                   Showing {catalog.resultStart}-{catalog.resultEnd} of{" "}
