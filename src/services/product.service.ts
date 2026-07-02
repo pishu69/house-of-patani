@@ -1,4 +1,4 @@
-import { shopCategories } from "@/data/categories";
+﻿import { shopCategories } from "@/data/categories";
 import { products as mockProducts } from "@/data/products";
 import {
   mockResponse,
@@ -12,18 +12,56 @@ import { storageService } from "@/services/storage.service";
 import { fallbackAfterError } from "@/services/service.utils";
 import type {
   CategoryRow,
+  Json,
   ProductImageRow,
   ProductRow,
 } from "@/types/database.types";
 import { defaultProductContentFields } from "@/types/product.types";
 import type {
   CatalogProduct,
+  ProductAttribute,
   ProductCategory,
   ProductInput,
 } from "@/types/product.types";
 
 function isProductCategory(value: string): value is ProductCategory {
   return shopCategories.some((category) => category.slug === value);
+}
+
+function normalizeProductAttributes(value: Json | null | undefined): ProductAttribute[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+
+    const record = item as Record<string, Json | undefined>;
+    const key = typeof record.key === "string" ? record.key : "";
+    const label = typeof record.label === "string" ? record.label : "";
+    const rawValue = record.value;
+
+    if (!key || !label) return [];
+
+    return [
+      {
+        key,
+        label,
+        value:
+          typeof rawValue === "string" ||
+          typeof rawValue === "number" ||
+          typeof rawValue === "boolean"
+            ? String(rawValue)
+            : "",
+      },
+    ];
+  });
+}
+
+function productAttributesToJson(attributes: ProductAttribute[]): Json {
+  return attributes.map((attribute) => ({
+    key: attribute.key,
+    label: attribute.label,
+    value: attribute.value,
+  }));
 }
 
 function mapProduct(
@@ -91,6 +129,9 @@ function mapProduct(
       override?.shippingReturns ??
       row.shipping_returns ??
       "",
+    attributes:
+      override?.attributes ??
+      normalizeProductAttributes(row.attributes),
     deliveryCodTitle:
       override?.deliveryCodTitle ??
       row.delivery_cod_title ??
@@ -242,6 +283,7 @@ function toDatabaseInput(input: ProductInput, categoryId: string | null) {
     details: input.details,
     care_instructions: input.careInstructions,
     shipping_returns: input.shippingReturns,
+    attributes: productAttributesToJson(input.attributes),
     delivery_cod_title: input.deliveryCodTitle,
     delivery_cod_description: input.deliveryCodDescription,
     delivery_payment_title: input.deliveryPaymentTitle,
@@ -287,6 +329,7 @@ function toDatabaseUpdate(
     ...(input.details === undefined ? {} : { details: input.details }),
     ...(input.careInstructions === undefined ? {} : { care_instructions: input.careInstructions }),
     ...(input.shippingReturns === undefined ? {} : { shipping_returns: input.shippingReturns }),
+    ...(input.attributes === undefined ? {} : { attributes: productAttributesToJson(input.attributes) }),
     ...(input.deliveryCodTitle === undefined ? {} : { delivery_cod_title: input.deliveryCodTitle }),
     ...(input.deliveryCodDescription === undefined ? {} : { delivery_cod_description: input.deliveryCodDescription }),
     ...(input.deliveryPaymentTitle === undefined ? {} : { delivery_payment_title: input.deliveryPaymentTitle }),
@@ -541,6 +584,10 @@ export const productService = {
     }
   },
 };
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@/constants/order-status";
+﻿import type { OrderStatus } from "@/constants/order-status";
 import type { PaymentStatus } from "@/constants/payment-status";
 
 export type Json =
@@ -41,6 +41,7 @@ export interface ProductRow {
   details: string | null;
   care_instructions: string | null;
   shipping_returns: string | null;
+  attributes: Json | null;
   delivery_cod_title: string | null;
   delivery_cod_description: string | null;
   delivery_payment_title: string | null;
@@ -52,7 +53,8 @@ export interface ProductRow {
   delivery_care_title: string | null;
   delivery_care_description: string | null;
   delivery_packaging_title: string | null;
-  delivery_packaging_description: string | null;  featured: boolean;
+  delivery_packaging_description: string | null;
+  featured: boolean;
   id: string;
   name: string;
   new_arrival: boolean;
@@ -472,6 +474,8 @@ inventory_purchase_entries: TableDefinition<
     Views: Record<never, never>;
   };
 }
+
+
 
 
 

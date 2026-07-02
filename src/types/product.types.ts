@@ -1,4 +1,4 @@
-export interface Product {
+﻿export interface Product {
   id: string;
   name: string;
   slug: string;
@@ -10,6 +10,12 @@ export interface Product {
 }
 
 export type ProductCategory = string;
+
+export interface ProductAttribute {
+  key: string;
+  label: string;
+  value: string;
+}
 
 export interface ProductMedia {
   altText: string;
@@ -30,6 +36,7 @@ export interface CatalogProduct {
 details: string;
 careInstructions: string;
 shippingReturns: string;
+  attributes: ProductAttribute[];
 deliveryCodTitle: string;
 deliveryCodDescription: string;
 deliveryPaymentTitle: string;
@@ -67,6 +74,7 @@ export interface ProductInput {
   details: string;
   careInstructions: string;
   shippingReturns: string;
+  attributes: ProductAttribute[];
   deliveryCodTitle: string;
   deliveryCodDescription: string;
   deliveryPaymentTitle: string;
@@ -96,6 +104,7 @@ export const defaultProductContentFields = {
   details: "",
   careInstructions: "",
   shippingReturns: "",
+  attributes: [],
   deliveryCodTitle: "",
   deliveryCodDescription: "",
   deliveryPaymentTitle: "",
@@ -109,3 +118,4 @@ export const defaultProductContentFields = {
   deliveryPackagingTitle: "",
   deliveryPackagingDescription: "",
 };
+
