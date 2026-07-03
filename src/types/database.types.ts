@@ -41,7 +41,7 @@ export interface ProductRow {
   details: string | null;
   care_instructions: string | null;
   shipping_returns: string | null;
-  attributes: Json | null;
+  attributes: Json;
   delivery_cod_title: string | null;
   delivery_cod_description: string | null;
   delivery_payment_title: string | null;

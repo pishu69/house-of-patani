@@ -18,6 +18,7 @@ import type {
 import { defaultProductContentFields } from "@/types/product.types";
 import type {
   CatalogProduct,
+  ProductAttribute,
   ProductInput,
   ProductMedia,
 } from "@/types/product.types";
@@ -129,6 +130,27 @@ function createOrderNumber() {
     String(date.getDate()).padStart(2, "0"),
   ].join("");
   return `HOP-${datePart}-${String(Date.now()).slice(-5)}`;
+}
+
+function normalizeLocalProductAttributes(
+  attributes?: ProductAttribute[] | null,
+): ProductAttribute[] {
+  if (!Array.isArray(attributes)) return [];
+
+  return attributes.flatMap((attribute) => {
+    if (!attribute || typeof attribute !== "object") return [];
+    const key = typeof attribute.key === "string" ? attribute.key : "";
+    const label = typeof attribute.label === "string" ? attribute.label : "";
+    const rawValue = attribute.value;
+    const value =
+      typeof rawValue === "string" ||
+      typeof rawValue === "number" ||
+      typeof rawValue === "boolean"
+        ? String(rawValue)
+        : "";
+
+    return key && label ? [{ key, label, value }] : [];
+  });
 }
 
 export const adminStorage = {
@@ -257,6 +279,7 @@ export const adminStorage = {
 
           return {
             ...product,
+            attributes: normalizeLocalProductAttributes(product.attributes),
             images: media.map((image) => image.url),
             media,
           };
@@ -296,7 +319,13 @@ export const adminStorage = {
       let updated: CatalogProduct | null = null;
       const next = this.list().map((product) => {
         if (product.id !== id) return product;
-        updated = { ...product, ...input };
+        updated = {
+          ...product,
+          ...input,
+          attributes: normalizeLocalProductAttributes(
+            input.attributes ?? product.attributes,
+          ),
+        };
         return updated;
       });
 
@@ -493,7 +522,6 @@ delivered_at: null,
     },
   },
 };
-
 
 
 

@@ -21,6 +21,7 @@ import { ReviewsSection } from "@/components/product/ReviewsSection";
 import { StockBadge } from "@/components/product/StockBadge";
 import { ROUTES } from "@/constants/routes";
 import { categoryNameBySlug } from "@/data/categories";
+import { getProductAttributeTemplate } from "@/data/product-attribute-templates";
 import { getProductExperience } from "@/data/product-experience";
 import { useProductBySlug } from "@/hooks/useProductBySlug";
 import { useProducts } from "@/hooks/useProducts";
@@ -177,6 +178,14 @@ const displayReviewCount =
   }
 
   const categoryName = categoryNameBySlug[product.category] ?? product.category;
+  const attributeTemplate = getProductAttributeTemplate(product.category);
+  const productAttributes = Array.isArray(product.attributes)
+    ? product.attributes
+    : [];
+  const displayAttributes = attributeTemplate.flatMap((field) => {
+    const attribute = productAttributes.find((item) => item.key === field.key);
+    return attribute?.value ? [{ ...field, value: attribute.value }] : [];
+  });
   const experience = getProductExperience(product) ?? {
     longDescription: product.description,
     detailNotes: "",
@@ -202,8 +211,18 @@ const displayReviewCount =
     {
       content: (
         <div className="space-y-3">
-          <p>{product.details || experience.detailNotes}</p>
+          {product.details || experience.detailNotes ? (
+            <p>{product.details || experience.detailNotes}</p>
+          ) : null}
           <dl className="grid gap-3 sm:grid-cols-2">
+            {displayAttributes.map((attribute) => (
+              <div key={attribute.key}>
+                <dt className="font-semibold text-charcoal">
+                  {attribute.label}
+                </dt>
+                <dd>{attribute.value}</dd>
+              </div>
+            ))}
             <div>
               <dt className="font-semibold text-charcoal">Category</dt>
               <dd>{categoryName}</dd>

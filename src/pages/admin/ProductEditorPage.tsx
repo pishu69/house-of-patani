@@ -14,6 +14,11 @@ import {
 } from "@/components/admin";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
+import {
+  buildProductAttributes,
+  getProductAttributeTemplate,
+  productAttributesToRecord,
+} from "@/data/product-attribute-templates";
 import { productQueryKeys, useCategories, useProducts } from "@/hooks";
 
 import {
@@ -45,6 +50,7 @@ const defaultValues: ProductFormValues = {
   details: "",
   careInstructions: "",
   shippingReturns: "",
+  attributeValues: {},
   deliveryCodTitle: "",
   deliveryCodDescription: "",
   deliveryPaymentTitle: "",
@@ -93,6 +99,8 @@ export function ProductEditorPage() {
   } = useForm<ProductFormValues>({ defaultValues });
   const name = watch("name");
   const slug = watch("slug");
+  const selectedCategory = watch("category");
+  const attributeTemplate = getProductAttributeTemplate(selectedCategory);
 
   useEffect(() => {
     if (!product) return;
@@ -106,6 +114,7 @@ export function ProductEditorPage() {
       details: product.details,
       careInstructions: product.careInstructions,
       shippingReturns: product.shippingReturns,
+      attributeValues: productAttributesToRecord(product.attributes),
       deliveryCodTitle: product.deliveryCodTitle,
       deliveryCodDescription: product.deliveryCodDescription,
       deliveryPaymentTitle: product.deliveryPaymentTitle,
@@ -227,12 +236,18 @@ tags: product.tags.join(", "),
       return;
     }
 
+    const { attributeValues, ...productValues } = result.data;
+
     saveMutation.mutate({
       input: {
         ...defaultProductContentFields,
-        ...result.data,
+        ...productValues,
+        attributes: buildProductAttributes(
+          productValues.category,
+          attributeValues,
+        ),
         sku: result.data.sku.toUpperCase(),
-        tags: result.data.tags
+        tags: productValues.tags
           .split(",")
           .map((tag) => tag.trim().toLowerCase())
           .filter(Boolean),
@@ -485,6 +500,51 @@ tags: product.tags.join(", "),
                 </select>
                 <FormFieldError message={errors.category?.message} />
               </label>
+              {attributeTemplate.length > 0 ? (
+                <div className="rounded-lg border border-maroon/10 bg-background p-4">
+                  <h3 className="text-sm font-semibold text-charcoal">
+                    Product attributes
+                  </h3>
+                  <div className="mt-4 grid gap-4">
+                    {attributeTemplate.map((field) => (
+                      <label
+                        className="text-sm font-medium text-charcoal"
+                        key={field.key}
+                      >
+                        {field.label}
+                        {field.type === "textarea" ? (
+                          <textarea
+                            className={textareaClassName}
+                            placeholder={field.placeholder}
+                            {...register(`attributeValues.${field.key}`)}
+                          />
+                        ) : field.type === "select" ? (
+                          <select
+                            className={inputClassName}
+                            {...register(`attributeValues.${field.key}`)}
+                          >
+                            <option value="">
+                              {field.placeholder ?? `Select ${field.label}`}
+                            </option>
+                            {(field.options ?? []).map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            className={inputClassName}
+                            placeholder={field.placeholder}
+                            type={field.type === "number" ? "number" : "text"}
+                            {...register(`attributeValues.${field.key}`)}
+                          />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <div className="rounded-lg border border-maroon/10 bg-background p-4">
   <h3 className="text-sm font-semibold text-charcoal">
     Inventory Management
@@ -580,8 +640,6 @@ tags: product.tags.join(", "),
     </form>
   );
 }
-
-
 
 
 

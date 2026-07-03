@@ -21,6 +21,7 @@ export const productFormSchema = z
     details: z.string().trim().max(5000, "Details must be 5000 characters or fewer."),
     careInstructions: z.string().trim().max(3000, "Care instructions must be 3000 characters or fewer."),
     shippingReturns: z.string().trim().max(3000, "Shipping & returns must be 3000 characters or fewer."),
+    attributeValues: z.record(z.string(), z.string().max(1000, "Attribute values must be 1000 characters or fewer.")),
     deliveryCodTitle: z.string().trim().max(80),
     deliveryCodDescription: z.string().trim().max(500),
     deliveryPaymentTitle: z.string().trim().max(80),
@@ -215,7 +216,6 @@ export const settingsFormSchema = z
   );
 
 export type SettingsFormValues = z.input<typeof settingsFormSchema>;
-
 
 
 

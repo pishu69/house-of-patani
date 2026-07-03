@@ -56,8 +56,31 @@ function normalizeProductAttributes(value: Json | null | undefined): ProductAttr
   });
 }
 
-function productAttributesToJson(attributes: ProductAttribute[]): Json {
-  return attributes.map((attribute) => ({
+function normalizeInputProductAttributes(
+  attributes: ProductAttribute[] | null | undefined,
+): ProductAttribute[] {
+  if (!Array.isArray(attributes)) return [];
+
+  return attributes.flatMap((attribute) => {
+    if (!attribute || typeof attribute !== "object") return [];
+
+    const record = attribute as unknown as Record<string, unknown>;
+    const key = typeof record.key === "string" ? record.key : "";
+    const label = typeof record.label === "string" ? record.label : "";
+    const rawValue = record.value;
+    const value =
+      typeof rawValue === "string" ||
+      typeof rawValue === "number" ||
+      typeof rawValue === "boolean"
+        ? String(rawValue)
+        : "";
+
+    return key && label ? [{ key, label, value }] : [];
+  });
+}
+
+function productAttributesToJson(attributes?: ProductAttribute[] | null): Json {
+  return normalizeInputProductAttributes(attributes).map((attribute) => ({
     key: attribute.key,
     label: attribute.label,
     value: attribute.value,
@@ -130,8 +153,9 @@ function mapProduct(
       row.shipping_returns ??
       "",
     attributes:
-      override?.attributes ??
-      normalizeProductAttributes(row.attributes),
+      override?.attributes === undefined
+        ? normalizeProductAttributes(row.attributes)
+        : normalizeInputProductAttributes(override.attributes),
     deliveryCodTitle:
       override?.deliveryCodTitle ??
       row.delivery_cod_title ??

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+﻿import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Eye,
   EyeOff,
@@ -196,7 +196,7 @@ export function ProductsPage() {
                 {product.name}
               </p>
               <p className="mt-0.5 text-xs">
-                {product.sku} · {categoryNameBySlug[product.category]}
+                {product.sku} Â· {categoryNameBySlug[product.category]}
               </p>
             </div>
           </div>
@@ -209,6 +209,20 @@ export function ProductsPage() {
           <span className="font-medium text-charcoal">
             {formatCurrency(product.price)}
           </span>
+        ),
+      },
+      {
+        header: "Rating",
+        id: "rating",
+        render: (product) => (
+          <div className="space-y-1">
+            <p className="font-medium text-charcoal">
+              {product.rating > 0 ? `${product.rating.toFixed(1)} / 5` : "No rating"}
+            </p>
+            <p className="text-xs text-charcoal/60">
+              {product.reviewCount} {product.reviewCount === 1 ? "review" : "reviews"}
+            </p>
+          </div>
         ),
       },
       {
@@ -350,7 +364,7 @@ export function ProductsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {filteredProducts.length} products
-          {selectedIds.size > 0 ? ` · ${selectedIds.size} selected` : ""}
+          {selectedIds.size > 0 ? ` Â· ${selectedIds.size} selected` : ""}
         </p>
         <AdminSourceBadge source={productsQuery.data?.source} />
       </div>
@@ -392,3 +406,4 @@ export function ProductsPage() {
     </div>
   );
 }
+
