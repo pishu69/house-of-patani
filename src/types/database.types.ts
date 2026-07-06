@@ -108,6 +108,7 @@ export interface AddressRow {
 }
 
 export interface OrderRow {
+  confirmation_email_sent_at: string | null;
   created_at: string;
   courier_partner: string | null;
 tracking_number: string | null;

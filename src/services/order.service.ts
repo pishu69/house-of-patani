@@ -59,6 +59,22 @@ function parseConfirmation(value: Json): OrderConfirmation {
   return { items, order: value.order };
 }
 
+async function sendOrderConfirmationEmail(orderId: string) {
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase.functions.invoke("send-order-email", {
+      body: { orderId },
+    });
+
+    if (error) {
+      console.warn("Order confirmation email could not be sent.", error);
+    }
+  } catch (error) {
+    console.warn("Order confirmation email could not be sent.", error);
+  }
+}
+
 export const orderService = {
   async list(): Promise<ServiceResponse<OrderRow[]>> {
     if (!supabase) {
@@ -205,8 +221,9 @@ const { error: inventoryError } = await supabase.rpc(
 
 if (inventoryError) throw inventoryError;
 
-adminStorage.orders.saveConfirmation(confirmation);
-return supabaseResponse(confirmation);
+      adminStorage.orders.saveConfirmation(confirmation);
+      await sendOrderConfirmationEmail(confirmation.order.id);
+      return supabaseResponse(confirmation);
     } catch (error) {
       return fallbackAfterError(
         localFallback(),
@@ -290,5 +307,6 @@ if (!supabase) {
       );
     }
   },
-};
 
+  sendOrderConfirmationEmail,
+};

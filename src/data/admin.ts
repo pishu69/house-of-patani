@@ -5,6 +5,7 @@ import type {
 } from "@/types/database.types";
 
 const emptyShippingTracking = {
+  confirmation_email_sent_at: null,
   courier_partner: null,
   tracking_number: null,
   tracking_url: null,

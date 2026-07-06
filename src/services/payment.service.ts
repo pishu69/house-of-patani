@@ -229,6 +229,8 @@ export async function handleRazorpaySuccess({
     );
   }
 
+  await orderService.sendOrderConfirmationEmail(data.order.id);
+
   return supabaseResponse(data);
 }
 
