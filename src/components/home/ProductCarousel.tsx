@@ -44,7 +44,7 @@ export function ProductCarousel({
       </div>
       <div
         aria-label={ariaLabel}
-        className="grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col gap-5 overflow-x-auto pb-4 sm:auto-cols-[48%] lg:auto-cols-[31%] xl:auto-cols-[24%]"
+        className="grid snap-x snap-mandatory auto-cols-[47%] grid-flow-col gap-3 overflow-x-auto pb-4 sm:auto-cols-[32%] sm:gap-4 lg:auto-cols-[24%] xl:auto-cols-[19%]"
         ref={trackRef}
         role="region"
         tabIndex={0}

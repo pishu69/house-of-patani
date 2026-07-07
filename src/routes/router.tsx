@@ -84,6 +84,13 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: ROUTES.POLICIES,
+        lazy: async () => {
+          const { PoliciesPage } = await import("@/pages/PoliciesPage");
+          return { Component: PoliciesPage };
+        },
+      },
+      {
         path: ROUTES.ACCOUNT.ROOT,
         element: <AccountLayout />,
         children: [

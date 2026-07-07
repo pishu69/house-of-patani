@@ -18,6 +18,15 @@ interface DeliveryItem {
   title: string;
 }
 
+function standardizePolicyText(value: string) {
+  return value
+    .replace(/within\s+(?:7|seven|5|five|10|ten|30|thirty)\s+days?/gi, "within 3 days")
+    .replace(
+      /.*returns?\s+and\s+exchanges?\s+within\s+3\s+days\.?/gi,
+      "Eligible return requests must be raised within 3 days after delivery.",
+    );
+}
+
 export function DeliveryInformation({ product }: { product?: CatalogProduct }) {
   const settingsQuery = useSettings();
   const settings = settingsQuery.data?.data;
@@ -45,9 +54,10 @@ export function DeliveryInformation({ product }: { product?: CatalogProduct }) {
       title: (product?.deliveryShippingTitle || settings?.deliveryShippingTitle) ?? "Free Shipping",
     },
     {
-      description:
+      description: standardizePolicyText(
         (product?.deliveryReturnsDescription || settings?.deliveryReturnsDescription) ??
-        "Hassle-free returns and exchanges within 7 days.",
+          "Eligible return requests must be raised within 3 days after delivery.",
+      ),
       Icon: RotateCcw,
       title: (product?.deliveryReturnsTitle || settings?.deliveryReturnsTitle) ?? "Easy Returns",
     },

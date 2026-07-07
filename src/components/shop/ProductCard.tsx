@@ -75,9 +75,9 @@ function ProductCardComponent({
     <motion.article
       className="group flex h-full flex-col overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-lift transition duration-300 hover:border-gold/60"
       transition={{ duration: 0.25, ease: "easeOut" }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -3 }}
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-linen">
+      <div className="relative aspect-[5/6] overflow-hidden bg-linen">
         {!imageLoaded && imageUrl ? (
           <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-linen via-ivory to-linen" />
         ) : null}
@@ -104,14 +104,14 @@ function ProductCardComponent({
           ) : null}
         </Link>
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3">
           {discount > 0 ? (
-            <Badge className="shadow-lift" variant="primary">
+            <Badge className="px-2 py-0.5 text-[10px] shadow-lift sm:text-xs" variant="primary">
               {discount}% off
             </Badge>
           ) : null}
           {product.newArrival ? (
-            <Badge className="shadow-lift">New</Badge>
+            <Badge className="px-2 py-0.5 text-[10px] shadow-lift sm:text-xs">New</Badge>
           ) : null}
         </div>
 
@@ -121,42 +121,42 @@ function ProductCardComponent({
               ? `Remove ${product.name} from wishlist`
               : `Add ${product.name} to wishlist`
           }
-          className="absolute right-3 top-3 bg-ivory/90 shadow-lift hover:bg-ivory"
+          className="absolute right-2 top-2 h-8 w-8 bg-ivory/90 shadow-lift hover:bg-ivory sm:right-3 sm:top-3 sm:h-9 sm:w-9"
           onClick={handleWishlistToggle}
           size="sm"
         >
           <Heart
             aria-hidden="true"
             className={cn(resolvedWishlisted && "fill-maroon text-maroon")}
-            size={17}
+            size={15}
           />
         </IconButton>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gold sm:text-[11px]">
           {categoryNameBySlug[product.category]}
         </p>
 
-        <Link className="mt-2" to={`/product/${product.slug}`}>
-          <h2 className="text-2xl leading-tight transition group-hover:text-maroon">
+        <Link className="mt-1.5" to={`/product/${product.slug}`}>
+          <h2 className="line-clamp-2 text-base leading-snug transition group-hover:text-maroon sm:text-lg">
             {product.name}
           </h2>
         </Link>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-1.5">
           <RatingStars rating={product.rating} />
           <span className="text-xs text-muted-foreground">
             ({product.reviewCount})
           </span>
         </div>
 
-        <p className="mt-3 line-clamp-2 min-h-12 text-sm leading-6 text-muted-foreground">
+        <p className="mt-2 line-clamp-2 min-h-9 text-xs leading-5 text-muted-foreground sm:text-sm">
           {product.description}
         </p>
 
-        <div className="mt-4 flex flex-wrap items-baseline gap-2">
-          <span className="font-semibold text-maroon">
+        <div className="mt-3 flex flex-wrap items-baseline gap-1.5">
+          <span className="text-sm font-semibold text-maroon sm:text-base">
             {formatCurrency(product.price)}
           </span>
           <span className="text-xs text-muted-foreground line-through">
@@ -164,7 +164,7 @@ function ProductCardComponent({
           </span>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-2">
           <StockBadge
             status={
               product.stock === 0
@@ -177,7 +177,7 @@ function ProductCardComponent({
         </div>
 
         <Button
-          className="mt-5"
+          className="mt-3 min-h-10 text-sm"
           disabled={product.stock === 0}
           fullWidth
           onClick={handleAddToCart}

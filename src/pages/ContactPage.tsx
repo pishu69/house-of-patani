@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { PageHero } from "@/components/common/PageHero";
 import { Button } from "@/components/ui/button";
+import { APP_CONFIG } from "@/constants/config";
 import { useSettings } from "@/hooks";
 import { contactService } from "@/services";
 
@@ -13,7 +14,7 @@ export function ContactPage() {
   const [isSending, setIsSending] = useState(false);
 
   const address = settings?.address || "Patani Heritage House, India";
-  const email = settings?.email || "care@houseofpatani.com";
+  const email = APP_CONFIG.CONTACT_EMAIL;
   const phone = settings?.whatsappNumber || "+91 98765 43210";
 
   async function submitContact(event: FormEvent<HTMLFormElement>) {

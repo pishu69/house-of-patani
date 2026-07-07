@@ -1,7 +1,7 @@
 const configuredSiteUrl = import.meta.env.VITE_SITE_URL?.trim();
 
 export const APP_CONFIG = {
-  CONTACT_EMAIL: "care@houseofpatani.com",
+  CONTACT_EMAIL: "hello@houseofpatani.com",
   DESCRIPTION:
     "Discover Indian craft, handwoven textiles, jewelry, home accents, and keepsakes selected with a quiet sense of heritage.",
   NAME: "House of Patani",

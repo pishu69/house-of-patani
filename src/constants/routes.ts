@@ -8,6 +8,7 @@ export const ROUTES = {
   CHECKOUT: "/checkout",
   ORDER_CONFIRMATION: "/order-confirmation/:orderNumber",
   ORDER_LOOKUP: "/order-lookup",
+  POLICIES: "/policies",
   ABOUT: "/about",
   CONTACT: "/contact",
   ACCOUNT: {

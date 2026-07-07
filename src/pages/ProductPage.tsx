@@ -30,6 +30,13 @@ import { createBreadcrumbSchema, absoluteUrl } from "@/lib/seo";
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
 
+function standardizePolicyText(value: string) {
+  return value.replace(
+    /within\s+(?:7|seven|5|five|10|ten|30|thirty)\s+days?\s+of\s+delivery/gi,
+    "within 3 days after delivery",
+  );
+}
+
 export function ProductPage() {
   const { slug } = useParams();
   const [activeTab, setActiveTab] = useState("description");
@@ -245,10 +252,10 @@ const displayReviewCount =
     {
       content: (
         <div className="space-y-3">
-  {(product.shippingReturns ||
+  {standardizePolicyText(product.shippingReturns ||
     `Orders are carefully packed and typically dispatched within 2–4 business days.
 
-Easy returns are available within 7 days of delivery for eligible unused products in their original condition.`)
+Eligible return requests must be raised within 3 days after delivery for unused products in their original packaging.`)
     .split("\n\n")
     .map((paragraph) => (
       <p key={paragraph}>{paragraph}</p>

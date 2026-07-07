@@ -8,6 +8,7 @@ import {
   type SocialLink,
 } from "@/components/common/SocialLinks";
 import { Button } from "@/components/ui/button";
+import { APP_CONFIG } from "@/constants/config";
 import { ROUTES } from "@/constants/routes";
 import { useSettings } from "@/hooks";
 import { newsletterService } from "@/services";
@@ -19,7 +20,7 @@ export function Footer() {
 
   const storeName = settings?.storeName || "House of Patani";
   const address = settings?.address || "Patani Heritage House, India";
-  const email = settings?.email || "care@houseofpatani.com";
+  const email = APP_CONFIG.CONTACT_EMAIL;
   const phone = settings?.whatsappNumber || "+91 98765 43210";
 
   const socialLinks: SocialLink[] = [
@@ -83,6 +84,7 @@ export function Footer() {
             <li><Link className="transition hover:text-gold" to={ROUTES.SHOP}>Shop</Link></li>
             <li><Link className="transition hover:text-gold" to={ROUTES.ABOUT}>About</Link></li>
             <li><Link className="transition hover:text-gold" to={ROUTES.CONTACT}>Contact</Link></li>
+            <li><Link className="transition hover:text-gold" to={ROUTES.POLICIES}>Policies</Link></li>
             <li><Link className="transition hover:text-gold" to={ROUTES.CART}>Cart</Link></li>
           </ul>
         </div>

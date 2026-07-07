@@ -53,6 +53,11 @@ const routeMetadata: Record<string, RouteMetadata> = {
       "Contact House of Patani for collection guidance, order support, and heritage craft enquiries.",
     title: "Contact",
   },
+  [ROUTES.POLICIES]: {
+    description:
+      "Review House of Patani policies for shipping, returns, refunds, cancellations, privacy, terms, and support.",
+    title: "Policies",
+  },
   [ROUTES.LOGIN]: {
     description:
       "Sign in securely to your House of Patani customer account with mobile OTP.",

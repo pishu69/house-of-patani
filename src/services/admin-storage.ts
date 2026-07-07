@@ -30,7 +30,7 @@ const STORAGE_PREFIX = "house-of-patani-admin";
 export const defaultStoreSettings: StoreSettings = {
   address: "Kochi, Kerala, India",
   codEnabled: true,
-  email: "care@houseofpatani.com",
+  email: "hello@houseofpatani.com",
   facebook: "https://facebook.com/houseofpatani",
   freeShippingThreshold: 5000,
   homepageBanner: "",
@@ -55,7 +55,7 @@ export const defaultStoreSettings: StoreSettings = {
   deliveryShippingTitle: "Free Shipping",
   deliveryShippingDescription: "Free shipping on orders above ?999 across India.",
   deliveryReturnsTitle: "Easy Returns",
-  deliveryReturnsDescription: "Hassle-free returns and exchanges within 7 days.",
+  deliveryReturnsDescription: "Eligible return requests must be raised within 3 days after delivery.",
   deliveryCareTitle: "Crafted with Care",
   deliveryCareDescription: "Inspired by Koch Rajbanshi heritage and crafted with attention to detail.",
   deliveryPackagingTitle: "Safe Packaging",

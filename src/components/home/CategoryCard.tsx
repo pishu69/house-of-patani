@@ -15,34 +15,34 @@ function CategoryCardComponent({ category, to }: CategoryCardProps) {
     <motion.article
       className="h-full"
       transition={{ duration: 0.25, ease: "easeOut" }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -3 }}
     >
       <Link
         className="group flex h-full flex-col overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-lift transition duration-300 hover:border-gold/60"
         to={to}
       >
-        <div className="aspect-[4/3] overflow-hidden">
+        <div className="aspect-[16/9] overflow-hidden">
           <img
             alt={category.name}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
             decoding="async"
             loading="lazy"
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1280px) 24vw, (min-width: 768px) 33vw, 50vw"
             src={category.imageUrl}
             srcSet={createImageSrcSet(category.imageUrl)}
           />
         </div>
-        <div className="flex flex-1 items-start justify-between gap-4 p-6">
+        <div className="flex flex-1 items-start justify-between gap-3 p-3 sm:p-4">
           <div>
-            <h3 className="text-3xl">{category.name}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <h3 className="text-lg leading-snug sm:text-xl">{category.name}</h3>
+            <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
               {category.description}
             </p>
           </div>
           <ArrowUpRight
             aria-hidden="true"
             className="mt-1 shrink-0 text-gold transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            size={19}
+            size={16}
           />
         </div>
       </Link>
