@@ -4,10 +4,14 @@ export const emailAuthService = {
   async sendMagicLink(email: string) {
     if (!supabase) throw new Error("Email login is not configured.");
 
+    const redirectTo = import.meta.env.PROD
+      ? "https://houseofpatani.com/account"
+      : `${window.location.origin}/account`;
+
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
-        emailRedirectTo: "https://house-of-patani.netlify.app/account",
+        emailRedirectTo: redirectTo,
       },
     });
 

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Sign in to House of Patani</title>
+    <style>
+      @media only screen and (max-width: 600px) {
+        .email-shell {
+          width: 100% !important;
+        }
+
+        .email-card {
+          padding: 28px 22px !important;
+        }
+
+        .email-title {
+          font-size: 28px !important;
+          line-height: 34px !important;
+        }
+
+        .email-button {
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f7efd9; color:#2b1810; font-family:'Avenir Next', 'Segoe UI', Arial, sans-serif;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+      Securely sign in to your House of Patani account.
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f7efd9; margin:0; padding:32px 14px;">
+      <tr>
+        <td align="center">
+          <table class="email-shell" role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="width:560px; max-width:560px;">
+            <tr>
+              <td align="center" style="padding:0 0 20px;">
+                <p style="margin:0; color:#5b1b2b; font-family:Georgia, 'Times New Roman', serif; font-size:30px; font-weight:400; line-height:36px; text-align:center;">
+                  House of Patani
+                </p>
+                <p style="margin:10px 0 0; color:#b28a3e; font-size:11px; font-weight:700; letter-spacing:0.24em; line-height:17px; text-align:center; text-transform:uppercase;">
+                  Tradition Woven With Heritage
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-card" style="background-color:#fffaf0; border:1px solid rgba(91, 27, 43, 0.14); border-radius:14px; padding:38px 36px; box-shadow:0 24px 70px rgba(54, 28, 24, 0.10);">
+                <p style="margin:0 0 8px; color:#b28a3e; font-size:11px; font-weight:700; letter-spacing:0.26em; line-height:16px; text-transform:uppercase;">
+                  House of Patani
+                </p>
+                <h1 class="email-title" style="margin:0; color:#5b1b2b; font-family:Georgia, 'Times New Roman', serif; font-size:34px; font-weight:400; line-height:40px;">
+                  Sign in to House of Patani
+                </h1>
+
+                <p style="margin:24px 0 0; color:#3a241b; font-size:16px; line-height:26px;">
+                  Hello,
+                </p>
+                <p style="margin:12px 0 0; color:#3a241b; font-size:16px; line-height:26px;">
+                  We received a request to securely sign in to your House of Patani account.
+                </p>
+                <p style="margin:12px 0 0; color:#3a241b; font-size:16px; line-height:26px;">
+                  Click the button below to continue.
+                </p>
+
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0 26px;">
+                  <tr>
+                    <td align="center" bgcolor="#5b1b2b" style="border-radius:999px;">
+                      <a
+                        class="email-button"
+                        href="{{ .ConfirmationURL }}"
+                        style="display:inline-block; border-radius:999px; background-color:#5b1b2b; color:#fff8ec; font-size:15px; font-weight:700; line-height:20px; padding:14px 28px; text-align:center; text-decoration:none;"
+                      >
+                        Sign In to House of Patani
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:0; color:#6c574d; font-size:14px; line-height:23px;">
+                  This secure link expires in 60 minutes and can only be used once.
+                </p>
+                <p style="margin:12px 0 0; color:#6c574d; font-size:14px; line-height:23px;">
+                  If you didn't request this email, simply ignore it.
+                </p>
+
+                <div style="margin:26px 0 0; padding:22px 0 0; border-top:1px solid rgba(91, 27, 43, 0.12);">
+                  <p style="margin:0 0 10px; color:#5b1b2b; font-size:14px; font-weight:700; line-height:22px;">
+                    Need help?
+                  </p>
+                  <p style="margin:0; color:#3a241b; font-size:14px; line-height:22px;">
+                    <a href="mailto:hello@houseofpatani.com" style="color:#5b1b2b; text-decoration:none;">hello@houseofpatani.com</a>
+                  </p>
+                  <p style="margin:6px 0 0; color:#3a241b; font-size:14px; line-height:22px;">
+                    <a href="https://houseofpatani.com" style="color:#5b1b2b; text-decoration:none;">https://houseofpatani.com</a>
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:22px 12px 0;">
+                <p style="margin:0; color:#5b1b2b; font-family:Georgia, 'Times New Roman', serif; font-size:20px; line-height:26px;">
+                  House of Patani
+                </p>
+                <p style="margin:6px 0 0; color:#b28a3e; font-size:11px; font-weight:700; letter-spacing:0.22em; line-height:17px; text-transform:uppercase;">
+                  Tradition Woven With Heritage
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
