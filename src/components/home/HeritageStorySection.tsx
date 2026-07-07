@@ -8,7 +8,7 @@ export function HeritageStorySection() {
   const settings = settingsQuery.data?.data;
 
   return (
-    <section className="bg-background py-16 sm:py-20 lg:py-24">
+    <section className="bg-background py-10 sm:py-14 lg:py-16">
       <StorySection
         action={
           <Link
@@ -25,6 +25,7 @@ export function HeritageStorySection() {
           </p>
         }
         eyebrow={settings?.heritageEyebrow ?? "Our Heritage"}
+        compact
         imageAlt="Traditional Koch Rajabnshi craft and textiles arranged in a heritage interior"
         imageUrl="/images/about/heritage.jpg"
         title={

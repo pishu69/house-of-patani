@@ -1,20 +1,23 @@
 import { motion } from "framer-motion";
-import { SectionHeader } from "@/components/common/SectionHeader";
 import { testimonials } from "@/constants/mock-data";
 
 export function TestimonialsSection() {
   return (
-    <section className="bg-background py-16 sm:py-20 lg:py-24">
+    <section className="bg-background py-12 sm:py-16 lg:py-[4.5rem]">
       <div className="section-shell">
-        <SectionHeader
-          description="Words from those who value craft, warmth, and a quieter expression of luxury."
-          eyebrow="Kind Words"
-          title="Familiar, but much more refined"
-        />
-        <div className="mt-10 grid gap-5 sm:mt-12 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="eyebrow">Kind Words</p>
+          <h2 className="mt-3 text-3xl leading-tight sm:text-4xl md:text-[2.75rem]">
+            Familiar, but much more refined
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
+            Words from those who value craft, warmth, and a quieter expression of luxury.
+          </p>
+        </div>
+        <div className="mt-7 grid gap-4 sm:mt-9 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
             <motion.article
-              className="rounded-lg border border-maroon/10 bg-card p-6 shadow-lift sm:p-7"
+              className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-6"
               initial={{ opacity: 0, y: 18 }}
               key={testimonial.name}
               transition={{
@@ -25,10 +28,10 @@ export function TestimonialsSection() {
               viewport={{ once: true, amount: 0.25 }}
               whileInView={{ opacity: 1, y: 0 }}
             >
-              <p className="font-serif text-xl leading-8 text-charcoal sm:text-2xl sm:leading-9">
+              <p className="font-serif text-lg leading-7 text-charcoal sm:text-xl sm:leading-8">
                 "{testimonial.quote}"
               </p>
-              <div className="mt-6 border-t border-maroon/10 pt-5">
+              <div className="mt-5 border-t border-maroon/10 pt-4">
                 <p className="font-semibold text-maroon">{testimonial.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {testimonial.location}

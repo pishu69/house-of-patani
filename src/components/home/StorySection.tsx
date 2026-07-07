@@ -5,6 +5,7 @@ import { createImageSrcSet } from "@/utils/image";
 
 interface StorySectionProps {
   action?: ReactNode;
+  compact?: boolean;
   description: ReactNode;
   eyebrow: string;
   imageAlt: string;
@@ -15,6 +16,7 @@ interface StorySectionProps {
 
 export function StorySection({
   action,
+  compact = false,
   description,
   eyebrow,
   imageAlt,
@@ -23,7 +25,12 @@ export function StorySection({
   title,
 }: StorySectionProps) {
   return (
-    <div className="section-shell grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <div
+      className={cn(
+        "section-shell grid items-center lg:grid-cols-2",
+        compact ? "gap-6 lg:gap-9" : "gap-10 lg:gap-16",
+      )}
+    >
       <motion.div
         className={cn(
           "overflow-hidden rounded-lg shadow-elegant",
@@ -52,13 +59,27 @@ export function StorySection({
         whileInView={{ opacity: 1, x: 0 }}
       >
         <p className="eyebrow">{eyebrow}</p>
-        <h2 className="mt-4 text-3xl leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
+        <h2
+          className={cn(
+            "leading-tight",
+            compact
+              ? "mt-3 text-3xl sm:text-4xl lg:text-5xl"
+              : "mt-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl",
+          )}
+        >
           {title}
         </h2>
-        <div className="mt-6 space-y-4 text-base leading-8 text-muted-foreground sm:text-lg">
+        <div
+          className={cn(
+            "text-base text-muted-foreground",
+            compact
+              ? "mt-3.5 space-y-2.5 leading-7 sm:text-base"
+              : "mt-6 space-y-4 leading-8 sm:text-lg",
+          )}
+        >
           {description}
         </div>
-        {action ? <div className="mt-8">{action}</div> : null}
+        {action ? <div className={compact ? "mt-5" : "mt-8"}>{action}</div> : null}
       </motion.div>
     </div>
   );
