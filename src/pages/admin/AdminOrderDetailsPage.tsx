@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { orderService } from "@/services/order.service";
 import { OrderInvoice } from "@/components/admin/OrderInvoice";
+import { useWarehouses, warehouseQueryKeys } from "@/hooks";
 import type { OrderStatus } from "@/constants/order-status";
 
 type AnyRecord = Record<string, any>;
@@ -39,7 +40,12 @@ export function AdminOrderDetailsPage() {
   const confirmation = response?.data as AnyRecord | null | undefined;
   const order = (confirmation?.order || confirmation) as AnyRecord | null;
   const items = (confirmation?.items || []) as AnyRecord[];
+  const warehousesQuery = useWarehouses();
+  const warehouses = warehousesQuery.data?.data ?? [];
   const [localStatus, setLocalStatus] = useState<OrderStatus | null>(null);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(
+    null,
+  );
   const [shippingForm, setShippingForm] = useState({
   courier_partner: "",
   tracking_number: "",
@@ -157,6 +163,55 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
     });
   },
 });
+
+  const updateWarehouseMutation = useMutation({
+    mutationFn: () => {
+      if (!order?.id) {
+        throw new Error("Missing order id");
+      }
+
+      const warehouseId = selectedWarehouseId ?? order.warehouse_id ?? "";
+
+      if (!warehouseId) {
+        throw new Error("Warehouse is required.");
+      }
+
+      return orderService.update(order.id, { warehouse_id: warehouseId });
+    },
+    onSuccess: (updateResponse) => {
+      const updatedOrder = updateResponse.data as AnyRecord | null;
+
+      if (updatedOrder) {
+        setSelectedWarehouseId(updatedOrder.warehouse_id ?? null);
+        queryClient.setQueryData(
+          ["admin-order-details", orderNumber],
+          (oldData: AnyRecord | undefined) => {
+            if (!oldData?.data) return oldData;
+
+            const oldConfirmation = oldData.data as AnyRecord;
+
+            return {
+              ...oldData,
+              data: {
+                ...oldConfirmation,
+                order: {
+                  ...(oldConfirmation.order || {}),
+                  ...updatedOrder,
+                },
+              },
+            };
+          },
+        );
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin-order-details", orderNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: warehouseQueryKeys.all });
+    },
+  });
   if (isLoading) return <div className="p-6">Loading order details...</div>;
 
   if (isError || !order) {
@@ -173,6 +228,16 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
   const shippingAddress = order.shipping_address || order.shippingAddress || {};
   const currentStatus =
   localStatus || order.order_status || order.status || "pending";
+  const activeStatusesForWarehouse = ["pending", "confirmed", "packed"];
+  const canAssignWarehouse = activeStatusesForWarehouse.includes(currentStatus);
+  const currentWarehouseId =
+    selectedWarehouseId ?? order.warehouse_id ?? "";
+  const assignedWarehouse = warehouses.find(
+    (warehouse) => warehouse.id === currentWarehouseId,
+  );
+  const warehouseOptions = warehouses.filter(
+    (warehouse) => warehouse.active || warehouse.id === currentWarehouseId,
+  );
   const handlePrintInvoice = () => {
   window.print();
 };
@@ -293,6 +358,64 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
           </p>
           <p>{shippingAddress.country || "India"}</p>
         </div>
+      </section>
+
+      <section className="rounded-lg border bg-card p-4">
+        <h2 className="mb-4 text-lg font-semibold">Warehouse Assignment</h2>
+
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">Warehouse</span>
+            <select
+              className="w-full rounded-md border px-3 py-2"
+              disabled={!canAssignWarehouse || warehousesQuery.isLoading}
+              onChange={(event) => setSelectedWarehouseId(event.target.value)}
+              required
+              value={currentWarehouseId}
+            >
+              <option value="">Select warehouse</option>
+              {warehouseOptions.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name} - {warehouse.city}, {warehouse.state}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            className="rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={
+              !canAssignWarehouse ||
+              !currentWarehouseId ||
+              updateWarehouseMutation.isPending
+            }
+            onClick={() => updateWarehouseMutation.mutate()}
+            type="button"
+          >
+            {updateWarehouseMutation.isPending
+              ? "Saving..."
+              : "Save Warehouse"}
+          </button>
+        </div>
+
+        {!canAssignWarehouse ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Warehouse assignment is locked once the order moves beyond
+            processing.
+          </p>
+        ) : null}
+
+        {updateWarehouseMutation.isSuccess ? (
+          <p className="mt-3 text-sm text-green-600">
+            Warehouse assignment saved successfully.
+          </p>
+        ) : null}
+
+        {updateWarehouseMutation.isError ? (
+          <p className="mt-3 text-sm text-red-600">
+            Could not save warehouse assignment.
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-lg border bg-card p-4">
@@ -464,6 +587,15 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
           <h2 className="mb-3 text-lg font-semibold">Order Summary</h2>
 
           <div className="space-y-2 text-sm">
+            <div className="flex justify-between gap-4">
+              <span>Warehouse</span>
+              <span className="text-right">
+                {assignedWarehouse
+                  ? `${assignedWarehouse.name}, ${assignedWarehouse.city}`
+                  : "Not assigned"}
+              </span>
+            </div>
+
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>{money(order.subtotal)}</span>

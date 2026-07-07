@@ -59,6 +59,38 @@ function parseConfirmation(value: Json): OrderConfirmation {
   return { items, order: value.order };
 }
 
+const ORDER_SELECT = [
+  "confirmation_email_sent_at",
+  "courier_partner",
+  "created_at",
+  "customer_email",
+  "customer_id",
+  "customer_name",
+  "customer_phone",
+  "delivered_at",
+  "discount",
+  "dispatched_at",
+  "estimated_delivery_at",
+  "id",
+  "notes",
+  "order_number",
+  "order_status",
+  "paid_at",
+  "payment_method",
+  "payment_status",
+  "razorpay_order_id",
+  "razorpay_payment_id",
+  "razorpay_signature",
+  "shipping",
+  "shipping_address",
+  "subtotal",
+  "total",
+  "tracking_number",
+  "tracking_url",
+  "updated_at",
+  "warehouse_id",
+].join(", ");
+
 async function sendOrderConfirmationEmail(orderId: string) {
   if (!supabase) return;
 
@@ -84,14 +116,14 @@ export const orderService = {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(ORDER_SELECT)
         .order("created_at", { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      return supabaseResponse(data ?? []);
+      return supabaseResponse((data ?? []) as unknown as OrderRow[]);
     } catch (error) {
       return fallbackAfterError(
         adminStorage.orders.list(),
@@ -114,6 +146,7 @@ export const orderService = {
   | "dispatched_at"
   | "estimated_delivery_at"
   | "delivered_at"
+  | "warehouse_id"
 >,
   ): Promise<ServiceResponse<OrderRow | null>> {
     const localFallback = () => adminStorage.orders.update(id, input);
@@ -127,11 +160,11 @@ export const orderService = {
         .from("orders")
         .update(input)
         .eq("id", id)
-        .select("*")
+        .select(ORDER_SELECT)
         .single();
 
       if (error) throw error;
-      return supabaseResponse(data);
+      return supabaseResponse(data as unknown as OrderRow);
     } catch (error) {
       return fallbackAfterError(
         localFallback(),
@@ -287,18 +320,19 @@ if (!supabase) {
     try {
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .select("*")
+        .select(ORDER_SELECT)
         .eq("order_number", orderNumber)
         .maybeSingle();
       if (orderError) throw orderError;
-      if (!order) return mockResponse(fallback);
+      const orderRow = order as OrderRow | null;
+      if (!orderRow) return mockResponse(fallback);
 
       const { data: items, error: itemsError } = await supabase
         .from("order_items")
         .select("*")
-        .eq("order_id", order.id);
+        .eq("order_id", orderRow.id);
       if (itemsError) throw itemsError;
-      return supabaseResponse({ items: items ?? [], order });
+      return supabaseResponse({ items: items ?? [], order: orderRow });
     } catch (error) {
       return fallbackAfterError(
         fallback,

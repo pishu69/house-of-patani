@@ -1,6 +1,7 @@
 import {
   mockAdminCoupons,
   mockAdminOrders,
+  mockAdminWarehouses,
 } from "@/data/admin";
 import { shopCategories } from "@/data/categories";
 import { products } from "@/data/products";
@@ -9,6 +10,7 @@ import type {
   CouponRow,
   OrderItemRow,
   OrderRow,
+  WarehouseRow,
 } from "@/types/database.types";
 import type {
   CreateGuestOrderInput,
@@ -341,7 +343,10 @@ export const adminStorage = {
   },
   orders: {
     list() {
-      return readValue<OrderRow[]>("orders", mockAdminOrders);
+      return readValue<OrderRow[]>("orders", mockAdminOrders).map((order) => ({
+        ...order,
+        warehouse_id: order.warehouse_id ?? null,
+      }));
     },
     update(id: string, input: Partial<OrderRow>) {
       let updated: OrderRow | null = null;
@@ -356,6 +361,27 @@ export const adminStorage = {
       });
 
       writeValue("orders", next);
+      const updatedOrder = updated as OrderRow | null;
+      if (updatedOrder) {
+        const confirmations = readValue<Record<string, OrderConfirmation>>(
+          "order-confirmations",
+          {},
+        );
+        const existingConfirmation = confirmations[updatedOrder.order_number];
+
+        if (existingConfirmation) {
+          writeValue("order-confirmations", {
+            ...confirmations,
+            [updatedOrder.order_number]: {
+              ...existingConfirmation,
+              order: {
+                ...existingConfirmation.order,
+                ...updatedOrder,
+              },
+            },
+          });
+        }
+      }
       return updated;
     },
     create(
@@ -430,6 +456,7 @@ delivered_at: null,
         subtotal,
         total: subtotal - input.discount + shipping,
         updated_at: now,
+        warehouse_id: null,
       };
 
       writeValue("orders", [order, ...this.list()]);
@@ -463,12 +490,30 @@ delivered_at: null,
       return confirmation;
     },
     getConfirmation(orderNumber: string) {
-      return (
+      const confirmation =
         readValue<Record<string, OrderConfirmation>>(
           "order-confirmations",
           {},
-        )[orderNumber] ?? null
+        )[orderNumber] ?? null;
+      const latestOrder = this.list().find(
+        (order) => order.order_number === orderNumber,
       );
+
+      if (!confirmation) {
+        return latestOrder ? { items: [], order: latestOrder } : null;
+      }
+
+      return {
+        ...confirmation,
+        order: {
+          ...confirmation.order,
+          ...latestOrder,
+          warehouse_id:
+            latestOrder?.warehouse_id ??
+            confirmation.order.warehouse_id ??
+            null,
+        },
+      };
     },
     listConfirmations() {
       return Object.values(
@@ -508,6 +553,53 @@ delivered_at: null,
       const current = this.list();
       const next = current.filter((coupon) => coupon.id !== id);
       writeValue("coupons", next);
+      return next.length !== current.length;
+    },
+  },
+  warehouses: {
+    list() {
+      return readValue<WarehouseRow[]>("warehouses", mockAdminWarehouses);
+    },
+    create(
+      input: Omit<WarehouseRow, "created_at" | "id" | "updated_at">,
+    ) {
+      const now = new Date().toISOString();
+      const created: WarehouseRow = {
+        ...input,
+        created_at: now,
+        id: createId("warehouse"),
+        updated_at: now,
+      };
+      writeValue("warehouses", [created, ...this.list()]);
+      return created;
+    },
+    update(id: string, input: Partial<WarehouseRow>) {
+      let updated: WarehouseRow | null = null;
+      const next = this.list().map((warehouse) => {
+        if (warehouse.id !== id) return warehouse;
+        updated = {
+          ...warehouse,
+          ...input,
+          updated_at: new Date().toISOString(),
+        };
+        return updated;
+      });
+
+      writeValue("warehouses", next);
+      return updated;
+    },
+    remove(id: string) {
+      const isReferenced = adminStorage.orders
+        .list()
+        .some((order) => order.warehouse_id === id);
+
+      if (isReferenced) {
+        throw new Error("This warehouse is assigned to an order.");
+      }
+
+      const current = this.list();
+      const next = current.filter((warehouse) => warehouse.id !== id);
+      writeValue("warehouses", next);
       return next.length !== current.length;
     },
   },

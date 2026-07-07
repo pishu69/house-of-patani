@@ -2,6 +2,7 @@ import type {
   CouponRow,
   CustomerRow,
   OrderRow,
+  WarehouseRow,
 } from "@/types/database.types";
 
 const emptyShippingTracking = {
@@ -44,6 +45,7 @@ export const mockAdminOrders: OrderRow[] = [
     subtotal: 8990,
     total: 8540,
     updated_at: "2026-06-19T10:20:00.000Z",
+    warehouse_id: null,
   },
   {
     ...emptyShippingTracking,
@@ -74,6 +76,7 @@ export const mockAdminOrders: OrderRow[] = [
     subtotal: 7200,
     total: 7200,
     updated_at: "2026-06-18T12:10:00.000Z",
+    warehouse_id: null,
   },
   {
     ...emptyShippingTracking,
@@ -104,6 +107,7 @@ export const mockAdminOrders: OrderRow[] = [
     subtotal: 11800,
     total: 11200,
     updated_at: "2026-06-18T09:30:00.000Z",
+    warehouse_id: null,
   },
   {
     ...emptyShippingTracking,
@@ -134,6 +138,7 @@ export const mockAdminOrders: OrderRow[] = [
     subtotal: 5290,
     total: 5540,
     updated_at: "2026-06-17T14:00:00.000Z",
+    warehouse_id: null,
   },
   {
     ...emptyShippingTracking,
@@ -164,6 +169,27 @@ export const mockAdminOrders: OrderRow[] = [
     subtotal: 4200,
     total: 3900,
     updated_at: "2026-06-16T11:25:00.000Z",
+    warehouse_id: null,
+  },
+];
+
+export const mockAdminWarehouses: WarehouseRow[] = [
+  {
+    active: true,
+    address_line_1: "House of Patani Fulfilment Studio",
+    address_line_2: "MG Road",
+    city: "Kochi",
+    contact_person: "Operations Team",
+    country: "India",
+    created_at: "2026-06-19T10:20:00.000Z",
+    email: "hello@houseofpatani.com",
+    gst_number: null,
+    id: "warehouse-kochi-primary",
+    name: "Kochi Primary Warehouse",
+    phone: "+91 98765 43210",
+    pincode: "682016",
+    state: "Kerala",
+    updated_at: "2026-06-19T10:20:00.000Z",
   },
 ];
 

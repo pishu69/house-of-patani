@@ -136,6 +136,25 @@ customer_email: string;
   subtotal: number;
   total: number;
   updated_at: string;
+  warehouse_id: string | null;
+}
+
+export interface WarehouseRow {
+  active: boolean;
+  address_line_1: string;
+  address_line_2: string | null;
+  city: string;
+  contact_person: string;
+  country: string;
+  created_at: string;
+  email: string;
+  gst_number: string | null;
+  id: string;
+  name: string;
+  phone: string;
+  pincode: string;
+  state: string;
+  updated_at: string;
 }
 
 export interface PaymentIntentRow {
@@ -443,6 +462,18 @@ inventory_purchase_entries: TableDefinition<
         | "payment_status"
         | "shipping_address"
         | "total"
+      >;
+      warehouses: TableDefinition<
+        WarehouseRow,
+        | "address_line_1"
+        | "city"
+        | "contact_person"
+        | "country"
+        | "email"
+        | "name"
+        | "phone"
+        | "pincode"
+        | "state"
       >;
       payment_intents: TableDefinition<
         PaymentIntentRow,

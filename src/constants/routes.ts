@@ -30,6 +30,7 @@ export const ROUTES = {
     PRODUCT_NEW: "products/new",
     PRODUCT_EDIT: "products/:id/edit",
     ORDERS: "orders",
+    WAREHOUSES: "warehouses",
     CUSTOMERS: "customers",
     COUPONS: "coupons",
     SETTINGS: "settings",
