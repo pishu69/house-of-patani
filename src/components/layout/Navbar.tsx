@@ -1,5 +1,5 @@
 import { Menu, Search, ShoppingBag, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { AccountMenu } from "@/components/layout/AccountMenu";
@@ -16,17 +16,34 @@ const navItems = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const { itemCount, openDrawer } = useCart();
 
+  useEffect(() => {
+    const updateHeaderState = () => {
+      setHasScrolled(window.scrollY > 48);
+    };
+
+    updateHeaderState();
+    window.addEventListener("scroll", updateHeaderState, { passive: true });
+
+    return () => window.removeEventListener("scroll", updateHeaderState);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-maroon/10 bg-ivory/90 backdrop-blur-xl">
+    <header
+      className={cn(
+        "sticky top-0 z-50 border-b border-maroon/10 bg-ivory transition-shadow duration-300 ease-out sm:bg-ivory/95",
+        hasScrolled && "shadow-[0_14px_32px_-30px_rgb(54_28_24_/_0.55)]",
+      )}
+    >
       <a
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-card focus:px-4 focus:py-2"
         href="#main-content"
       >
         Skip to content
       </a>
-      <div className="section-shell flex h-20 items-center justify-between gap-3">
+      <div className="section-shell flex h-16 items-center justify-between gap-3 sm:h-[4.5rem]">
         <Link
           aria-label="House of Patani home"
           className="group min-w-0 leading-none"
@@ -88,7 +105,7 @@ export function Navbar() {
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
           aria-label={isOpen ? "Close menu" : "Open menu"}
-          className="shrink-0 rounded-full border border-maroon/15 p-3 text-maroon transition hover:bg-maroon/5 lg:hidden"
+          className="shrink-0 rounded-full border border-maroon/15 bg-ivory p-3 text-maroon shadow-[0_10px_24px_-22px_rgb(54_28_24_/_0.45)] transition hover:bg-maroon/5 lg:hidden"
           onClick={() => setIsOpen((current) => !current)}
           type="button"
         >

@@ -40,10 +40,10 @@ export function NewsletterSection() {
   }
 
   return (
-    <section className="bg-linen/75 py-9 sm:py-[3.25rem] lg:py-14">
+    <section className="bg-linen/75 py-7 sm:py-10 lg:py-11">
       <div className="section-shell">
         <div className="grid overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-elegant lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="min-h-56 sm:min-h-60">
+          <div className="min-h-48 sm:min-h-52">
             <img
               alt="Folded textiles and handcrafted objects in a warm heritage setting"
               className="h-full w-full object-cover"
@@ -54,17 +54,17 @@ export function NewsletterSection() {
               srcSet={createImageSrcSet(NEWSLETTER_IMAGE)}
             />
           </div>
-          <div className="flex flex-col justify-center p-5 sm:p-7 lg:p-8">
+          <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-7">
             <p className="eyebrow">Patani Letters</p>
-            <h2 className="mt-3 text-3xl leading-tight sm:text-4xl md:text-[2.75rem]">
+            <h2 className="mt-2.5 text-3xl leading-tight sm:text-4xl md:text-[2.5rem]">
               Receive the quiet luxury of craft in your inbox.
             </h2>
-            <p className="mt-2.5 text-base leading-7 text-muted-foreground">
+            <p className="mt-2 text-base leading-6 text-muted-foreground">
               Seasonal edits, artisan stories, and collection notes from House
               of Patani.
             </p>
             <form
-              className="mt-5 flex flex-col gap-3 sm:flex-row"
+              className="mt-4 flex flex-col gap-2.5 sm:flex-row"
               onSubmit={submitNewsletter}
             >
               <label className="sr-only" htmlFor="newsletter-email">

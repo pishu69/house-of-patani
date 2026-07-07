@@ -8,11 +8,11 @@ export function HeritageStorySection() {
   const settings = settingsQuery.data?.data;
 
   return (
-    <section className="bg-background py-10 sm:py-14 lg:py-16">
+    <section className="bg-background py-7 sm:py-10 lg:py-12">
       <StorySection
         action={
           <Link
-            className="inline-flex rounded-full border border-maroon/25 px-5 py-3 text-sm font-semibold text-maroon transition hover:border-maroon hover:bg-maroon/5"
+            className="inline-flex rounded-full border border-maroon/25 px-4 py-2.5 text-sm font-semibold text-maroon transition hover:border-maroon hover:bg-maroon/5"
             to={ROUTES.ABOUT}
           >
             Read the Story

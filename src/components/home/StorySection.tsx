@@ -28,7 +28,7 @@ export function StorySection({
     <div
       className={cn(
         "section-shell grid items-center lg:grid-cols-2",
-        compact ? "gap-6 lg:gap-9" : "gap-10 lg:gap-16",
+        compact ? "gap-4 lg:gap-7" : "gap-10 lg:gap-16",
       )}
     >
       <motion.div
@@ -43,7 +43,10 @@ export function StorySection({
       >
         <img
           alt={imageAlt}
-          className="aspect-[4/5] h-full w-full object-cover"
+          className={cn(
+            "h-full w-full object-cover",
+            compact ? "aspect-[5/6]" : "aspect-[4/5]",
+          )}
           decoding="async"
           loading="lazy"
           sizes="(min-width: 1024px) 50vw, 100vw"
@@ -63,7 +66,7 @@ export function StorySection({
           className={cn(
             "leading-tight",
             compact
-              ? "mt-3 text-3xl sm:text-4xl lg:text-5xl"
+              ? "mt-2.5 text-3xl sm:text-4xl lg:text-5xl"
               : "mt-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl",
           )}
         >
@@ -73,13 +76,13 @@ export function StorySection({
           className={cn(
             "text-base text-muted-foreground",
             compact
-              ? "mt-3.5 space-y-2.5 leading-7 sm:text-base"
+              ? "mt-2.5 space-y-2 leading-7 sm:text-base"
               : "mt-6 space-y-4 leading-8 sm:text-lg",
           )}
         >
           {description}
         </div>
-        {action ? <div className={compact ? "mt-5" : "mt-8"}>{action}</div> : null}
+        {action ? <div className={compact ? "mt-4" : "mt-8"}>{action}</div> : null}
       </motion.div>
     </div>
   );
