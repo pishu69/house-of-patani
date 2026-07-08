@@ -71,6 +71,10 @@ const defaultValues: ProductFormValues = {
   sku: "",
   slug: "",
   stock: 0,
+shippingWeightKg: 0.7,
+packageLengthCm: 30,
+packageBreadthCm: 25,
+packageHeightCm: 5,
 lowStockThreshold: 5,
 trackInventory: true,
 allowBackorder: false,
@@ -135,6 +139,10 @@ export function ProductEditorPage() {
       sku: product.sku,
       slug: product.slug,
       stock: product.stock,
+shippingWeightKg: product.shippingWeightKg,
+packageLengthCm: product.packageLengthCm,
+packageBreadthCm: product.packageBreadthCm,
+packageHeightCm: product.packageHeightCm,
 lowStockThreshold: 5,
 trackInventory: true,
 allowBackorder: false,
@@ -592,6 +600,64 @@ tags: product.tags.join(", "),
         type="checkbox"
         {...register("allowBackorder")}
       />
+    </label>
+  </div>
+</div>
+              <div className="rounded-lg border border-maroon/10 bg-background p-4">
+  <h3 className="text-sm font-semibold text-charcoal">
+    Package Dimensions
+  </h3>
+  <p className="mt-1 text-xs text-charcoal/60">
+    Used for Shiprocket rates, AWB assignment, and shipment creation.
+  </p>
+
+  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+    <label className="text-sm font-medium text-charcoal">
+      Shipping weight in kg
+      <input
+        className={inputClassName}
+        min="0.01"
+        step="0.01"
+        type="number"
+        {...register("shippingWeightKg", { valueAsNumber: true })}
+      />
+      <FormFieldError message={errors.shippingWeightKg?.message} />
+    </label>
+
+    <label className="text-sm font-medium text-charcoal">
+      Length in cm
+      <input
+        className={inputClassName}
+        min="0.1"
+        step="0.1"
+        type="number"
+        {...register("packageLengthCm", { valueAsNumber: true })}
+      />
+      <FormFieldError message={errors.packageLengthCm?.message} />
+    </label>
+
+    <label className="text-sm font-medium text-charcoal">
+      Breadth in cm
+      <input
+        className={inputClassName}
+        min="0.1"
+        step="0.1"
+        type="number"
+        {...register("packageBreadthCm", { valueAsNumber: true })}
+      />
+      <FormFieldError message={errors.packageBreadthCm?.message} />
+    </label>
+
+    <label className="text-sm font-medium text-charcoal">
+      Height in cm
+      <input
+        className={inputClassName}
+        min="0.1"
+        step="0.1"
+        type="number"
+        {...register("packageHeightCm", { valueAsNumber: true })}
+      />
+      <FormFieldError message={errors.packageHeightCm?.message} />
     </label>
   </div>
 </div>

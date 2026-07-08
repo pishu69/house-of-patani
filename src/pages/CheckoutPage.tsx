@@ -32,6 +32,10 @@ import {
   orderService,
   paymentService,
 } from "@/services";
+import {
+  shiprocketService,
+  type ShiprocketDeliveryEstimate,
+} from "@/services/shiprocket.service";
 import { useCartStore } from "@/stores/cart.store";
 import { useCustomerStore } from "@/stores/customer.store";
 import type { CartItemView } from "@/types/cart.types";
@@ -75,6 +79,7 @@ export function CheckoutPage() {
     watch,
   } = useForm<CheckoutFormValues>({ defaultValues: defaults });
   const paymentMethod = watch("paymentMethod");
+  const pincode = watch("pincode");
 
   useEffect(() => {
     const savedAddress =
@@ -111,6 +116,9 @@ export function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] = useState("");
   const [appliedCouponData, setAppliedCouponData] = useState<CouponRow | null>(null);
+  const [deliveryEstimate, setDeliveryEstimate] =
+    useState<ShiprocketDeliveryEstimate | null>(null);
+  const [isEstimatingDelivery, setIsEstimatingDelivery] = useState(false);
   const couponUsageCodeRef = useRef("");
   const couponsQuery = useQuery({
   queryKey: ["checkout-coupons"],
@@ -172,6 +180,29 @@ const coupons = couponsQuery.data?.data ?? [];
       unavailable,
     };
   }, [cartEntries, catalog, settings, removeCartItem, appliedCoupon]);
+
+  useEffect(() => {
+    const normalizedPincode = (pincode || "").replace(/\D/g, "");
+
+    if (normalizedPincode.length !== 6 || !shiprocketService.isConfigured()) {
+      setDeliveryEstimate(null);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setIsEstimatingDelivery(true);
+      void shiprocketService
+        .checkServiceability({
+          cod: paymentMethod === "cod",
+          deliveryPincode: normalizedPincode,
+        })
+        .then(setDeliveryEstimate)
+        .catch(() => setDeliveryEstimate(null))
+        .finally(() => setIsEstimatingDelivery(false));
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [paymentMethod, pincode]);
 
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
@@ -528,6 +559,38 @@ async function submitCheckout(values: CheckoutFormValues) {
                   />
                 </div>
               </div>
+              {isEstimatingDelivery || deliveryEstimate ? (
+                <div className="mt-5 rounded-lg border border-maroon/10 bg-linen/35 p-4 text-sm">
+                  {isEstimatingDelivery ? (
+                    <p className="text-muted-foreground">
+                      Checking Shiprocket delivery estimate...
+                    </p>
+                  ) : deliveryEstimate ? (
+                    <div className="grid gap-2 text-muted-foreground sm:grid-cols-2">
+                      <p className="text-charcoal">
+                        {deliveryEstimate.serviceable
+                          ? "Delivery available"
+                          : "Delivery not available"}
+                      </p>
+                      <p>
+                        Estimated:{" "}
+                        {deliveryEstimate.estimatedDeliveryDate ||
+                          "confirmed after dispatch"}
+                      </p>
+                      <p>
+                        COD:{" "}
+                        {deliveryEstimate.codAvailable
+                          ? "available"
+                          : "not available"}
+                      </p>
+                      <p>
+                        Courier:{" "}
+                        {deliveryEstimate.courierName || "Not assigned"}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </section>
 
             <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-7">

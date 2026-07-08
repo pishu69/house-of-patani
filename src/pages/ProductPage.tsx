@@ -18,6 +18,7 @@ import {
 } from "@/components/product/ProductTabs";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
 import { ReviewsSection } from "@/components/product/ReviewsSection";
+import { PincodeChecker } from "@/components/shipping/PincodeChecker";
 import { StockBadge } from "@/components/product/StockBadge";
 import { ROUTES } from "@/constants/routes";
 import { categoryNameBySlug } from "@/data/categories";
@@ -370,6 +371,7 @@ ${productUrl}`;
   Share this product
 </button>
                     <DeliveryInformation product={product} />
+                    <PincodeChecker />
                   </div>
                 }
                 badge={

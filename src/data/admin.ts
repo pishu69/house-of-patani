@@ -6,13 +6,19 @@ import type {
 } from "@/types/database.types";
 
 const emptyShippingTracking = {
+  awb_number: null,
   confirmation_email_sent_at: null,
+  courier_name: null,
   courier_partner: null,
+  dispatched_at: null,
+  delivered_at: null,
+  estimated_delivery_at: null,
+  estimated_delivery_date: null,
+  shiprocket_order_id: null,
+  shipment_id: null,
+  shipment_status: null,
   tracking_number: null,
   tracking_url: null,
-  dispatched_at: null,
-  estimated_delivery_at: null,
-  delivered_at: null,
 };
 
 export const mockAdminOrders: OrderRow[] = [

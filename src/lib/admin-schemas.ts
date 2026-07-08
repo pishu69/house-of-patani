@@ -67,6 +67,18 @@ export const productFormSchema = z
       .number()
       .int("Stock must be a whole number.")
       .min(0, "Stock cannot be negative."),
+    shippingWeightKg: z
+      .number()
+      .positive("Shipping weight must be greater than zero."),
+    packageLengthCm: z
+      .number()
+      .positive("Package length must be greater than zero."),
+    packageBreadthCm: z
+      .number()
+      .positive("Package breadth must be greater than zero."),
+    packageHeightCm: z
+      .number()
+      .positive("Package height must be greater than zero."),
       lowStockThreshold: z
   .number()
   .int("Low stock alert must be a whole number.")

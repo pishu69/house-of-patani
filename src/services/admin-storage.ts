@@ -280,6 +280,7 @@ export const adminStorage = {
             }));
 
           return {
+            ...defaultProductContentFields,
             ...product,
             attributes: normalizeLocalProductAttributes(product.attributes),
             images: media.map((image) => image.url),
@@ -345,6 +346,8 @@ export const adminStorage = {
     list() {
       return readValue<OrderRow[]>("orders", mockAdminOrders).map((order) => ({
         ...order,
+        shiprocket_order_id: order.shiprocket_order_id ?? null,
+        shipment_status: order.shipment_status ?? null,
         warehouse_id: order.warehouse_id ?? null,
       }));
     },
@@ -420,12 +423,15 @@ export const adminStorage = {
         0,
       );
       const order: OrderRow = {
+        awb_number: null,
         confirmation_email_sent_at: null,
+        courier_name: null,
         courier_partner: null,
 tracking_number: null,
 tracking_url: null,
 dispatched_at: null,
-estimated_delivery_at: null,
+        estimated_delivery_at: null,
+        estimated_delivery_date: null,
 delivered_at: null,
         created_at: now,
         customer_email: input.customerEmail.toLowerCase(),
@@ -453,6 +459,9 @@ delivered_at: null,
           pincode: input.address.pincode,
           state: input.address.state,
         },
+        shiprocket_order_id: null,
+        shipment_id: null,
+        shipment_status: null,
         subtotal,
         total: subtotal - input.discount + shipping,
         updated_at: now,

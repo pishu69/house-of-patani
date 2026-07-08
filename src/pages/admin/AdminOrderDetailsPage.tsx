@@ -2,11 +2,78 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { orderService } from "@/services/order.service";
+import {
+  shiprocketService,
+  type ShiprocketCourierOption,
+} from "@/services/shiprocket.service";
 import { OrderInvoice } from "@/components/admin/OrderInvoice";
-import { useWarehouses, warehouseQueryKeys } from "@/hooks";
+import { useProducts, useWarehouses, warehouseQueryKeys } from "@/hooks";
 import type { OrderStatus } from "@/constants/order-status";
 
 type AnyRecord = Record<string, any>;
+
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number") return String(value);
+  }
+  return "";
+}
+
+function shiprocketMessage(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number") return String(value);
+
+  if (Array.isArray(value)) {
+    return value.map(shiprocketMessage).filter(Boolean).join(" ");
+  }
+
+  if (typeof value === "object") {
+    const record = value as AnyRecord;
+    const direct = shiprocketMessage(
+      record.message ??
+        record.error ??
+        record.error_message ??
+        record.status_message,
+    );
+
+    if (direct) return direct;
+
+    return shiprocketMessage(
+      record.errors ??
+        record.shiprocketResponse ??
+        record.data ??
+        record.response,
+    );
+  }
+
+  return "";
+}
+
+function compactResponse(value: unknown) {
+  try {
+    return JSON.stringify(value).slice(0, 800);
+  } catch {
+    return "";
+  }
+}
+
+function includesSuccessText(value: unknown): boolean {
+  const text = compactResponse(value).toLowerCase();
+  return (
+    text.includes("success") ||
+    text.includes("created") ||
+    text.includes("order created")
+  );
+}
+
+function addDays(days: number | null) {
+  if (!days) return null;
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 const money = (value: unknown) =>
   `₹${Number(value || 0).toLocaleString("en-IN")}`;
@@ -42,10 +109,13 @@ export function AdminOrderDetailsPage() {
   const items = (confirmation?.items || []) as AnyRecord[];
   const warehousesQuery = useWarehouses();
   const warehouses = warehousesQuery.data?.data ?? [];
+  const productsQuery = useProducts();
+  const products = productsQuery.data?.data ?? [];
   const [localStatus, setLocalStatus] = useState<OrderStatus | null>(null);
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(
     null,
   );
+  const [selectedCourierId, setSelectedCourierId] = useState<string>("");
   const [shippingForm, setShippingForm] = useState({
   courier_partner: "",
   tracking_number: "",
@@ -212,6 +282,234 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
       queryClient.invalidateQueries({ queryKey: warehouseQueryKeys.all });
     },
   });
+
+  const availableCouriersQuery = useQuery({
+    queryKey: ["shiprocket-couriers", order?.shipment_id],
+    queryFn: () => shiprocketService.listCouriers(String(order?.shipment_id)),
+    enabled:
+      Boolean(order?.shipment_id) &&
+      !Boolean(order?.awb_number || order?.tracking_number),
+  });
+
+  const createShiprocketShipmentMutation = useMutation({
+    mutationFn: async () => {
+      if (!order?.id) throw new Error("Missing order id");
+
+      const warehouseId = selectedWarehouseId ?? order.warehouse_id ?? "";
+      const warehouse = warehouses.find((item) => item.id === warehouseId);
+
+      if (!warehouse) {
+        throw new Error("Assign a warehouse before creating a shipment.");
+      }
+
+      const shipmentItems = items.map((item) => {
+        const product = products.find(
+          (candidate) => candidate.id === item.product_id,
+        );
+
+        return {
+          ...item,
+          package_breadth_cm: product?.packageBreadthCm,
+          package_height_cm: product?.packageHeightCm,
+          package_length_cm: product?.packageLengthCm,
+          shipping_weight_kg: product?.shippingWeightKg,
+        };
+      });
+
+      const shipmentResponse = await shiprocketService.createShipment({
+        items: shipmentItems as any,
+        order: order as any,
+        warehouse,
+      });
+      const shipmentId = firstString(
+        shipmentResponse?.shipment_id,
+        shipmentResponse?.data?.shipment_id,
+        shipmentResponse?.order?.shipment_id,
+        shipmentResponse?.response?.data?.shipment_id,
+      );
+      const shiprocketOrderId = firstString(
+        shipmentResponse?.order_id,
+        shipmentResponse?.data?.order_id,
+        shipmentResponse?.order?.order_id,
+        shipmentResponse?.response?.data?.order_id,
+      );
+      const channelOrderId = firstString(
+        shipmentResponse?.channel_order_id,
+        shipmentResponse?.data?.channel_order_id,
+        shipmentResponse?.order?.channel_order_id,
+        shipmentResponse?.response?.data?.channel_order_id,
+      );
+
+      const createdSuccessfully =
+        Boolean(shipmentId || shiprocketOrderId || channelOrderId) ||
+        includesSuccessText(shipmentResponse);
+
+      if (!createdSuccessfully) {
+        const message = shiprocketMessage(shipmentResponse);
+        const responseDetails = compactResponse(shipmentResponse);
+
+        throw new Error(
+          message ||
+            (responseDetails
+              ? `Shiprocket did not return a shipment id. Response: ${responseDetails}`
+              : "Shiprocket did not return a shipment id."),
+        );
+      }
+
+      return orderService.update(order.id, {
+        awb_number: order.awb_number || null,
+        courier_name: order.courier_name || null,
+        courier_partner: order.courier_partner || null,
+        estimated_delivery_at: order.estimated_delivery_at || null,
+        estimated_delivery_date: order.estimated_delivery_date || null,
+        shiprocket_order_id:
+          shiprocketOrderId || channelOrderId || order.shiprocket_order_id || null,
+        shipment_id: shipmentId || order.shipment_id || null,
+        shipment_status: order.shipment_status || "order_created",
+        tracking_number: order.tracking_number || null,
+        tracking_url: order.tracking_url || null,
+      });
+    },
+    onSuccess: (updateResponse) => {
+      const updatedOrder = updateResponse.data as AnyRecord | null;
+
+      if (updatedOrder) {
+        queryClient.setQueryData(
+          ["admin-order-details", orderNumber],
+          (oldData: AnyRecord | undefined) => {
+            if (!oldData?.data) return oldData;
+
+            const oldConfirmation = oldData.data as AnyRecord;
+
+            return {
+              ...oldData,
+              data: {
+                ...oldConfirmation,
+                order: {
+                  ...(oldConfirmation.order || {}),
+                  ...updatedOrder,
+                },
+              },
+            };
+          },
+        );
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin-order-details", orderNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+
+  const generateAwbMutation = useMutation({
+    mutationFn: async () => {
+      if (!order?.id) throw new Error("Missing order id");
+      if (!order.shipment_id) {
+        throw new Error("Create a Shiprocket order before generating AWB.");
+      }
+      if (order.awb_number || order.tracking_number) {
+        throw new Error("AWB already exists for this order.");
+      }
+
+      const courier = availableCouriersQuery.data?.couriers.find(
+        (item: ShiprocketCourierOption) =>
+          String(item.courierId) === selectedCourierId,
+      );
+
+      if (!courier) {
+        throw new Error("Select a courier before generating AWB.");
+      }
+
+      const awbResponse = await shiprocketService.generateAwb(
+        order.shipment_id,
+        Number(courier.courierId),
+      );
+      const awbNumber = firstString(
+        awbResponse?.awb_code,
+        awbResponse?.assigned_awb_code,
+        awbResponse?.response?.data?.awb_code,
+        awbResponse?.response?.data?.assigned_awb_code,
+        awbResponse?.data?.awb_code,
+        awbResponse?.data?.assigned_awb_code,
+      );
+
+      if (!awbNumber) {
+        const message = shiprocketMessage(awbResponse);
+        const responseDetails = compactResponse(awbResponse);
+
+        throw new Error(
+          message ||
+            (responseDetails
+              ? `Shiprocket did not return an AWB. Response: ${responseDetails}`
+              : "Shiprocket did not return an AWB."),
+        );
+      }
+
+      const courierName = firstString(
+        awbResponse?.courier_name,
+        awbResponse?.response?.data?.courier_name,
+        awbResponse?.data?.courier_name,
+        courier.courierName,
+      );
+      const shipmentStatus = firstString(
+        awbResponse?.shipment_status,
+        awbResponse?.current_status,
+        awbResponse?.response?.data?.shipment_status,
+        awbResponse?.data?.shipment_status,
+        "awb_generated",
+      );
+      const estimatedDeliveryDate =
+        courier.estimatedDeliveryDate ||
+        addDays(courier.estimatedDeliveryDays);
+
+      return orderService.update(order.id, {
+        awb_number: awbNumber,
+        courier_name: courierName || null,
+        courier_partner: courierName || order.courier_partner || null,
+        estimated_delivery_at: estimatedDeliveryDate
+          ? new Date(`${estimatedDeliveryDate}T00:00:00`).toISOString()
+          : order.estimated_delivery_at || null,
+        estimated_delivery_date:
+          estimatedDeliveryDate || order.estimated_delivery_date || null,
+        shipment_status: shipmentStatus,
+        tracking_number: awbNumber,
+        tracking_url: `https://shiprocket.co/tracking/${awbNumber}`,
+      });
+    },
+    onSuccess: (updateResponse) => {
+      const updatedOrder = updateResponse.data as AnyRecord | null;
+
+      if (updatedOrder) {
+        queryClient.setQueryData(
+          ["admin-order-details", orderNumber],
+          (oldData: AnyRecord | undefined) => {
+            if (!oldData?.data) return oldData;
+
+            const oldConfirmation = oldData.data as AnyRecord;
+
+            return {
+              ...oldData,
+              data: {
+                ...oldConfirmation,
+                order: {
+                  ...(oldConfirmation.order || {}),
+                  ...updatedOrder,
+                },
+              },
+            };
+          },
+        );
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin-order-details", orderNumber],
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
   if (isLoading) return <div className="p-6">Loading order details...</div>;
 
   if (isError || !order) {
@@ -238,6 +536,8 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
   const warehouseOptions = warehouses.filter(
     (warehouse) => warehouse.active || warehouse.id === currentWarehouseId,
   );
+  const availableCouriers = availableCouriersQuery.data?.couriers ?? [];
+  const awbExists = Boolean(order.awb_number || order.tracking_number);
   const handlePrintInvoice = () => {
   window.print();
 };
@@ -427,7 +727,12 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
       <input
         className="w-full rounded-md border px-3 py-2"
         placeholder="Delhivery, DTDC, Blue Dart..."
-        value={shippingForm.courier_partner || order.courier_partner || ""}
+        value={
+          shippingForm.courier_partner ||
+          order.courier_name ||
+          order.courier_partner ||
+          ""
+        }
         onChange={(event) =>
           setShippingForm((current) => ({
             ...current,
@@ -442,7 +747,12 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
       <input
         className="w-full rounded-md border px-3 py-2"
         placeholder="AWB / Tracking number"
-        value={shippingForm.tracking_number || order.tracking_number || ""}
+        value={
+          shippingForm.tracking_number ||
+          order.awb_number ||
+          order.tracking_number ||
+          ""
+        }
         onChange={(event) =>
           setShippingForm((current) => ({
             ...current,
@@ -492,6 +802,9 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
         type="date"
         value={
   shippingForm.estimated_delivery_at ||
+  (order.estimated_delivery_date
+    ? order.estimated_delivery_date.slice(0, 10)
+    : "") ||
   (order.estimated_delivery_at
     ? order.estimated_delivery_at.slice(0, 10)
     : "")
@@ -506,14 +819,158 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
     </label>
   </div>
 
-  <button
-    type="button"
-    disabled={updateShippingMutation.isPending}
-    onClick={() => updateShippingMutation.mutate()}
-    className="mt-4 rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-  >
-    {updateShippingMutation.isPending ? "Saving..." : "Save Shipping Details"}
-  </button>
+  <div className="mt-4 grid gap-3 rounded-md border bg-muted/20 p-3 text-sm md:grid-cols-2">
+    <div>
+      <span className="font-medium">Shiprocket Order ID:</span>{" "}
+      {order.shiprocket_order_id || "Not created"}
+    </div>
+    <div>
+      <span className="font-medium">Shipment ID:</span>{" "}
+      {order.shipment_id || "Not assigned"}
+    </div>
+    <div>
+      <span className="font-medium">Shipment Status:</span>{" "}
+      {order.shipment_status || "Not started"}
+    </div>
+    <div>
+      <span className="font-medium">AWB:</span>{" "}
+      {order.awb_number || order.tracking_number || "Not assigned"}
+    </div>
+    <div>
+      <span className="font-medium">Tracking URL:</span>{" "}
+      {order.tracking_url ? (
+        <a
+          className="underline"
+          href={order.tracking_url}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Open tracking
+        </a>
+      ) : (
+        "Not available"
+      )}
+    </div>
+  </div>
+
+  {order.shipment_id && !awbExists ? (
+    <div className="mt-4 rounded-md border p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold">Available Couriers</h3>
+        {availableCouriersQuery.isFetching ? (
+          <span className="text-xs text-muted-foreground">
+            Fetching couriers...
+          </span>
+        ) : null}
+      </div>
+
+      {availableCouriersQuery.isError ? (
+        <p className="mt-3 text-sm text-red-600">
+          Could not fetch Shiprocket couriers.
+        </p>
+      ) : null}
+
+      {availableCouriers.length > 0 ? (
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="py-2">Select</th>
+                <th className="py-2">Courier</th>
+                <th className="py-2">Freight</th>
+                <th className="py-2">ETA</th>
+                <th className="py-2">COD</th>
+              </tr>
+            </thead>
+            <tbody>
+              {availableCouriers.map((courier) => (
+                <tr key={String(courier.courierId)} className="border-b">
+                  <td className="py-2">
+                    <input
+                      checked={selectedCourierId === String(courier.courierId)}
+                      onChange={() =>
+                        setSelectedCourierId(String(courier.courierId))
+                      }
+                      type="radio"
+                    />
+                  </td>
+                  <td className="py-2">{courier.courierName}</td>
+                  <td className="py-2">{money(courier.freightCharge)}</td>
+                  <td className="py-2">
+                    {courier.estimatedDeliveryDays
+                      ? `${courier.estimatedDeliveryDays} days`
+                      : "N/A"}
+                  </td>
+                  <td className="py-2">
+                    {courier.codAvailable ? "Available" : "Not available"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
+      {!availableCouriersQuery.isFetching &&
+      !availableCouriersQuery.isError &&
+      availableCouriers.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          No couriers returned for this shipment yet.
+        </p>
+      ) : null}
+    </div>
+  ) : null}
+
+  <div className="mt-4 flex flex-wrap gap-2">
+    <button
+      type="button"
+      disabled={updateShippingMutation.isPending}
+      onClick={() => updateShippingMutation.mutate()}
+      className="rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {updateShippingMutation.isPending ? "Saving..." : "Save Shipping Details"}
+    </button>
+
+    <button
+      type="button"
+      disabled={
+        createShiprocketShipmentMutation.isPending ||
+        !currentWarehouseId ||
+        !shiprocketService.isConfigured()
+      }
+      onClick={() => createShiprocketShipmentMutation.mutate()}
+      className="rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {createShiprocketShipmentMutation.isPending
+        ? "Creating Shipment..."
+        : "Create Shiprocket Shipment"}
+    </button>
+
+    <button
+      type="button"
+      disabled={
+        generateAwbMutation.isPending ||
+        awbExists ||
+        !order.shipment_id ||
+        !selectedCourierId ||
+        !shiprocketService.isConfigured()
+      }
+      onClick={() => generateAwbMutation.mutate()}
+      className="rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {awbExists
+        ? "Tracking Live"
+        : generateAwbMutation.isPending
+          ? "Generating AWB..."
+          : "Generate AWB"}
+    </button>
+  </div>
+
+  {!shiprocketService.isConfigured() ? (
+    <p className="mt-3 text-sm text-muted-foreground">
+      Configure Shiprocket credentials to create shipments.
+    </p>
+  ) : null}
 
   {updateShippingMutation.isSuccess && (
     <p className="mt-3 text-sm text-green-600">
@@ -524,6 +981,34 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
   {updateShippingMutation.isError && (
     <p className="mt-3 text-sm text-red-600">
       Could not save shipping details.
+    </p>
+  )}
+
+  {createShiprocketShipmentMutation.isSuccess && (
+    <p className="mt-3 text-sm text-green-600">
+      Shiprocket order created. Assign courier/AWB from Shiprocket or continue with next step.
+    </p>
+  )}
+
+  {createShiprocketShipmentMutation.isError && (
+    <p className="mt-3 text-sm text-red-600">
+      {createShiprocketShipmentMutation.error instanceof Error
+        ? createShiprocketShipmentMutation.error.message
+        : "Could not create Shiprocket shipment."}
+    </p>
+  )}
+
+  {generateAwbMutation.isSuccess && (
+    <p className="mt-3 text-sm text-green-600">
+      AWB generated and tracking details saved.
+    </p>
+  )}
+
+  {generateAwbMutation.isError && (
+    <p className="mt-3 text-sm text-red-600">
+      {generateAwbMutation.error instanceof Error
+        ? generateAwbMutation.error.message
+        : "Could not generate Shiprocket AWB."}
     </p>
   )}
 </section>

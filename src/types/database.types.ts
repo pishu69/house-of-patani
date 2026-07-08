@@ -41,6 +41,7 @@ export interface ProductRow {
   details: string | null;
   care_instructions: string | null;
   shipping_returns: string | null;
+  shipping_weight_kg: number;
   attributes: Json;
   delivery_cod_title: string | null;
   delivery_cod_description: string | null;
@@ -59,6 +60,9 @@ export interface ProductRow {
   name: string;
   new_arrival: boolean;
   original_price: number;
+  package_breadth_cm: number;
+  package_height_cm: number;
+  package_length_cm: number;
   price: number;
   rating: number;
   review_count: number;
@@ -110,11 +114,14 @@ export interface AddressRow {
 export interface OrderRow {
   confirmation_email_sent_at: string | null;
   created_at: string;
+  awb_number: string | null;
+  courier_name: string | null;
   courier_partner: string | null;
 tracking_number: string | null;
 tracking_url: string | null;
 dispatched_at: string | null;
 estimated_delivery_at: string | null;
+  estimated_delivery_date: string | null;
 delivered_at: string | null;
 customer_email: string;
   customer_id: string | null;
@@ -133,6 +140,9 @@ customer_email: string;
   razorpay_signature: string | null;
   shipping: number;
   shipping_address: Json;
+  shiprocket_order_id: string | null;
+  shipment_id: string | null;
+  shipment_status: string | null;
   subtotal: number;
   total: number;
   updated_at: string;

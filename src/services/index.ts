@@ -18,6 +18,7 @@ export { productService } from "@/services/product.service";
 export { productImageService } from "@/services/product-image.service";
 export { reviewService } from "@/services/review.service";
 export { settingService } from "@/services/setting.service";
+export { shiprocketService } from "@/services/shiprocket.service";
 export { storageService } from "@/services/storage.service";
 export { wishlistService } from "@/services/wishlist.service";
 export { warehouseService } from "@/services/warehouse.service";

@@ -152,6 +152,14 @@ function mapProduct(
       override?.shippingReturns ??
       row.shipping_returns ??
       "",
+    shippingWeightKg:
+      override?.shippingWeightKg ?? Number(row.shipping_weight_kg ?? 0.7),
+    packageLengthCm:
+      override?.packageLengthCm ?? Number(row.package_length_cm ?? 30),
+    packageBreadthCm:
+      override?.packageBreadthCm ?? Number(row.package_breadth_cm ?? 25),
+    packageHeightCm:
+      override?.packageHeightCm ?? Number(row.package_height_cm ?? 5),
     attributes:
       override?.attributes === undefined
         ? normalizeProductAttributes(row.attributes)
@@ -324,8 +332,12 @@ function toDatabaseInput(input: ProductInput, categoryId: string | null) {
     name: input.name,
     new_arrival: input.newArrival,
     original_price: input.originalPrice,
+    package_breadth_cm: input.packageBreadthCm,
+    package_height_cm: input.packageHeightCm,
+    package_length_cm: input.packageLengthCm,
     price: input.price,
     short_description: input.description,
+    shipping_weight_kg: input.shippingWeightKg,
     sku: input.sku,
     slug: input.slug,
     stock: input.stock,
@@ -374,7 +386,19 @@ function toDatabaseUpdate(
     ...(input.originalPrice === undefined
       ? {}
       : { original_price: input.originalPrice }),
+    ...(input.packageBreadthCm === undefined
+      ? {}
+      : { package_breadth_cm: input.packageBreadthCm }),
+    ...(input.packageHeightCm === undefined
+      ? {}
+      : { package_height_cm: input.packageHeightCm }),
+    ...(input.packageLengthCm === undefined
+      ? {}
+      : { package_length_cm: input.packageLengthCm }),
     ...(input.price === undefined ? {} : { price: input.price }),
+    ...(input.shippingWeightKg === undefined
+      ? {}
+      : { shipping_weight_kg: input.shippingWeightKg }),
     ...(input.sku === undefined ? {} : { sku: input.sku }),
     ...(input.slug === undefined ? {} : { slug: input.slug }),
     ...(input.stock === undefined ? {} : { stock: input.stock }),

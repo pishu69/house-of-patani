@@ -61,6 +61,8 @@ function parseConfirmation(value: Json): OrderConfirmation {
 
 const ORDER_SELECT = [
   "confirmation_email_sent_at",
+  "awb_number",
+  "courier_name",
   "courier_partner",
   "created_at",
   "customer_email",
@@ -71,6 +73,7 @@ const ORDER_SELECT = [
   "discount",
   "dispatched_at",
   "estimated_delivery_at",
+  "estimated_delivery_date",
   "id",
   "notes",
   "order_number",
@@ -83,6 +86,9 @@ const ORDER_SELECT = [
   "razorpay_signature",
   "shipping",
   "shipping_address",
+  "shiprocket_order_id",
+  "shipment_id",
+  "shipment_status",
   "subtotal",
   "total",
   "tracking_number",
@@ -141,10 +147,16 @@ export const orderService = {
   | "payment_method"
   | "payment_status"
   | "courier_partner"
+  | "courier_name"
   | "tracking_number"
   | "tracking_url"
+  | "awb_number"
+  | "shiprocket_order_id"
+  | "shipment_id"
+  | "shipment_status"
   | "dispatched_at"
   | "estimated_delivery_at"
+  | "estimated_delivery_date"
   | "delivered_at"
   | "warehouse_id"
 >,

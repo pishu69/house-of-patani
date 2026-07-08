@@ -7,6 +7,7 @@ import { CartSummary } from "@/components/cart/CartSummary";
 import { CouponInput } from "@/components/cart/CouponInput";
 import { EmptyCartState } from "@/components/cart/EmptyCartState";
 import { ShippingEstimator } from "@/components/cart/ShippingEstimator";
+import { shiprocketEstimateStorage } from "@/services/shiprocket.service";
 import { PageHero } from "@/components/common/PageHero";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
@@ -16,6 +17,9 @@ import { showCartMutationToast } from "@/lib/cart-feedback";
 export function CartPage() {
   const [country, setCountry] = useState("India");
   const [postalCode, setPostalCode] = useState("");
+  const [shiprocketEstimate, setShiprocketEstimate] = useState(() =>
+    shiprocketEstimateStorage.get(),
+  );
   const {
     cartItems,
     clearCart,
@@ -125,6 +129,42 @@ export function CartPage() {
                 onPostalCodeChange={setPostalCode}
                 postalCode={postalCode}
               />
+              {shiprocketEstimate ? (
+                <div className="rounded-lg border border-maroon/10 bg-card p-4 text-sm">
+                  <h3 className="font-serif text-2xl text-charcoal">
+                    Delivery estimate
+                  </h3>
+                  <div className="mt-3 space-y-2 text-muted-foreground">
+                    <p>
+                      PIN {shiprocketEstimate.pincode}:{" "}
+                      {shiprocketEstimate.serviceable
+                        ? "delivery available"
+                        : "delivery not available"}
+                    </p>
+                    <p>
+                      Courier: {shiprocketEstimate.courierName || "Not assigned"}
+                    </p>
+                    <p>
+                      COD:{" "}
+                      {shiprocketEstimate.codAvailable
+                        ? "available"
+                        : "not available"}
+                    </p>
+                    <p>
+                      Estimated delivery:{" "}
+                      {shiprocketEstimate.estimatedDeliveryDate ||
+                        "confirmed after dispatch"}
+                    </p>
+                  </div>
+                  <button
+                    className="mt-3 text-xs font-semibold text-maroon underline"
+                    onClick={() => setShiprocketEstimate(shiprocketEstimateStorage.get())}
+                    type="button"
+                  >
+                    Refresh saved estimate
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             <Link

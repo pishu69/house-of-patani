@@ -36,6 +36,10 @@ export interface CatalogProduct {
 details: string;
 careInstructions: string;
 shippingReturns: string;
+  packageBreadthCm: number;
+  packageHeightCm: number;
+  packageLengthCm: number;
+  shippingWeightKg: number;
   attributes: ProductAttribute[];
 deliveryCodTitle: string;
 deliveryCodDescription: string;
@@ -74,6 +78,10 @@ export interface ProductInput {
   details: string;
   careInstructions: string;
   shippingReturns: string;
+  packageBreadthCm: number;
+  packageHeightCm: number;
+  packageLengthCm: number;
+  shippingWeightKg: number;
   attributes: ProductAttribute[];
   deliveryCodTitle: string;
   deliveryCodDescription: string;
@@ -104,6 +112,10 @@ export const defaultProductContentFields = {
   details: "",
   careInstructions: "",
   shippingReturns: "",
+  packageBreadthCm: 25,
+  packageHeightCm: 5,
+  packageLengthCm: 30,
+  shippingWeightKg: 0.7,
   attributes: [],
   deliveryCodTitle: "",
   deliveryCodDescription: "",
