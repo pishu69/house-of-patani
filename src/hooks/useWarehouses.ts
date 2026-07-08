@@ -10,6 +10,7 @@ export function useWarehouses() {
   return useQuery({
     queryKey: warehouseQueryKeys.all,
     queryFn: () => warehouseService.list(),
-    staleTime: 60 * 1000,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 }

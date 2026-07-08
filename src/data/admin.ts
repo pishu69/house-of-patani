@@ -181,20 +181,12 @@ export const mockAdminOrders: OrderRow[] = [
 
 export const mockAdminWarehouses: WarehouseRow[] = [
   {
-    active: true,
-    address_line_1: "House of Patani Fulfilment Studio",
-    address_line_2: "MG Road",
-    city: "Kochi",
-    contact_person: "Operations Team",
-    country: "India",
     created_at: "2026-06-19T10:20:00.000Z",
-    email: "hello@houseofpatani.com",
-    gst_number: null,
     id: "warehouse-kochi-primary",
+    is_active: true,
     name: "Kochi Primary Warehouse",
-    phone: "+91 98765 43210",
-    pincode: "682016",
-    state: "Kerala",
+    pickup_pincode: "682016",
+    shiprocket_pickup_location: "Kochi Primary Warehouse",
     updated_at: "2026-06-19T10:20:00.000Z",
   },
 ];

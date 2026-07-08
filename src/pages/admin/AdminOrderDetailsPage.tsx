@@ -7,6 +7,7 @@ import {
   type ShiprocketCourierOption,
 } from "@/services/shiprocket.service";
 import { OrderInvoice } from "@/components/admin/OrderInvoice";
+import { OrderShipmentGroups } from "@/components/admin/OrderShipmentGroups";
 import { useProducts, useWarehouses, warehouseQueryKeys } from "@/hooks";
 import type { OrderStatus } from "@/constants/order-status";
 
@@ -287,6 +288,7 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
     queryKey: ["shiprocket-couriers", order?.shipment_id],
     queryFn: () => shiprocketService.listCouriers(String(order?.shipment_id)),
     enabled:
+      false &&
       Boolean(order?.shipment_id) &&
       !Boolean(order?.awb_number || order?.tracking_number),
   });
@@ -534,7 +536,9 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
     (warehouse) => warehouse.id === currentWarehouseId,
   );
   const warehouseOptions = warehouses.filter(
-    (warehouse) => warehouse.active || warehouse.id === currentWarehouseId,
+    (warehouse) =>
+      warehouse.is_active ||
+      warehouse.id === currentWarehouseId,
   );
   const availableCouriers = availableCouriersQuery.data?.couriers ?? [];
   const awbExists = Boolean(order.awb_number || order.tracking_number);
@@ -570,6 +574,16 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
   Print Invoice
 </button>
       </div>
+
+      <section className="rounded-lg border bg-card p-4">
+        <h2 className="mb-4 text-lg font-semibold">Shipment Groups</h2>
+        <OrderShipmentGroups
+          items={items as any}
+          order={order as any}
+          products={products}
+          warehouses={warehouses}
+        />
+      </section>
 
       <section className="rounded-lg border bg-card p-4">
         <h2 className="mb-3 text-lg font-semibold">Order Status</h2>
@@ -676,7 +690,7 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
               <option value="">Select warehouse</option>
               {warehouseOptions.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
-                  {warehouse.name} - {warehouse.city}, {warehouse.state}
+                  {warehouse.name}
                 </option>
               ))}
             </select>
@@ -853,7 +867,7 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
     </div>
   </div>
 
-  {order.shipment_id && !awbExists ? (
+  {false && order?.shipment_id && !awbExists ? (
     <div className="mt-4 rounded-md border p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">Available Couriers</h3>
@@ -931,39 +945,6 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
       {updateShippingMutation.isPending ? "Saving..." : "Save Shipping Details"}
     </button>
 
-    <button
-      type="button"
-      disabled={
-        createShiprocketShipmentMutation.isPending ||
-        !currentWarehouseId ||
-        !shiprocketService.isConfigured()
-      }
-      onClick={() => createShiprocketShipmentMutation.mutate()}
-      className="rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {createShiprocketShipmentMutation.isPending
-        ? "Creating Shipment..."
-        : "Create Shiprocket Shipment"}
-    </button>
-
-    <button
-      type="button"
-      disabled={
-        generateAwbMutation.isPending ||
-        awbExists ||
-        !order.shipment_id ||
-        !selectedCourierId ||
-        !shiprocketService.isConfigured()
-      }
-      onClick={() => generateAwbMutation.mutate()}
-      className="rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {awbExists
-        ? "Tracking Live"
-        : generateAwbMutation.isPending
-          ? "Generating AWB..."
-          : "Generate AWB"}
-    </button>
   </div>
 
   {!shiprocketService.isConfigured() ? (
@@ -984,16 +965,16 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
     </p>
   )}
 
-  {createShiprocketShipmentMutation.isSuccess && (
+  {false && createShiprocketShipmentMutation.isSuccess && (
     <p className="mt-3 text-sm text-green-600">
       Shiprocket order created. Assign courier/AWB from Shiprocket or continue with next step.
     </p>
   )}
 
-  {createShiprocketShipmentMutation.isError && (
+  {false && createShiprocketShipmentMutation.isError && (
     <p className="mt-3 text-sm text-red-600">
       {createShiprocketShipmentMutation.error instanceof Error
-        ? createShiprocketShipmentMutation.error.message
+        ? createShiprocketShipmentMutation.error?.message
         : "Could not create Shiprocket shipment."}
     </p>
   )}
@@ -1076,7 +1057,7 @@ estimated_delivery_at: shippingForm.estimated_delivery_at
               <span>Warehouse</span>
               <span className="text-right">
                 {assignedWarehouse
-                  ? `${assignedWarehouse.name}, ${assignedWarehouse.city}`
+                  ? assignedWarehouse.name
                   : "Not assigned"}
               </span>
             </div>

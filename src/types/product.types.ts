@@ -67,6 +67,7 @@ deliveryPackagingDescription: string;
   slug: string;
   stock: number;
   tags: string[];
+  warehouseId: string | null;
 }
 
 export interface ProductInput {
@@ -104,6 +105,7 @@ export interface ProductInput {
   slug: string;
   stock: number;
   tags: string[];
+  warehouseId: string | null;
 }
 
 
@@ -129,5 +131,6 @@ export const defaultProductContentFields = {
   deliveryCareDescription: "",
   deliveryPackagingTitle: "",
   deliveryPackagingDescription: "",
+  warehouseId: null,
 };
 

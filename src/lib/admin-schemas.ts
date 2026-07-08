@@ -86,6 +86,12 @@ export const productFormSchema = z
 trackInventory: z.boolean(),
 allowBackorder: z.boolean(),
     tags: z.string().max(300, "Tags must be 300 characters or fewer."),
+    warehouseId: z
+      .string()
+      .uuid("Choose a valid fulfillment warehouse.")
+      .or(z.literal(""))
+      .nullable()
+      .optional(),
   })
   .refine((value) => value.originalPrice >= value.price, {
     message: "Original price must be equal to or greater than price.",

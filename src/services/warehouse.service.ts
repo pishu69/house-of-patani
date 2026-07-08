@@ -5,29 +5,85 @@ import {
 } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 import { adminStorage } from "@/services/admin-storage";
-import { fallbackAfterError } from "@/services/service.utils";
 import type { WarehouseRow } from "@/types/database.types";
 
-export type WarehouseInput = Pick<
-  WarehouseRow,
-  | "active"
-  | "address_line_1"
-  | "address_line_2"
-  | "city"
-  | "contact_person"
-  | "country"
-  | "email"
-  | "gst_number"
-  | "name"
-  | "phone"
-  | "pincode"
-  | "state"
->;
+export interface WarehouseInput {
+  is_active: boolean;
+  name: string;
+  pickup_pincode: string;
+  shiprocket_pickup_location: string;
+}
+
+function normalizeWarehouse(row: WarehouseRow): WarehouseRow {
+  return {
+    ...row,
+    is_active: row.is_active ?? true,
+    pickup_pincode: row.pickup_pincode || null,
+    shiprocket_pickup_location:
+      row.shiprocket_pickup_location || row.name,
+  };
+}
+
+function warehouseInsert(input: WarehouseInput) {
+  return {
+    is_active: input.is_active,
+    name: input.name,
+    pickup_pincode: input.pickup_pincode,
+    shiprocket_pickup_location: input.shiprocket_pickup_location,
+  };
+}
+
+function logWarehouseError(
+  operation: "create" | "delete" | "list" | "update",
+  error: unknown,
+) {
+  const value =
+    error && typeof error === "object"
+      ? (error as Record<string, unknown>)
+      : {};
+
+  console.error(`Supabase warehouse ${operation} failed.`, {
+    code: value.code ?? null,
+    details: value.details ?? null,
+    hint: value.hint ?? null,
+    message:
+      value.message ??
+      (error instanceof Error ? error.message : String(error)),
+  });
+}
+
+function toWarehouseError(error: unknown) {
+  if (error instanceof Error) return error;
+
+  if (error && typeof error === "object") {
+    const value = error as Record<string, unknown>;
+    const message =
+      typeof value.message === "string" && value.message.trim()
+        ? value.message.trim()
+        : "The warehouse request failed.";
+    const details =
+      typeof value.details === "string" && value.details.trim()
+        ? ` ${value.details.trim()}`
+        : "";
+    const hint =
+      typeof value.hint === "string" && value.hint.trim()
+        ? ` Hint: ${value.hint.trim()}`
+        : "";
+    const code =
+      typeof value.code === "string" && value.code.trim()
+        ? ` (${value.code.trim()})`
+        : "";
+
+    return new Error(`${message}${code}.${details}${hint}`.trim());
+  }
+
+  return new Error("The warehouse request failed.");
+}
 
 export const warehouseService = {
   async list(): Promise<ServiceResponse<WarehouseRow[]>> {
     if (!supabase) {
-      return mockResponse(adminStorage.warehouses.list());
+      return mockResponse(adminStorage.warehouses.list().map(normalizeWarehouse));
     }
 
     try {
@@ -38,39 +94,35 @@ export const warehouseService = {
 
       if (error) throw error;
 
-      return supabaseResponse(data ?? []);
+      return supabaseResponse((data ?? []).map(normalizeWarehouse));
     } catch (error) {
-      return fallbackAfterError(
-        adminStorage.warehouses.list(),
-        error,
-        "We could not load warehouses right now.",
-      );
+      logWarehouseError("list", error);
+      throw toWarehouseError(error);
     }
   },
 
   async create(input: WarehouseInput): Promise<ServiceResponse<WarehouseRow>> {
-    const localFallback = () => adminStorage.warehouses.create(input);
-
     if (!supabase) {
-      return mockResponse(localFallback());
+      return mockResponse(
+        normalizeWarehouse(
+          adminStorage.warehouses.create(warehouseInsert(input)),
+        ),
+      );
     }
 
     try {
       const { data, error } = await supabase
         .from("warehouses")
-        .insert(input)
+        .insert(warehouseInsert(input))
         .select("*")
         .single();
 
       if (error) throw error;
 
-      return supabaseResponse(data);
+      return supabaseResponse(normalizeWarehouse(data));
     } catch (error) {
-      return fallbackAfterError(
-        localFallback(),
-        error,
-        "The warehouse could not be saved to the database, so it was kept locally.",
-      );
+      logWarehouseError("create", error);
+      throw toWarehouseError(error);
     }
   },
 
@@ -78,10 +130,8 @@ export const warehouseService = {
     id: string,
     input: Partial<WarehouseInput>,
   ): Promise<ServiceResponse<WarehouseRow | null>> {
-    const localFallback = () => adminStorage.warehouses.update(id, input);
-
     if (!supabase) {
-      return mockResponse(localFallback());
+      return mockResponse(adminStorage.warehouses.update(id, input));
     }
 
     try {
@@ -94,21 +144,16 @@ export const warehouseService = {
 
       if (error) throw error;
 
-      return supabaseResponse(data);
+      return supabaseResponse(normalizeWarehouse(data));
     } catch (error) {
-      return fallbackAfterError(
-        localFallback(),
-        error,
-        "The warehouse could not be updated in the database, so the change was kept locally.",
-      );
+      logWarehouseError("update", error);
+      throw toWarehouseError(error);
     }
   },
 
   async remove(id: string): Promise<ServiceResponse<boolean>> {
-    const localFallback = () => adminStorage.warehouses.remove(id);
-
     if (!supabase) {
-      return mockResponse(localFallback());
+      return mockResponse(adminStorage.warehouses.remove(id));
     }
 
     try {
@@ -123,19 +168,32 @@ export const warehouseService = {
         throw new Error("This warehouse is assigned to an order.");
       }
 
-      const { error } = await supabase.from("warehouses").delete().eq("id", id);
+      const { count: productCount, error: productReferenceError } =
+        await supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("warehouse_id", id);
+
+      if (productReferenceError) throw productReferenceError;
+
+      if ((productCount ?? 0) > 0) {
+        throw new Error("This warehouse is assigned to a product.");
+      }
+
+      const { data, error } = await supabase
+        .from("warehouses")
+        .delete()
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("Warehouse not found or already deleted.");
 
       return supabaseResponse(true);
     } catch (error) {
-      if (error instanceof Error) throw error;
-
-      return fallbackAfterError(
-        localFallback(),
-        error,
-        "The warehouse could not be deleted from the database, so it was removed locally.",
-      );
+      logWarehouseError("delete", error);
+      throw toWarehouseError(error);
     }
   },
 };

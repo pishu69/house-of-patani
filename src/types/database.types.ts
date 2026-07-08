@@ -72,6 +72,7 @@ export interface ProductRow {
   stock: number;
   tags: string[];
   updated_at: string;
+  warehouse_id: string | null;
 }
 
 export interface ProductImageRow {
@@ -150,20 +151,12 @@ customer_email: string;
 }
 
 export interface WarehouseRow {
-  active: boolean;
-  address_line_1: string;
-  address_line_2: string | null;
-  city: string;
-  contact_person: string;
-  country: string;
   created_at: string;
-  email: string;
-  gst_number: string | null;
   id: string;
+  is_active: boolean;
   name: string;
-  phone: string;
-  pincode: string;
-  state: string;
+  pickup_pincode: string | null;
+  shiprocket_pickup_location: string | null;
   updated_at: string;
 }
 
@@ -194,6 +187,21 @@ export interface OrderItemRow {
   product_name: string;
   quantity: number;
   total: number;
+}
+
+export interface OrderShipmentRow {
+  awb_number: string | null;
+  courier_name: string | null;
+  created_at: string;
+  estimated_delivery_date: string | null;
+  id: string;
+  order_id: string;
+  shipment_id: string | null;
+  shipment_status: string;
+  shiprocket_order_id: string | null;
+  tracking_url: string | null;
+  updated_at: string;
+  warehouse_id: string;
 }
 
 export interface CouponRow {
@@ -475,15 +483,14 @@ inventory_purchase_entries: TableDefinition<
       >;
       warehouses: TableDefinition<
         WarehouseRow,
-        | "address_line_1"
-        | "city"
-        | "contact_person"
-        | "country"
-        | "email"
+        | "is_active"
         | "name"
-        | "phone"
-        | "pincode"
-        | "state"
+        | "pickup_pincode"
+        | "shiprocket_pickup_location"
+      >;
+      order_shipments: TableDefinition<
+        OrderShipmentRow,
+        "order_id" | "shipment_status" | "warehouse_id"
       >;
       payment_intents: TableDefinition<
         PaymentIntentRow,

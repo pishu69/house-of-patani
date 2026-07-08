@@ -1,3 +1,5 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
 const SHIPROCKET_API_BASE = "https://apiv2.shiprocket.in/v1/external";
 const DEFAULT_WEIGHT_KG = 0.7;
 const DEFAULT_LENGTH_CM = 30;
@@ -126,6 +128,89 @@ function getCredentials() {
   }
 
   return { email, password, pickupPincode };
+}
+
+async function resolvePickupPincode(warehouseId: unknown) {
+  const fallback = normalizePincode(getCredentials().pickupPincode);
+  const id = String(warehouseId ?? "").trim();
+
+  if (!id) {
+    console.warn("Using default Jaipur pickup PIN: product has no warehouse_id.");
+    return {
+      fallbackReason: "product has no warehouse_id",
+      originPincode: fallback,
+    };
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn(
+      "Using default Jaipur pickup PIN: Supabase service credentials are unavailable.",
+    );
+    return {
+      fallbackReason: "warehouse lookup is unavailable",
+      originPincode: fallback,
+    };
+  }
+
+  try {
+    const client = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+    const { data, error } = await client
+      .from("warehouses")
+      .select("pickup_pincode, is_active")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      console.warn("Using default Jaipur pickup PIN: warehouse_id did not match.", {
+        warehouseId: id,
+      });
+      return {
+        fallbackReason: "warehouse_id did not match an active warehouse",
+        originPincode: fallback,
+      };
+    }
+
+    if (data.is_active === false) {
+      console.warn("Using default Jaipur pickup PIN: warehouse is inactive.", {
+        warehouseId: id,
+      });
+      return {
+        fallbackReason: "assigned warehouse is inactive",
+        originPincode: fallback,
+      };
+    }
+
+    const assignedPincode = normalizePincode(
+      data?.pickup_pincode,
+    );
+    if (assignedPincode.length === 6) {
+      return { fallbackReason: null, originPincode: assignedPincode };
+    }
+
+    console.warn(
+      "Using default Jaipur pickup PIN: assigned warehouse has no valid pickup_pincode.",
+      { warehouseId: id },
+    );
+    return {
+      fallbackReason: "assigned warehouse has no valid pickup_pincode",
+      originPincode: fallback,
+    };
+  } catch (error) {
+    console.warn("Shiprocket warehouse lookup failed; using default pickup PIN.", {
+      message: error instanceof Error ? error.message : String(error),
+      warehouseId: id,
+    });
+    return {
+      fallbackReason: "warehouse lookup failed",
+      originPincode: fallback,
+    };
+  }
 }
 
 async function login(forceRefresh = false) {
@@ -300,7 +385,12 @@ function courierList(data: any) {
 
 async function serviceability(input: Record<string, unknown>) {
   const deliveryPostcode = normalizePincode(input.deliveryPincode);
-  const pickupPostcode = normalizePincode(getCredentials().pickupPincode);
+  const providedOrigin = normalizePincode(input.originPincode);
+  const resolution =
+    providedOrigin.length === 6
+      ? { fallbackReason: null, originPincode: providedOrigin }
+      : await resolvePickupPincode(input.warehouseId);
+  const pickupPostcode = resolution.originPincode;
 
   if (deliveryPostcode.length !== 6) {
     throw new Error("Enter a valid 6-digit delivery pincode.");
@@ -371,6 +461,10 @@ async function createShipment(body: Record<string, unknown>) {
     .slice(0, 10);
   const firstItem = items[0];
   const packageInfo = calculatePackage(items);
+  const shipmentGroupId = String(body.shipmentGroupId ?? "").trim();
+  const shiprocketOrderReference = shipmentGroupId
+    ? `${order.order_number}-${shipmentGroupId.slice(0, 8)}`
+    : order.order_number;
   const payload = {
     billing_address:
       shippingAddress.addressLine1 || shippingAddress.address_line1 || "",
@@ -393,7 +487,7 @@ async function createShipment(body: Record<string, unknown>) {
     height: packageInfo.height,
     length: packageInfo.length,
     order_date: orderDate,
-    order_id: order.order_number,
+    order_id: shiprocketOrderReference,
     order_items: items.map((item) => ({
       name: item.product_name,
       selling_price: item.price,
@@ -402,7 +496,8 @@ async function createShipment(body: Record<string, unknown>) {
     })),
     order_type: "ESSENTIALS",
     payment_method: order.payment_method === "cod" ? "COD" : "Prepaid",
-    pickup_location: warehouse.name,
+    pickup_location:
+      warehouse.shiprocket_pickup_location || warehouse.name,
     reseller_name: "",
     shipping_charges: order.shipping,
     shipping_is_billing: true,
@@ -442,6 +537,12 @@ Deno.serve(async (request) => {
       action === "delivery-days"
     ) {
       return json(await serviceability(body.input ?? {}));
+    }
+
+    if (action === "warehouse-origin") {
+      return json(
+        await resolvePickupPincode((body.input ?? {}).warehouseId),
+      );
     }
 
     if (action === "create-shipment") {

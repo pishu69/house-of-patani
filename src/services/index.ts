@@ -13,6 +13,7 @@ export {
   DEMO_CUSTOMER_OTP,
 } from "@/services/customer-auth.service";
 export { orderService } from "@/services/order.service";
+export { orderShipmentService } from "@/services/order-shipment.service";
 export { paymentService } from "@/services/payment.service";
 export { productService } from "@/services/product.service";
 export { productImageService } from "@/services/product-image.service";

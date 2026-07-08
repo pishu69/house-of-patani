@@ -34,7 +34,7 @@ import {
 } from "@/services";
 import {
   shiprocketService,
-  type ShiprocketDeliveryEstimate,
+  type CartDeliveryEstimate,
 } from "@/services/shiprocket.service";
 import { useCartStore } from "@/stores/cart.store";
 import { useCustomerStore } from "@/stores/customer.store";
@@ -58,6 +58,24 @@ const defaults: CheckoutFormValues = {
   shippingMethod: "standard",
   state: "",
 };
+
+function formatDeliveryDate(value: string) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
+function deliveryDateText(estimate: CartDeliveryEstimate) {
+  if (!estimate.earliestDeliveryDate) return "confirmed after dispatch";
+
+  const earliest = formatDeliveryDate(estimate.earliestDeliveryDate);
+  const latest = estimate.latestDeliveryDate
+    ? formatDeliveryDate(estimate.latestDeliveryDate)
+    : earliest;
+
+  return earliest === latest ? earliest : `${earliest}–${latest}`;
+}
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -117,7 +135,7 @@ export function CheckoutPage() {
   const [appliedCouponCode, setAppliedCouponCode] = useState("");
   const [appliedCouponData, setAppliedCouponData] = useState<CouponRow | null>(null);
   const [deliveryEstimate, setDeliveryEstimate] =
-    useState<ShiprocketDeliveryEstimate | null>(null);
+    useState<CartDeliveryEstimate | null>(null);
   const [isEstimatingDelivery, setIsEstimatingDelivery] = useState(false);
   const couponUsageCodeRef = useRef("");
   const couponsQuery = useQuery({
@@ -192,9 +210,10 @@ const coupons = couponsQuery.data?.data ?? [];
     const timer = window.setTimeout(() => {
       setIsEstimatingDelivery(true);
       void shiprocketService
-        .checkServiceability({
+        .checkCartServiceability({
           cod: paymentMethod === "cod",
           deliveryPincode: normalizedPincode,
+          products: checkoutState.items.map((item) => item.product),
         })
         .then(setDeliveryEstimate)
         .catch(() => setDeliveryEstimate(null))
@@ -202,7 +221,7 @@ const coupons = couponsQuery.data?.data ?? [];
     }, 450);
 
     return () => window.clearTimeout(timer);
-  }, [paymentMethod, pincode]);
+  }, [checkoutState.items, paymentMethod, pincode]);
 
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
@@ -574,8 +593,7 @@ async function submitCheckout(values: CheckoutFormValues) {
                       </p>
                       <p>
                         Estimated:{" "}
-                        {deliveryEstimate.estimatedDeliveryDate ||
-                          "confirmed after dispatch"}
+                        {deliveryDateText(deliveryEstimate)}
                       </p>
                       <p>
                         COD:{" "}
@@ -583,10 +601,11 @@ async function submitCheckout(values: CheckoutFormValues) {
                           ? "available"
                           : "not available"}
                       </p>
-                      <p>
-                        Courier:{" "}
-                        {deliveryEstimate.courierName || "Not assigned"}
-                      </p>
+                      {deliveryEstimate.isMultiWarehouse ? (
+                        <p className="font-medium text-charcoal sm:col-span-2">
+                          Items may arrive separately.
+                        </p>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

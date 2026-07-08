@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
-import { Share2 } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -10,6 +9,7 @@ import { DeliveryInformation } from "@/components/product/DeliveryInformation";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
 import { reviewService } from "@/services";
+import { shiprocketService } from "@/services/shiprocket.service";
 import type { ProductReview } from "@/types/review.types";
 import { ProductPurchaseActions } from "@/components/product/ProductPurchaseActions";
 import {
@@ -40,6 +40,7 @@ function standardizePolicyText(value: string) {
 
 export function ProductPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
@@ -47,6 +48,12 @@ export function ProductPage() {
   const productQuery = useProductBySlug(slug);
   const productsQuery = useProducts();
   const product = productQuery.data?.data ?? null;
+  const warehouseOriginQuery = useQuery({
+    enabled: Boolean(product?.warehouseId),
+    queryFn: () =>
+      shiprocketService.resolveWarehouseOrigin(product?.warehouseId ?? ""),
+    queryKey: ["product-warehouse-origin", product?.warehouseId],
+  });
   const reviewsQuery = useQuery({
   enabled: Boolean(product?.id),
   queryKey: ["product-reviews", product?.id],
@@ -132,6 +139,38 @@ const displayReviewCount =
     setActiveTab("description");
     setQuantity(1);
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product) return;
+
+    console.debug("Product warehouse assignment", {
+      productId: product.id,
+      warehouse_id: product.warehouseId,
+    });
+
+    if (!product.warehouseId) {
+      console.warn(
+        "Delivery estimate is using the Jaipur fallback: product has no warehouse_id.",
+      );
+    }
+  }, [product]);
+
+  useEffect(() => {
+    if (!product?.warehouseId || !warehouseOriginQuery.data) return;
+
+    if (warehouseOriginQuery.data.fallbackReason) {
+      console.warn("Delivery estimate is using the Jaipur fallback.", {
+        reason: warehouseOriginQuery.data.fallbackReason,
+        warehouse_id: product.warehouseId,
+      });
+      return;
+    }
+
+    console.debug("Delivery estimate warehouse origin resolved.", {
+      origin_pincode: warehouseOriginQuery.data.originPincode,
+      warehouse_id: product.warehouseId,
+    });
+  }, [product?.warehouseId, warehouseOriginQuery.data]);
 
   if (productQuery.isLoading) {
   return (
@@ -277,6 +316,17 @@ Eligible return requests must be raised within 3 days after delivery for unused 
     }
   };
 
+  const handleBuyNow = () => {
+    const result = addItem(product.id, quantity);
+
+    if (!result.success) {
+      showCartMutationToast(product.name, result);
+      return;
+    }
+
+    navigate(ROUTES.CHECKOUT);
+  };
+
   const handleShareProduct = async () => {
   if (!product) return;
 
@@ -348,11 +398,19 @@ ${productUrl}`;
             <div className="lg:sticky lg:top-28">
               <ProductInfo
                 actions={
-                  <div className="space-y-6">
+                  <div className="space-y-4">
+                    <PincodeChecker
+                      originPincode={
+                        warehouseOriginQuery.data?.originPincode ?? null
+                      }
+                      warehouseId={product.warehouseId}
+                    />
                     <ProductPurchaseActions
                       isWishlisted={isWishlisted}
                       onAddToCart={handleAddToCart}
+                      onBuyNow={handleBuyNow}
                       onQuantityChange={setQuantity}
+                      onShare={handleShareProduct}
                       onStockLimit={() =>
                         toast.error("Stock limit reached", {
                           description: `Only ${product.stock} of ${product.name} are currently available.`,
@@ -362,16 +420,7 @@ ${productUrl}`;
                       quantity={quantity}
                       stock={product.stock}
                     />
-                    <button
-  type="button"
-  onClick={handleShareProduct}
-  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-maroon/25 px-5 text-sm font-semibold text-maroon transition hover:bg-maroon/5"
->
-  <Share2 aria-hidden="true" size={17} />
-  Share this product
-</button>
                     <DeliveryInformation product={product} />
-                    <PincodeChecker />
                   </div>
                 }
                 badge={

@@ -226,6 +226,7 @@ function mapProduct(
     slug: override?.slug ?? row.slug,
     stock: inventoryStockByProductId.get(row.id) ?? override?.stock ?? row.stock,
     tags: override?.tags ?? row.tags,
+    warehouseId: override?.warehouseId ?? row.warehouse_id ?? null,
   };
 }
 
@@ -342,6 +343,7 @@ function toDatabaseInput(input: ProductInput, categoryId: string | null) {
     slug: input.slug,
     stock: input.stock,
     tags: input.tags,
+    warehouse_id: input.warehouseId || null,
   };
 }
 
@@ -403,7 +405,81 @@ function toDatabaseUpdate(
     ...(input.slug === undefined ? {} : { slug: input.slug }),
     ...(input.stock === undefined ? {} : { stock: input.stock }),
     ...(input.tags === undefined ? {} : { tags: input.tags }),
+    ...(input.warehouseId === undefined
+      ? {}
+      : { warehouse_id: input.warehouseId || null }),
   };
+}
+
+function logProductWriteError(
+  operation: "insert" | "update",
+  error: unknown,
+) {
+  const value =
+    error && typeof error === "object"
+      ? (error as Record<string, unknown>)
+      : {};
+
+  console.error(`Supabase product ${operation} failed.`, {
+    code: value.code ?? null,
+    details: value.details ?? null,
+    hint: value.hint ?? null,
+    message:
+      value.message ??
+      (error instanceof Error ? error.message : String(error)),
+  });
+}
+
+function productWriteError(error: unknown) {
+  const value =
+    error && typeof error === "object"
+      ? (error as Record<string, unknown>)
+      : {};
+  const code = String(value.code ?? "");
+  const message = String(value.message ?? "");
+
+  if (
+    code === "42703" ||
+    code === "PGRST204" ||
+    message.toLowerCase().includes("warehouse_id")
+  ) {
+    return new Error(
+      "The products.warehouse_id column is unavailable. Apply migration 202607090001_product_warehouse_assignment.sql, then retry.",
+    );
+  }
+
+  if (code === "23503") {
+    return new Error(
+      "The selected fulfillment warehouse no longer exists. Refresh the page and choose an active warehouse.",
+    );
+  }
+
+  return null;
+}
+
+async function validateWarehouseId(warehouseId: string | null | undefined) {
+  const normalized = warehouseId?.trim() || null;
+
+  if (!supabase || !normalized) return null;
+
+  const { data, error } = await supabase
+    .from("warehouses")
+    .select("id")
+    .eq("id", normalized)
+    .maybeSingle();
+
+  if (error) {
+    logProductWriteError("update", error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error(
+      "The selected fulfillment warehouse no longer exists. Refresh the page and choose an active warehouse.",
+    );
+  }
+
+  return normalized;
 }
 
 async function hydrateProduct(product: CatalogProduct) {
@@ -516,14 +592,23 @@ export const productService = {
     }
 
     try {
+      const warehouseId = await validateWarehouseId(input.warehouseId);
       const categoryId = await getCategoryId(input.category);
+      const normalizedInput = { ...input, warehouseId };
       const { data, error } = await supabase
         .from("products")
-        .insert(toDatabaseInput(input, categoryId))
+        .insert(toDatabaseInput(normalizedInput, categoryId))
         .select("*")
         .single();
 
-      if (error) throw error;
+      if (error) {
+        logProductWriteError("insert", error);
+        throw error;
+      }
+      console.debug("Supabase product warehouse assignment saved.", {
+        productId: data.id,
+        warehouse_id: data.warehouse_id ?? null,
+      });
       const mapped = mapProduct(
         data,
         new Map([
@@ -548,6 +633,9 @@ export const productService = {
       if (!mapped) throw new Error("PRODUCT_MAPPING_FAILED");
       return supabaseResponse(mapped);
     } catch (error) {
+      const actionableError = productWriteError(error);
+      if (actionableError) throw actionableError;
+
       return fallbackAfterError(
         adminStorage.products.create(input),
         error,
@@ -567,21 +655,40 @@ export const productService = {
     }
 
     try {
+      const warehouseId =
+        input.warehouseId === undefined
+          ? undefined
+          : await validateWarehouseId(input.warehouseId);
       const categoryId = input.category
         ? await getCategoryId(input.category)
         : undefined;
-      const databaseInput = toDatabaseUpdate(input, categoryId);
+      const normalizedInput =
+        warehouseId === undefined ? input : { ...input, warehouseId };
+      const databaseInput = toDatabaseUpdate(
+        normalizedInput,
+        categoryId,
+      );
       const { error } = await supabase
         .from("products")
         .update(databaseInput)
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) {
+        logProductWriteError("update", error);
+        throw error;
+      }
       const product = (await listFromSupabase(false))?.find(
         (item) => item.id === id,
       );
+      console.debug("Supabase product warehouse assignment updated.", {
+        productId: id,
+        warehouse_id: product?.warehouseId ?? null,
+      });
       return supabaseResponse(product ?? null);
     } catch (error) {
+      const actionableError = productWriteError(error);
+      if (actionableError) throw actionableError;
+
       return fallbackAfterError(
         localFallback(),
         error,

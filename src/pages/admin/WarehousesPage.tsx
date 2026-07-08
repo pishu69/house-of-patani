@@ -27,54 +27,32 @@ const inputClassName =
   "mt-2 h-11 w-full rounded-md border border-maroon/15 bg-background px-3 text-sm text-charcoal";
 
 const defaultForm: WarehouseInput = {
-  active: true,
-  address_line_1: "",
-  address_line_2: "",
-  city: "",
-  contact_person: "",
-  country: "India",
-  email: "",
-  gst_number: "",
+  is_active: true,
   name: "",
-  phone: "",
-  pincode: "",
-  state: "",
+  pickup_pincode: "",
+  shiprocket_pickup_location: "",
 };
 
 function cleanForm(form: WarehouseInput): WarehouseInput {
   return {
-    active: form.active,
-    address_line_1: form.address_line_1.trim(),
-    address_line_2: form.address_line_2?.trim() || null,
-    city: form.city.trim(),
-    contact_person: form.contact_person.trim(),
-    country: form.country.trim() || "India",
-    email: form.email.trim().toLowerCase(),
-    gst_number: form.gst_number?.trim() || null,
+    is_active: form.is_active,
     name: form.name.trim(),
-    phone: form.phone.trim(),
-    pincode: form.pincode.trim(),
-    state: form.state.trim(),
+    pickup_pincode: form.pickup_pincode.trim(),
+    shiprocket_pickup_location: form.shiprocket_pickup_location.trim(),
   };
 }
 
 function validateWarehouse(input: WarehouseInput) {
   if (
     !input.name ||
-    !input.contact_person ||
-    !input.phone ||
-    !input.email ||
-    !input.address_line_1 ||
-    !input.city ||
-    !input.state ||
-    !input.country ||
-    !input.pincode
+    !input.pickup_pincode ||
+    !input.shiprocket_pickup_location
   ) {
     throw new Error("Please fill all required warehouse fields.");
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email)) {
-    throw new Error("Enter a valid warehouse email.");
+  if (!/^\d{6}$/.test(input.pickup_pincode)) {
+    throw new Error("Enter a valid 6-digit pickup pincode.");
   }
 }
 
@@ -96,18 +74,11 @@ export function WarehousesPage() {
   function editWarehouse(warehouse: WarehouseRow) {
     setSelectedWarehouse(warehouse);
     setForm({
-      active: warehouse.active,
-      address_line_1: warehouse.address_line_1,
-      address_line_2: warehouse.address_line_2 ?? "",
-      city: warehouse.city,
-      contact_person: warehouse.contact_person,
-      country: warehouse.country,
-      email: warehouse.email,
-      gst_number: warehouse.gst_number ?? "",
+      is_active: warehouse.is_active,
       name: warehouse.name,
-      phone: warehouse.phone,
-      pincode: warehouse.pincode,
-      state: warehouse.state,
+      pickup_pincode: warehouse.pickup_pincode || "",
+      shiprocket_pickup_location:
+        warehouse.shiprocket_pickup_location || warehouse.name,
     });
   }
 
@@ -139,14 +110,21 @@ export function WarehousesPage() {
 
   const toggleMutation = useMutation({
     mutationFn: (warehouse: WarehouseRow) =>
-      warehouseService.update(warehouse.id, { active: !warehouse.active }),
+      warehouseService.update(warehouse.id, {
+        is_active: !warehouse.is_active,
+      }),
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({ queryKey: warehouseQueryKeys.all });
       toast.success("Warehouse availability updated.", {
         description: response.warning?.message,
       });
     },
-    onError: () => toast.error("The warehouse could not be updated."),
+    onError: (error) =>
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "The warehouse could not be updated.",
+      ),
   });
 
   const deleteMutation = useMutation({
@@ -173,42 +151,32 @@ export function WarehousesPage() {
         header: "Warehouse",
         id: "warehouse",
         render: (warehouse) => (
-          <div>
-            <p className="font-semibold text-charcoal">{warehouse.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {warehouse.city}, {warehouse.state}
-            </p>
-          </div>
+          <p className="font-semibold text-charcoal">{warehouse.name}</p>
         ),
       },
       {
-        header: "Contact",
-        id: "contact",
-        render: (warehouse) => (
-          <div>
-            <p>{warehouse.contact_person}</p>
-            <p className="text-xs">{warehouse.phone}</p>
-            <p className="text-xs">{warehouse.email}</p>
-          </div>
-        ),
+        header: "Shiprocket Pickup Location",
+        id: "shiprocket-pickup-location",
+        render: (warehouse) =>
+          warehouse.shiprocket_pickup_location || warehouse.name,
       },
       {
-        header: "Pincode",
+        header: "Pickup Pincode",
         id: "pincode",
-        render: (warehouse) => warehouse.pincode,
-      },
-      {
-        header: "GST",
-        id: "gst",
-        render: (warehouse) => warehouse.gst_number || "-",
+        render: (warehouse) =>
+          warehouse.pickup_pincode || "-",
       },
       {
         header: "Status",
         id: "status",
         render: (warehouse) => (
           <StatusBadge
-            label={warehouse.active ? "Active" : "Inactive"}
-            tone={warehouse.active ? "positive" : "neutral"}
+            label={
+              warehouse.is_active ? "Active" : "Inactive"
+            }
+            tone={
+              warehouse.is_active ? "positive" : "neutral"
+            }
           />
         ),
       },
@@ -224,8 +192,10 @@ export function WarehousesPage() {
                 onSelect: () => editWarehouse(warehouse),
               },
               {
-                icon: warehouse.active ? EyeOff : Eye,
-                label: warehouse.active ? "Deactivate" : "Activate",
+                icon: warehouse.is_active ? EyeOff : Eye,
+                label: warehouse.is_active
+                  ? "Deactivate"
+                  : "Activate",
                 onSelect: () => toggleMutation.mutate(warehouse),
               },
               {
@@ -280,142 +250,43 @@ export function WarehousesPage() {
           </label>
 
           <label className="text-sm font-medium text-charcoal">
-            Contact person
+            Pickup pincode
             <input
               className={inputClassName}
+              inputMode="numeric"
+              maxLength={6}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
-                  contact_person: event.target.value,
+                  pickup_pincode: event.target.value.replace(/\D/g, ""),
                 }))
               }
-              value={form.contact_person}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            Phone
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, phone: event.target.value }))
-              }
-              value={form.phone}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            Email
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, email: event.target.value }))
-              }
-              type="email"
-              value={form.email}
+              value={form.pickup_pincode}
             />
           </label>
 
           <label className="text-sm font-medium text-charcoal md:col-span-2">
-            Address line 1
+            Shiprocket pickup location
             <input
               className={inputClassName}
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
-                  address_line_1: event.target.value,
+                  shiprocket_pickup_location: event.target.value,
                 }))
               }
-              value={form.address_line_1}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal md:col-span-2">
-            Address line 2
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  address_line_2: event.target.value,
-                }))
-              }
-              value={form.address_line_2 ?? ""}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            City
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, city: event.target.value }))
-              }
-              value={form.city}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            State
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, state: event.target.value }))
-              }
-              value={form.state}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            Country
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  country: event.target.value,
-                }))
-              }
-              value={form.country}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            Pincode
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  pincode: event.target.value,
-                }))
-              }
-              value={form.pincode}
-            />
-          </label>
-
-          <label className="text-sm font-medium text-charcoal">
-            GST number
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  gst_number: event.target.value,
-                }))
-              }
-              value={form.gst_number ?? ""}
+              value={form.shiprocket_pickup_location}
             />
           </label>
 
           <label className="flex items-center gap-3 text-sm font-medium text-charcoal">
             <input
-              checked={form.active}
+              checked={form.is_active}
               className="h-4 w-4 rounded border-maroon/20"
               onChange={(event) =>
                 setForm((current) => ({
                   ...current,
-                  active: event.target.checked,
+                  is_active: event.target.checked,
                 }))
               }
               type="checkbox"
@@ -443,6 +314,15 @@ export function WarehousesPage() {
 
       {warehousesQuery.isLoading ? (
         <LoadingTableSkeleton columns={6} rows={4} />
+      ) : warehousesQuery.isError ? (
+        <EmptyAdminState
+          description={
+            warehousesQuery.error instanceof Error
+              ? warehousesQuery.error.message
+              : "Supabase could not load the warehouses table. Check its grants and RLS policies."
+          }
+          title="Warehouses could not be loaded"
+        />
       ) : warehouses.length > 0 ? (
         <DataTable
           caption="Warehouses"

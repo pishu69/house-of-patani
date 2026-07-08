@@ -19,7 +19,12 @@ import {
   getProductAttributeTemplate,
   productAttributesToRecord,
 } from "@/data/product-attribute-templates";
-import { productQueryKeys, useCategories, useProducts } from "@/hooks";
+import {
+  productQueryKeys,
+  useCategories,
+  useProducts,
+  useWarehouses,
+} from "@/hooks";
 
 import {
   productFormSchema,
@@ -79,6 +84,7 @@ lowStockThreshold: 5,
 trackInventory: true,
 allowBackorder: false,
 tags: "",
+warehouseId: "",
 };
 
 export function ProductEditorPage() {
@@ -87,7 +93,11 @@ export function ProductEditorPage() {
   const queryClient = useQueryClient();
   const productsQuery = useProducts();
   const categoriesQuery = useCategories();
+  const warehousesQuery = useWarehouses();
   const categories = categoriesQuery.data?.data ?? [];
+  const activeWarehouses = (warehousesQuery.data?.data ?? []).filter(
+    (warehouse) => warehouse.is_active,
+  );
   const isEditing = Boolean(id);
   const product = productsQuery.data?.data.find((item) => item.id === id);
   const [media, setMedia] = useState<ProductMedia[]>([]);
@@ -147,6 +157,7 @@ lowStockThreshold: 5,
 trackInventory: true,
 allowBackorder: false,
 tags: product.tags.join(", "),
+warehouseId: product.warehouseId ?? "",
     });
     setMedia(product.media);
   }, [product, reset]);
@@ -206,8 +217,14 @@ tags: product.tags.join(", "),
       });
       navigate("/admin/products");
     },
-    onError: () => {
-      toast.error("The product could not be saved. Please try again.");
+    onError: (error) => {
+      console.error("Admin product save failed.", error);
+      toast.error("The product could not be saved.", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again.",
+      });
     },
   });
 
@@ -250,6 +267,7 @@ tags: product.tags.join(", "),
       input: {
         ...defaultProductContentFields,
         ...productValues,
+        warehouseId: productValues.warehouseId || null,
         attributes: buildProductAttributes(
           productValues.category,
           attributeValues,
@@ -507,6 +525,22 @@ tags: product.tags.join(", "),
                   ))}
                 </select>
                 <FormFieldError message={errors.category?.message} />
+              </label>
+              <label className="text-sm font-medium text-charcoal">
+                Fulfillment Warehouse
+                <select
+                  className={inputClassName}
+                  disabled={warehousesQuery.isLoading}
+                  {...register("warehouseId")}
+                >
+                  <option value="">Default Jaipur warehouse</option>
+                  {activeWarehouses.map((warehouse) => (
+                    <option key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name}
+                    </option>
+                  ))}
+                </select>
+                <FormFieldError message={errors.warehouseId?.message} />
               </label>
               {attributeTemplate.length > 0 ? (
                 <div className="rounded-lg border border-maroon/10 bg-background p-4">

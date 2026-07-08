@@ -19,7 +19,7 @@ export function QuantitySelector({
   return (
     <div
       aria-label="Quantity"
-      className="inline-flex items-center rounded-full border border-maroon/15 bg-card p-1"
+      className="inline-flex w-[9.5rem] items-center justify-between rounded-full border border-maroon/15 bg-card p-1"
       role="group"
     >
       <IconButton
@@ -32,7 +32,7 @@ export function QuantitySelector({
       </IconButton>
       <output
         aria-live="polite"
-        className="min-w-10 text-center text-sm font-semibold text-charcoal"
+        className="min-w-8 text-center text-sm font-semibold text-charcoal"
       >
         {quantity}
       </output>
