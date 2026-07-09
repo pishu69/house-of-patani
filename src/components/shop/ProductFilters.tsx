@@ -42,7 +42,7 @@ export function ProductFilters({
   onReset,
 }: ProductFiltersProps) {
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <CategoryFilter
         name={`${idPrefix}-category`}
         onChange={onCategoryChange}
@@ -59,10 +59,10 @@ export function ProductFilters({
       />
       <div className="h-px bg-maroon/10" />
       <fieldset>
-        <legend className="font-serif text-2xl text-charcoal">
+        <legend className="font-serif text-xl text-charcoal">
           Collections
         </legend>
-        <div className="mt-3 space-y-1">
+        <div className="mt-2 space-y-1">
           <FilterToggle
             checked={featured}
             label="Featured"

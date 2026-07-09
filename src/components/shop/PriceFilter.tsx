@@ -22,14 +22,14 @@ export function PriceFilter({
   return (
     <fieldset>
       <div className="flex items-start justify-between gap-4">
-        <legend className="font-serif text-2xl text-charcoal">Price</legend>
+        <legend className="font-serif text-xl text-charcoal">Price</legend>
         <span className="text-right text-xs font-semibold leading-5 text-maroon">
           {formatCurrency(minValue)}
           <br />
           to {formatCurrency(maxValue)}
         </span>
       </div>
-      <label className="mt-5 block text-xs text-muted-foreground">
+      <label className="mt-4 block text-xs text-muted-foreground">
         Minimum price
         <input
           aria-label="Minimum price"

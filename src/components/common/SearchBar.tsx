@@ -31,7 +31,7 @@ export function SearchBar({
         size={18}
       />
       <input
-        className="h-12 w-full rounded-full border border-maroon/15 bg-card px-11 text-sm text-charcoal placeholder:text-muted-foreground"
+        className="h-11 w-full rounded-full border border-maroon/15 bg-background px-11 text-sm text-charcoal shadow-sm transition placeholder:text-muted-foreground focus:border-maroon/40 focus:bg-card focus:ring-2 focus:ring-maroon/15"
         id="site-search"
         onChange={(event) => onChange?.(event.target.value)}
         placeholder={placeholder}

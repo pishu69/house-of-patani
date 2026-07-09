@@ -21,15 +21,15 @@ export function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <fieldset>
-      <legend className="font-serif text-2xl text-charcoal">Categories</legend>
-      <div className="mt-4 space-y-2">
+      <legend className="font-serif text-xl text-charcoal">Categories</legend>
+      <div className="mt-3 space-y-1.5">
         {options.map((option) => {
           const selected = option.value === value;
 
           return (
             <label
               className={cn(
-                "flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-maroon/5",
+                "flex min-h-10 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-maroon/5",
                 selected && "bg-maroon/5 font-semibold text-maroon",
               )}
               key={option.value}

@@ -73,11 +73,11 @@ function ProductCardComponent({
 
   return (
     <motion.article
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-lift transition duration-300 hover:border-gold/60"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-lift transition duration-300 hover:border-gold/60 hover:shadow-elegant"
       transition={{ duration: 0.25, ease: "easeOut" }}
       whileHover={{ y: -3 }}
     >
-      <div className="relative aspect-[5/6] overflow-hidden bg-linen">
+      <div className="relative aspect-[4/5] overflow-hidden bg-linen">
         {!imageLoaded && imageUrl ? (
           <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-linen via-ivory to-linen" />
         ) : null}
@@ -121,7 +121,7 @@ function ProductCardComponent({
               ? `Remove ${product.name} from wishlist`
               : `Add ${product.name} to wishlist`
           }
-          className="absolute right-2 top-2 h-8 w-8 bg-ivory/90 shadow-lift hover:bg-ivory sm:right-3 sm:top-3 sm:h-9 sm:w-9"
+          className="absolute right-2 top-2 h-9 w-9 bg-ivory/92 shadow-lift hover:bg-ivory sm:right-3 sm:top-3"
           onClick={handleWishlistToggle}
           size="sm"
         >
@@ -139,7 +139,7 @@ function ProductCardComponent({
         </p>
 
         <Link className="mt-1.5" to={`/product/${product.slug}`}>
-          <h2 className="line-clamp-2 text-base leading-snug transition group-hover:text-maroon sm:text-lg">
+          <h2 className="line-clamp-2 min-h-[2.35rem] text-[0.95rem] leading-snug transition group-hover:text-maroon sm:min-h-[3rem] sm:text-lg">
             {product.name}
           </h2>
         </Link>
@@ -155,7 +155,7 @@ function ProductCardComponent({
           {product.description}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-baseline gap-1.5">
+        <div className="mt-auto flex flex-wrap items-baseline gap-1.5 pt-3">
           <span className="text-sm font-semibold text-maroon sm:text-base">
             {formatCurrency(product.price)}
           </span>
@@ -177,7 +177,7 @@ function ProductCardComponent({
         </div>
 
         <Button
-          className="mt-3 min-h-10 text-sm"
+          className="mt-3 min-h-10 px-3 text-sm"
           disabled={product.stock === 0}
           fullWidth
           onClick={handleAddToCart}

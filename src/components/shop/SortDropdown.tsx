@@ -19,10 +19,10 @@ export function SortDropdown({
   value,
 }: SortDropdownProps) {
   return (
-    <label className="relative inline-flex items-center">
+    <label className="relative inline-flex min-w-0 flex-1 items-center sm:flex-none">
       <span className="sr-only">{label}</span>
       <select
-        className="h-11 appearance-none rounded-full border border-maroon/15 bg-card py-2 pl-4 pr-10 text-sm font-medium text-charcoal"
+        className="h-11 w-full min-w-[10.5rem] appearance-none rounded-full border border-maroon/15 bg-background py-2 pl-4 pr-10 text-sm font-medium text-charcoal shadow-sm transition focus:border-maroon/40 focus:ring-2 focus:ring-maroon/15 sm:w-auto"
         onChange={(event) => onChange?.(event.target.value)}
         value={value}
       >

@@ -12,7 +12,7 @@ export function FilterToggle({
   onChange,
 }: FilterToggleProps) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md px-3 py-2 text-sm transition hover:bg-maroon/5">
+    <label className="flex min-h-10 cursor-pointer items-center justify-between gap-4 rounded-md px-3 py-2 text-sm transition hover:bg-maroon/5">
       <span className={cn(checked && "font-semibold text-maroon")}>{label}</span>
       <input
         checked={checked}
