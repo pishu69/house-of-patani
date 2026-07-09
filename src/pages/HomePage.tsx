@@ -21,7 +21,7 @@ export function HomePage() {
       <HeroSection />
       <CategorySection />
       <FeaturedProductsSection />
-      <HeritageStorySection />
+      <HeritageStorySection compact />
       <ArtisanSection />
       <TestimonialsSection />
       <NewsletterSection />

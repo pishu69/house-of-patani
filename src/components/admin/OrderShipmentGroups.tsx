@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ExternalLink } from "lucide-react";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { orderShipmentService } from "@/services/order-shipment.service";
 import {
   shiprocketService,
@@ -37,11 +39,13 @@ function addDays(days: number | null) {
 
 function ShipmentGroup({
   groupItems,
+  groupNumber,
   order,
   shipment,
   warehouse,
 }: {
   groupItems: ShipmentItem[];
+  groupNumber: number;
   order: OrderRow;
   shipment: OrderShipmentRow | null;
   warehouse: WarehouseRow;
@@ -144,52 +148,91 @@ function ShipmentGroup({
 
   const couriers = couriersQuery.data?.couriers ?? [];
   const error = createMutation.error || awbMutation.error;
+  const totalQuantity = groupItems.reduce(
+    (total, item) => total + Number(item.quantity || 0),
+    0,
+  );
+  const totalWeight = groupItems.reduce(
+    (total, item) =>
+      total +
+      Number(item.shipping_weight_kg || 0) * Number(item.quantity || 0),
+    0,
+  );
+  const shipmentCreated = Boolean(
+    shipment?.shiprocket_order_id || shipment?.shipment_id,
+  );
+  const awbGenerated = Boolean(shipment?.awb_number);
 
   return (
-    <section className="rounded-md border bg-muted/15 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="overflow-hidden rounded-md border border-maroon/10 bg-card">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-maroon/10 bg-muted/15 px-4 py-3">
         <div>
-          <h3 className="font-semibold">{warehouse.name}</h3>
-          <p className="text-xs text-muted-foreground">
-            Pickup PIN: {warehouse.pickup_pincode || "Not configured"}
+          <p className="text-xs font-semibold uppercase text-muted-foreground">
+            Shipment Group {groupNumber}
           </p>
+          <h3 className="mt-1 font-semibold text-charcoal">{warehouse.name}</h3>
         </div>
-        <span className="text-xs font-medium uppercase text-muted-foreground">
-          {shipment?.shipment_status || "Not started"}
-        </span>
+        <StatusBadge
+          label={(shipment?.shipment_status || "Not started").replace(
+            /_/g,
+            " ",
+          )}
+          tone={awbGenerated ? "positive" : shipmentCreated ? "warning" : "neutral"}
+        />
       </div>
 
-      <ul className="mt-3 space-y-1 text-sm">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-maroon/10 px-4 py-3 text-sm sm:grid-cols-4">
+        <div>
+          <p className="text-xs text-muted-foreground">Items</p>
+          <p className="mt-0.5 font-semibold">{groupItems.length}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Total quantity</p>
+          <p className="mt-0.5 font-semibold">{totalQuantity}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Package weight</p>
+          <p className="mt-0.5 font-semibold">
+            {totalWeight > 0 ? `${totalWeight.toFixed(2)} kg` : "Not available"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Pickup pincode</p>
+          <p className="mt-0.5 font-semibold">
+            {warehouse.pickup_pincode || "Not configured"}
+          </p>
+        </div>
+      </div>
+
+      <ul className="divide-y divide-maroon/10 px-4">
         {groupItems.map((item) => (
-          <li className="flex justify-between gap-4" key={item.id}>
-            <span>{item.product_name}</span>
-            <span>x {item.quantity}</span>
+          <li
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-2.5 text-sm"
+            key={item.id}
+          >
+            <div className="min-w-0">
+              <p className="truncate font-medium text-charcoal">
+                {item.product_name}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {item.shipping_weight_kg
+                  ? `${item.shipping_weight_kg.toFixed(2)} kg each`
+                  : "Weight unavailable"}
+              </p>
+            </div>
+            <p className="font-semibold">Qty {item.quantity}</p>
           </li>
         ))}
       </ul>
 
-      <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+      <div className="grid gap-2 border-t border-maroon/10 bg-muted/10 px-4 py-3 text-xs text-muted-foreground sm:grid-cols-2">
         <p>Shipment ID: {shipment?.shipment_id || "Not assigned"}</p>
         <p>AWB: {shipment?.awb_number || "Not assigned"}</p>
-        <p>
-          Tracking:{" "}
-          {shipment?.tracking_url ? (
-            <a
-              className="text-maroon underline"
-              href={shipment.tracking_url}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Open tracking
-            </a>
-          ) : (
-            "Not available"
-          )}
-        </p>
       </div>
 
-      {shipment?.shipment_id && !shipment.awb_number ? (
-        <div className="mt-4">
+      <div className="px-4 py-3">
+      {shipmentCreated && !awbGenerated ? (
+        <div>
           <label className="text-sm font-medium">
             Courier
             <select
@@ -218,12 +261,12 @@ function ShipmentGroup({
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className={shipmentCreated && !awbGenerated ? "mt-3 flex flex-wrap gap-2" : "flex flex-wrap gap-2"}>
+        {!shipmentCreated ? (
         <button
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
           disabled={
             createMutation.isPending ||
-            Boolean(shipment?.shiprocket_order_id || shipment?.shipment_id) ||
             !warehouse.pickup_pincode
           }
           onClick={() => createMutation.mutate()}
@@ -231,27 +274,41 @@ function ShipmentGroup({
         >
           {createMutation.isPending
             ? "Creating..."
-            : shipment?.shiprocket_order_id || shipment?.shipment_id
-              ? "Shipment Created"
-              : "Create Shiprocket Shipment"}
+            : "Create Shipment"}
         </button>
+        ) : null}
+        {shipmentCreated && !awbGenerated ? (
         <button
           className="rounded-md border border-maroon/30 px-4 py-2 text-sm font-medium text-maroon disabled:opacity-50"
           disabled={
             awbMutation.isPending ||
-            Boolean(shipment?.awb_number) ||
             !shipment?.shipment_id ||
             !selectedCourierId
           }
           onClick={() => awbMutation.mutate()}
           type="button"
         >
-          {shipment?.awb_number
-            ? "Tracking Live"
-            : awbMutation.isPending
+          {awbMutation.isPending
               ? "Generating..."
               : "Generate AWB"}
         </button>
+        ) : null}
+        {awbGenerated ? (
+          <span className="inline-flex min-h-10 items-center rounded-md border border-maroon/15 bg-muted/20 px-4 text-sm font-semibold text-charcoal">
+            AWB Generated
+          </span>
+        ) : null}
+        {shipment?.tracking_url ? (
+          <a
+            className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            href={shipment.tracking_url}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <ExternalLink aria-hidden="true" size={15} />
+            Open Tracking
+          </a>
+        ) : null}
       </div>
 
       {error ? (
@@ -259,6 +316,7 @@ function ShipmentGroup({
           {error instanceof Error ? error.message : "Shipment action failed."}
         </p>
       ) : null}
+      </div>
     </section>
   );
 }
@@ -338,11 +396,9 @@ export function OrderShipmentGroups({
     <div className="space-y-4">
       {groups.map((group, index) => (
         <div key={group.warehouse.id}>
-          <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-            Shipment Group {index + 1}
-          </p>
           <ShipmentGroup
             groupItems={group.items}
+            groupNumber={index + 1}
             order={order}
             shipment={
               shipments.find(

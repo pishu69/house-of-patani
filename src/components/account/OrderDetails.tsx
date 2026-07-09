@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Headphones, Star } from "lucide-react";
+import { ExternalLink, Headphones, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Divider } from "@/components/common/Divider";
 import { OrderStatusTimeline } from "@/components/account/OrderStatusTimeline";
 import { reviewService } from "@/services";
+import { customerAccountService } from "@/services/customer-account.service";
 import type { Json, OrderItemRow, ReviewRow } from "@/types/database.types";
 import type { OrderConfirmation } from "@/types/order.types";
 import type { CatalogProduct } from "@/types/product.types";
@@ -26,6 +27,13 @@ function addressLines(address: Json) {
     address.country,
   ];
   return values.filter((value): value is string => typeof value === "string");
+}
+
+function customerShipmentStatus(status: string, hasAwb: boolean) {
+  if (!hasAwb) return "Preparing";
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 interface OrderDetailsProps {
@@ -49,8 +57,13 @@ export function OrderDetails({
   queryKey: ["order-reviews", order.id],
   queryFn: () => reviewService.listByOrder(order.id),
 });
+  const shipmentTrackingQuery = useQuery({
+    queryFn: () => customerAccountService.listOrderShipments(order),
+    queryKey: ["customer-order-shipments", order.id],
+  });
 
 const orderReviews = orderReviewsQuery.data?.data ?? [];
+const shipmentTracking = shipmentTrackingQuery.data?.data ?? [];
 
 function getReviewForItem(item: OrderItemRow) {
   return orderReviews.find(
@@ -265,7 +278,60 @@ setEditingReview(null);
         </section>
 
         <aside className="space-y-5">
-          {(order.courier_partner ||
+          {shipmentTracking.length > 0 ? (
+            <section className="rounded-lg border border-maroon/10 p-5">
+              <h3 className="text-xl">Shipping & Tracking</h3>
+              <div className="mt-4 space-y-3">
+                {shipmentTracking.map((shipment, index) => (
+                  <div
+                    className="rounded-md border border-maroon/10 bg-linen/25 p-3"
+                    key={shipment.id}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-charcoal">
+                        Shipment {index + 1}
+                      </p>
+                      <span className="rounded-full bg-maroon/5 px-2.5 py-1 text-xs font-semibold text-maroon">
+                        {customerShipmentStatus(
+                          shipment.shipment_status,
+                          Boolean(shipment.awb_number),
+                        )}
+                      </span>
+                    </div>
+                    <dl className="mt-3 space-y-2 text-sm">
+                      <div>
+                        <dt className="text-xs text-muted-foreground">AWB</dt>
+                        <dd className="mt-0.5 font-medium text-charcoal">
+                          {shipment.awb_number || "Preparing"}
+                        </dd>
+                      </div>
+                      {shipment.estimated_delivery_date ? (
+                        <div>
+                          <dt className="text-xs text-muted-foreground">
+                            Estimated delivery
+                          </dt>
+                          <dd className="mt-0.5 font-medium text-charcoal">
+                            {formatDate(shipment.estimated_delivery_date)}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                    {shipment.tracking_url ? (
+                      <a
+                        className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-full bg-maroon px-3.5 text-xs font-semibold text-ivory"
+                        href={shipment.tracking_url}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <ExternalLink aria-hidden="true" size={14} />
+                        Track shipment
+                      </a>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : (order.courier_partner ||
             order.tracking_number ||
             order.tracking_url ||
             order.dispatched_at ||

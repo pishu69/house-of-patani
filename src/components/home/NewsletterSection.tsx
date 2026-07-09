@@ -7,7 +7,7 @@ import { newsletterService } from "@/services";
 import { createImageSrcSet } from "@/utils/image";
 
 const NEWSLETTER_IMAGE =
-  "https://drlphuhxfplgctkjoucs.supabase.co/storage/v1/object/public/banner-images/newsletter/ChatGPT%20Image%20Jun%2029,%202026,%2005_31_37%20AM.png";
+  "/images/newsletter/house-of-patani-newsletter.png";
 
 export function NewsletterSection() {
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -43,10 +43,10 @@ export function NewsletterSection() {
     <section className="bg-linen/75 py-7 sm:py-10 lg:py-11">
       <div className="section-shell">
         <div className="grid overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-elegant lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="min-h-48 sm:min-h-52">
+          <div className="min-h-48 bg-linen sm:min-h-52">
             <img
-              alt="Folded textiles and handcrafted objects in a warm heritage setting"
-              className="h-full w-full object-cover"
+              alt="House of Patani newsletter featuring heritage architecture"
+              className="h-full w-full object-contain object-center"
               decoding="async"
               loading="lazy"
               sizes="(min-width: 1024px) 45vw, 100vw"

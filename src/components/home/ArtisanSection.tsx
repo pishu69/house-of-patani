@@ -1,83 +1,73 @@
 import { motion } from "framer-motion";
-import { useSettings } from "@/hooks";
-import { createImageSrcSet } from "@/utils/image";
+import {
+  BookOpen,
+  GraduationCap,
+  HeartHandshake,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
-const ARTISAN_IMAGE = "/images/about/artisan.jpg";
+interface ImpactItem {
+  description: string;
+  Icon: LucideIcon;
+  title: string;
+}
 
-const artisanValues = [
+const impactItems: ImpactItem[] = [
   {
-    title: "Textile Lineages",
     description:
-      "Block printing, stitching, weaving, and dyeing with generational memory.",
+      "Support the documentation, preservation, and promotion of Koch Rajbanshi history, language, traditions, and cultural identity.",
+    Icon: BookOpen,
+    title: "Preserve Our Heritage",
   },
   {
-    title: "Material Honesty",
     description:
-      "Cotton, brass, rosewood, paper, and natural textures shown with restraint.",
+      "Help organize youth awareness initiatives, leadership programs, cultural events, and community development projects.",
+    Icon: Users,
+    title: "Empower Our Youth",
   },
   {
-    title: "Slow Presentation",
     description:
-      "A calmer shopping rhythm built around meaning instead of urgency.",
+      "Contribute towards educational opportunities, learning resources, scholarships, and knowledge-sharing initiatives for students.",
+    Icon: GraduationCap,
+    title: "Support Education",
   },
   {
-    title: "Community First",
     description:
-      "A premium visual language that still honors the maker behind each object.",
+      "Provide assistance during emergencies and support meaningful welfare initiatives that improve the lives of Koch Rajbanshi families.",
+    Icon: HeartHandshake,
+    title: "Community Welfare",
   },
-] as const;
+];
 
 export function ArtisanSection() {
-  const settingsQuery = useSettings();
-  const settings = settingsQuery.data?.data;
-
   return (
-    <section className="bg-maroon py-7 text-ivory sm:py-10 lg:py-12">
-      <div className="section-shell grid items-start gap-4 lg:grid-cols-[0.85fr_1.15fr] lg:gap-7">
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-            viewport={{ once: true }}
-            whileInView={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">
-              {settings?.artisanEyebrow ?? "Artisan Community"}
-            </p>
-            <h2 className="mt-2.5 text-3xl leading-tight text-ivory sm:text-4xl lg:text-5xl">
-              {settings?.artisanTitle ?? "Crafted by hands that know patience."}
-            </h2>
-            <p className="mt-2.5 max-w-xl text-base leading-6 text-ivory/72">
-              {settings?.artisanDescription ??
-                "The visual language keeps the maker close: honest materials, measured pacing, and space for every detail to breathe."}
-            </p>
-          </motion.div>
+    <section className="bg-linen/55 py-8 sm:py-10 lg:py-12">
+      <div className="section-shell">
+        <motion.div
+          className="max-w-3xl"
+          initial={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
+        >
+          <p className="eyebrow">Every Order Creates an Impact</p>
+          <h2 className="mt-2.5 text-3xl leading-tight text-maroon sm:text-4xl lg:text-5xl">
+            Wear Your Heritage. Strengthen Your Community.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+            A portion of every House of Patani purchase is dedicated to
+            preserving our heritage and empowering the Koch Rajbanshi community
+            for generations to come.
+          </p>
+        </motion.div>
 
-          <motion.div
-            className="mt-4 overflow-hidden rounded-lg border border-ivory/15"
-            initial={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            viewport={{ once: true, amount: 0.25 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-          >
-            <img
-              alt="Artisan craft materials arranged in a warm workshop"
-              className="aspect-[4/3] w-full object-cover"
-              decoding="async"
-              loading="lazy"
-              sizes="(min-width: 1024px) 42vw, 100vw"
-              src={ARTISAN_IMAGE}
-              srcSet={createImageSrcSet(ARTISAN_IMAGE)}
-            />
-          </motion.div>
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-2">
-          {artisanValues.map((value, index) => (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {impactItems.map(({ description, Icon, title }, index) => (
             <motion.article
-              className="rounded-lg border border-ivory/15 bg-ivory/8 p-4 backdrop-blur-sm sm:min-h-36"
+              className="rounded-lg border border-maroon/10 bg-card p-4 shadow-lift"
               initial={{ opacity: 0, y: 18 }}
-              key={value.title}
+              key={title}
               transition={{
                 delay: index * 0.06,
                 duration: 0.5,
@@ -86,13 +76,35 @@ export function ArtisanSection() {
               viewport={{ once: true, amount: 0.2 }}
               whileInView={{ opacity: 1, y: 0 }}
             >
-              <h3 className="text-xl text-ivory sm:text-2xl">{value.title}</h3>
-              <p className="mt-1.5 text-sm leading-6 text-ivory/72">
-                {value.description}
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/15 text-maroon">
+                <Icon aria-hidden="true" size={17} />
+              </span>
+              <h3 className="mt-3 text-xl text-charcoal">{title}</h3>
+              <p className="mt-1.5 text-sm leading-5 text-muted-foreground">
+                {description}
               </p>
             </motion.article>
           ))}
         </div>
+
+        <motion.div
+          className="mt-5 grid gap-3 border-t border-maroon/10 pt-5 text-sm leading-6 md:grid-cols-[1.15fr_0.85fr]"
+          initial={{ opacity: 0, y: 14 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
+        >
+          <p className="font-medium text-charcoal">
+            When House of Patani grows, our community grows with it. Every
+            purchase helps us invest back into initiatives that preserve our
+            heritage and strengthen future generations.
+          </p>
+          <p className="rounded-md border border-gold/25 bg-gold/8 px-4 py-3 text-muted-foreground">
+            <strong className="text-maroon">Transparency Matters</strong> - As
+            House of Patani grows, we will regularly share updates about the
+            community initiatives supported through your purchases.
+          </p>
+        </motion.div>
       </div>
     </section>
   );

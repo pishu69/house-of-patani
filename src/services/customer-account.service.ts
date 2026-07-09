@@ -18,6 +18,16 @@ import type {
 import type { Json, OrderItemRow, OrderRow } from "@/types/database.types";
 import type { OrderConfirmation } from "@/types/order.types";
 
+export interface CustomerShipmentTracking {
+  awb_number: string | null;
+  created_at: string;
+  estimated_delivery_date: string | null;
+  id: string;
+  shipment_status: string;
+  tracking_url: string | null;
+  updated_at: string;
+}
+
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
@@ -106,6 +116,30 @@ async function getSupabaseConfirmation(order: OrderRow) {
 }
 
 export const customerAccountService = {
+  async listOrderShipments(order: OrderRow) {
+    if (!supabase) return mockResponse<CustomerShipmentTracking[]>([]);
+
+    const { data, error } = await supabase.functions.invoke(
+      "customer-order-shipments",
+      {
+        body: {
+          customerEmail: order.customer_email,
+          customerPhone: order.customer_phone,
+          orderId: order.id,
+        },
+      },
+    );
+
+    if (error) throw new Error(error.message);
+    if (data?.message && !Array.isArray(data?.shipments)) {
+      throw new Error(data.message);
+    }
+
+    return supabaseResponse(
+      (data?.shipments ?? []) as CustomerShipmentTracking[],
+    );
+  },
+
   getSnapshot(): ServiceResponse<CustomerAccountSnapshot> {
     const { addresses, profile } = useCustomerStore.getState();
     return mockResponse({ addresses, profile });
