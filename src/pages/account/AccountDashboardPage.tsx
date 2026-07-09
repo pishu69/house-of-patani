@@ -1,4 +1,11 @@
-import { Heart, MapPin, PackageSearch, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Heart,
+  MapPin,
+  PackageSearch,
+  Search,
+  UserRound,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { ROUTES } from "@/constants/routes";
@@ -72,6 +79,29 @@ export function AccountDashboardPage() {
           </Link>
         ))}
       </div>
+      <section className="mt-4 rounded-lg border border-maroon/10 bg-linen/45 p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-maroon/8 text-maroon">
+              <Search aria-hidden="true" size={18} />
+            </span>
+            <div>
+              <h3 className="text-lg">Need to find a guest order?</h3>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+                If you placed an order without signing in, you can still look
+                it up using your order details.
+              </p>
+            </div>
+          </div>
+          <Link
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-maroon/25 px-4 text-sm font-semibold text-maroon transition hover:bg-maroon/5"
+            to={ROUTES.ORDER_LOOKUP}
+          >
+            Find Guest Order
+            <ArrowRight aria-hidden="true" size={16} />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

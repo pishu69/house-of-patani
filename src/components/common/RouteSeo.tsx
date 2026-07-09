@@ -60,14 +60,14 @@ const routeMetadata: Record<string, RouteMetadata> = {
   },
   [ROUTES.LOGIN]: {
     description:
-      "Sign in securely to your House of Patani customer account with mobile OTP.",
+      "Sign in securely to your House of Patani customer account with email or Google.",
     noIndex: true,
     title: "Customer Login",
   },
   [ROUTES.VERIFY_OTP]: {
-    description: "Verify your mobile number to access your customer account.",
+    description: "Customer account sign-in.",
     noIndex: true,
-    title: "Verify OTP",
+    title: "Customer Login",
   },
   [ROUTES.ORDER_LOOKUP]: {
     description:

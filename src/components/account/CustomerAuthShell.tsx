@@ -1,4 +1,4 @@
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
@@ -32,13 +32,13 @@ export function CustomerAuthShell({
             Your orders and keepsakes, gathered together.
           </h1>
           <p className="mt-6 max-w-md text-sm leading-7 text-ivory/70">
-            Secure mobile verification connects guest orders, delivery
-            addresses, and saved pieces without changing the ease of checkout.
+            Sign in to keep orders, delivery addresses, and saved pieces close
+            at hand without changing the ease of checkout.
           </p>
         </div>
         <p className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-ivory/50">
-          <ShieldCheck aria-hidden="true" size={15} />
-          Verified mobile access
+          <Mail aria-hidden="true" size={15} />
+          Email and Google access
         </p>
       </section>
 

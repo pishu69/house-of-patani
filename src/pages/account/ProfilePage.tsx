@@ -12,12 +12,9 @@ import {
 import { applyZodErrors } from "@/lib/form-validation";
 import { customerAccountService } from "@/services";
 import { useCustomerStore } from "@/stores/customer.store";
-import { useCustomerAuth } from "@/hooks";
 
 export function ProfilePage() {
   const profile = useCustomerStore((state) => state.profile);
-  const { status } = useCustomerAuth();
-  const isAuthenticated = status === "authenticated";
   const {
     formState: { errors },
     handleSubmit,
@@ -48,9 +45,8 @@ export function ProfilePage() {
       <p className="eyebrow">Profile</p>
       <h2 className="mt-2 text-3xl">Your contact details</h2>
       <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-        {isAuthenticated
-          ? "Your verified mobile links orders to this account. Name and email changes sync securely when Supabase is available."
-          : "These details help find orders placed from this device. OTP sign-in connects them to a verified customer account."}
+        Keep your name, email, and mobile number up to date for orders and
+        delivery updates.
       </p>
       <form
         className="mt-7 grid max-w-2xl gap-5 sm:grid-cols-2"
@@ -73,11 +69,10 @@ export function ProfilePage() {
           <FormFieldError message={errors.email?.message} />
         </label>
         <label className="text-sm font-semibold text-charcoal">
-          Phone
+          Mobile number
           <input
             autoComplete="tel"
             className={fieldClass}
-            disabled={isAuthenticated}
             inputMode="tel"
             {...register("phone")}
           />

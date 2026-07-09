@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import { AccountSidebar } from "@/components/account/AccountSidebar";
-import { CustomerSignInPlaceholder } from "@/components/account/CustomerSignInPlaceholder";
 import { IconButton } from "@/components/common/IconButton";
+import { APP_CONFIG } from "@/constants/config";
 import { useCustomerAuth } from "@/hooks";
 import { useCustomerStore } from "@/stores/customer.store";
 
@@ -16,12 +16,12 @@ export function AccountLayout() {
   return (
     <section className="bg-background py-10 sm:py-14">
       <div className="section-shell">
-        {session?.isDemo ? (
+        {APP_CONFIG.ENABLE_PHONE_OTP_LOGIN && session?.isDemo ? (
           <div className="mb-5 rounded-md bg-gold px-4 py-2 text-center text-xs font-semibold text-charcoal">
             Demo Customer Mode - not connected to MSG91
           </div>
         ) : null}
-        <header className="mb-8 flex items-end justify-between gap-4">
+        <header className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Your account</p>
             <h1 className="mt-2 text-4xl sm:text-5xl">
@@ -40,7 +40,6 @@ export function AccountLayout() {
         </header>
 
         <div className="overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-lift">
-          <CustomerSignInPlaceholder />
           <div className="grid md:grid-cols-[14rem_minmax(0,1fr)]">
             <aside
               className={`border-b border-maroon/10 p-4 md:block md:border-b-0 md:border-r md:p-5 ${

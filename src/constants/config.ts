@@ -4,6 +4,7 @@ export const APP_CONFIG = {
   CONTACT_EMAIL: "hello@houseofpatani.com",
   DESCRIPTION:
     "Discover Indian craft, handwoven textiles, jewelry, home accents, and keepsakes selected with a quiet sense of heritage.",
+  ENABLE_PHONE_OTP_LOGIN: false,
   NAME: "House of Patani",
   SITE_URL:
     configuredSiteUrl && /^https?:\/\//i.test(configuredSiteUrl)

@@ -75,25 +75,31 @@ export function CartDrawer({
     <div className="fixed inset-0 z-[80]">
       <button
         aria-label="Close cart"
-        className="absolute inset-0 bg-charcoal/45"
+        className="absolute inset-0 bg-charcoal/35 backdrop-blur-[1px] md:bg-charcoal/45 md:backdrop-blur-0"
         onClick={onClose}
         type="button"
       />
       <aside
         aria-label={title}
         aria-modal="true"
-        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-background p-5 shadow-elegant sm:p-6"
+        className="absolute inset-x-0 bottom-0 flex h-[min(78vh,calc(100dvh-2rem))] w-full animate-in slide-in-from-bottom-8 duration-300 flex-col rounded-t-[1.5rem] border border-maroon/10 bg-background p-4 shadow-elegant sm:p-5 md:inset-x-auto md:bottom-auto md:right-0 md:top-0 md:h-full md:min-w-[24rem] md:max-w-md md:animate-in md:slide-in-from-right-8 md:rounded-none md:border-y-0 md:border-l md:border-r-0 md:p-6"
         ref={drawerRef}
         role="dialog"
         tabIndex={-1}
       >
-        <div className="flex items-center justify-between gap-4">
+        <div
+          aria-hidden="true"
+          className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-maroon/20 md:hidden"
+        />
+        <div className="flex shrink-0 items-center justify-between gap-4">
           <h2 className="text-3xl">{title}</h2>
           <IconButton aria-label="Close cart" onClick={onClose}>
             <X aria-hidden="true" size={20} />
           </IconButton>
         </div>
-        <div className="mt-5 min-h-0 flex-1 overflow-y-auto">{children}</div>
+        <div className="mt-4 min-h-0 flex-1 overflow-hidden md:mt-5">
+          {children}
+        </div>
       </aside>
     </div>
   );

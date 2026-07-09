@@ -1,10 +1,24 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 import { Loading } from "@/components/common/Loading";
+import { APP_CONFIG } from "@/constants/config";
 import { AccountLayout } from "@/layouts/AccountLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { MainLayout } from "@/layouts/MainLayout";
+
+const verifyOtpRoute = APP_CONFIG.ENABLE_PHONE_OTP_LOGIN
+  ? {
+      path: ROUTES.VERIFY_OTP,
+      lazy: async () => {
+        const { VerifyOtpPage } = await import("@/pages/VerifyOtpPage");
+        return { Component: VerifyOtpPage };
+      },
+    }
+  : {
+      path: ROUTES.VERIFY_OTP,
+      element: <Navigate replace to={ROUTES.LOGIN} />,
+    };
 
 export const router = createBrowserRouter([
   {
@@ -25,13 +39,7 @@ export const router = createBrowserRouter([
           return { Component: LoginPage };
         },
       },
-      {
-        path: ROUTES.VERIFY_OTP,
-        lazy: async () => {
-          const { VerifyOtpPage } = await import("@/pages/VerifyOtpPage");
-          return { Component: VerifyOtpPage };
-        },
-      },
+      verifyOtpRoute,
       {
         path: ROUTES.SHOP,
         lazy: async () => {

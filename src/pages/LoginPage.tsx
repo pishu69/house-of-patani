@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { CustomerAuthShell } from "@/components/account/CustomerAuthShell";
 import { FormFieldError } from "@/components/admin/FormFieldError";
 import { Button } from "@/components/ui/button";
+import { APP_CONFIG } from "@/constants/config";
 import { ROUTES } from "@/constants/routes";
 import { useCustomerAuth } from "@/hooks";
 import {
@@ -35,6 +36,7 @@ export function LoginPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPhoneOtp, setShowPhoneOtp] = useState(false);
+  const phoneOtpEnabled = APP_CONFIG.ENABLE_PHONE_OTP_LOGIN;
 
   const {
     formState: { errors },
@@ -120,7 +122,7 @@ export function LoginPage() {
 
   return (
     <CustomerAuthShell
-      description="Sign in with email or Google. Mobile OTP will be enabled after DLT registration is completed."
+      description="Sign in with your email address or Google account."
       eyebrow="Customer sign in"
       title="Welcome back"
     >
@@ -176,80 +178,86 @@ export function LoginPage() {
         </Button>
       </div>
 
-      <div className="my-6 border-t border-maroon/10" />
-
-      <button
-        className="text-sm font-semibold text-maroon hover:text-gold"
-        onClick={() => setShowPhoneOtp((value) => !value)}
-        type="button"
-      >
-        {showPhoneOtp ? "Hide mobile OTP" : "Use mobile OTP instead"}
-      </button>
-
-      {showPhoneOtp ? (
+      {phoneOtpEnabled ? (
         <>
-          {canUseDemoCustomer ? (
-            <div className="mt-6 rounded-md border border-gold/40 bg-gold/10 p-4 text-xs leading-6 text-charcoal">
-              <p className="font-semibold">
-                Demo Customer Mode - not connected to MSG91
-              </p>
-              <p className="mt-1">Use OTP 123456 during local development.</p>
-            </div>
-          ) : null}
+          <div className="my-6 border-t border-maroon/10" />
 
-          {unavailable || authError ? (
-            <div
-              className="mt-6 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive"
-              role="alert"
-            >
-              {unavailable
-                ? "Mobile OTP is not available yet."
-                : authError}
-            </div>
-          ) : null}
-
-          <form
-            className="mt-6 space-y-5"
-            noValidate
-            onSubmit={handleSubmit(submitPhone)}
+          <button
+            className="text-sm font-semibold text-maroon hover:text-gold"
+            onClick={() => setShowPhoneOtp((value) => !value)}
+            type="button"
           >
-            <label className="block text-sm font-semibold text-charcoal">
-              Mobile number
-              <div className="mt-2 flex h-12 overflow-hidden rounded-md border border-maroon/15 bg-background focus-within:ring-2 focus-within:ring-maroon">
-                <span className="flex items-center border-r border-maroon/10 px-3 text-sm text-muted-foreground">
-                  +91
-                </span>
-                <input
-                  autoComplete="tel"
-                  className="min-w-0 flex-1 bg-transparent px-3 text-sm font-normal text-charcoal outline-none"
-                  disabled={isLoading || unavailable}
-                  inputMode="numeric"
-                  maxLength={10}
-                  placeholder="98765 43210"
-                  {...register("phone")}
-                />
-              </div>
-              <FormFieldError message={errors.phone?.message} />
-            </label>
+            {showPhoneOtp ? "Hide mobile OTP" : "Use mobile OTP instead"}
+          </button>
 
-            <Button
-              disabled={isLoading || unavailable}
-              fullWidth
-              size="lg"
-              type="submit"
-            >
-              {isLoading ? (
-                <LoaderCircle
-                  aria-hidden="true"
-                  className="animate-spin"
-                  size={18}
-                />
-              ) : (
-                <Smartphone aria-hidden="true" size={18} />
-              )}
-              {isLoading ? "Sending OTP..." : "Send secure OTP"}
-            </Button>
-          </form>
+          {showPhoneOtp ? (
+            <>
+              {canUseDemoCustomer ? (
+                <div className="mt-6 rounded-md border border-gold/40 bg-gold/10 p-4 text-xs leading-6 text-charcoal">
+                  <p className="font-semibold">
+                    Demo Customer Mode - not connected to MSG91
+                  </p>
+                  <p className="mt-1">
+                    Use OTP 123456 during local development.
+                  </p>
+                </div>
+              ) : null}
+
+              {unavailable || authError ? (
+                <div
+                  className="mt-6 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive"
+                  role="alert"
+                >
+                  {unavailable
+                    ? "Mobile OTP is not available yet."
+                    : authError}
+                </div>
+              ) : null}
+
+              <form
+                className="mt-6 space-y-5"
+                noValidate
+                onSubmit={handleSubmit(submitPhone)}
+              >
+                <label className="block text-sm font-semibold text-charcoal">
+                  Mobile number
+                  <div className="mt-2 flex h-12 overflow-hidden rounded-md border border-maroon/15 bg-background focus-within:ring-2 focus-within:ring-maroon">
+                    <span className="flex items-center border-r border-maroon/10 px-3 text-sm text-muted-foreground">
+                      +91
+                    </span>
+                    <input
+                      autoComplete="tel"
+                      className="min-w-0 flex-1 bg-transparent px-3 text-sm font-normal text-charcoal outline-none"
+                      disabled={isLoading || unavailable}
+                      inputMode="numeric"
+                      maxLength={10}
+                      placeholder="98765 43210"
+                      {...register("phone")}
+                    />
+                  </div>
+                  <FormFieldError message={errors.phone?.message} />
+                </label>
+
+                <Button
+                  disabled={isLoading || unavailable}
+                  fullWidth
+                  size="lg"
+                  type="submit"
+                >
+                  {isLoading ? (
+                    <LoaderCircle
+                      aria-hidden="true"
+                      className="animate-spin"
+                      size={18}
+                    />
+                  ) : (
+                    <Smartphone aria-hidden="true" size={18} />
+                  )}
+                  {isLoading ? "Sending OTP..." : "Send secure OTP"}
+                </Button>
+              </form>
+            </>
+          ) : null}
         </>
       ) : null}
 
