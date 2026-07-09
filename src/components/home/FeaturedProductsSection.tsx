@@ -55,14 +55,14 @@ export function FeaturedProductsSection() {
   }
 
   return (
-    <section className="bg-linen/75 py-16 sm:py-20 lg:py-24">
+    <section className="bg-linen/75 py-12 sm:py-16 lg:py-20">
       <div className="section-shell">
         <SectionHeader
           description="A considered edit of signature pieces, selected for their texture, warmth, and enduring presence."
           eyebrow="Featured Edit"
           title="Objects with a sense of lineage"
         />
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-7 sm:mt-9">
           <ProductCarousel
             ariaLabel="Featured products"
             products={featuredProducts}

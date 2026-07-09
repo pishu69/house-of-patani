@@ -11,7 +11,7 @@ export function CategorySection() {
 
   return (
     <section
-      className="scroll-mt-24 bg-background py-16 sm:py-20 lg:py-24"
+      className="scroll-mt-24 bg-background py-12 sm:py-16 lg:py-20"
       id="categories"
     >
       <div className="section-shell">
@@ -21,7 +21,7 @@ export function CategorySection() {
           title="Crafted for everyday ceremony"
         />
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-7 grid grid-cols-2 gap-3 sm:mt-9 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
           {categories.map((category, index) => (
             <motion.div
               initial={{ opacity: 0, y: 20 }}

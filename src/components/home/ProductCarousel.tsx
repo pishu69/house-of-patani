@@ -24,7 +24,7 @@ export function ProductCarousel({
 
   return (
     <div>
-      <div className="mb-5 flex justify-end gap-2">
+      <div className="mb-4 flex justify-end gap-2">
         <IconButton
           aria-label="Previous products"
           onClick={() => scroll(-1)}
@@ -44,7 +44,7 @@ export function ProductCarousel({
       </div>
       <div
         aria-label={ariaLabel}
-        className="grid snap-x snap-mandatory auto-cols-[47%] grid-flow-col gap-3 overflow-x-auto pb-4 sm:auto-cols-[32%] sm:gap-4 lg:auto-cols-[24%] xl:auto-cols-[19%]"
+        className="grid snap-x snap-mandatory auto-cols-[44%] grid-flow-col gap-3 overflow-x-auto pb-4 sm:auto-cols-[31%] sm:gap-4 lg:auto-cols-[23%] xl:auto-cols-[18.5%]"
         ref={trackRef}
         role="region"
         tabIndex={0}

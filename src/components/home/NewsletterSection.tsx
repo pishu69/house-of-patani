@@ -40,13 +40,13 @@ export function NewsletterSection() {
   }
 
   return (
-    <section className="bg-linen/75 py-7 sm:py-10 lg:py-11">
+    <section className="bg-linen/75 py-8 sm:py-10 lg:py-12">
       <div className="section-shell">
-        <div className="grid overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-elegant lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="min-h-48 bg-linen sm:min-h-52">
+        <div className="grid overflow-visible rounded-lg border border-maroon/10 bg-card pt-0 shadow-elegant lg:grid-cols-[0.85fr_1.15fr] lg:overflow-hidden">
+          <div className="-mt-6 flex justify-center bg-transparent px-4 sm:-mt-7 lg:mt-0 lg:block lg:bg-linen lg:px-0">
             <img
               alt="House of Patani newsletter featuring heritage architecture"
-              className="h-full w-full object-contain object-center"
+              className="h-auto w-[78%] rounded-lg object-contain object-center shadow-[0_18px_45px_-32px_rgb(54_28_24_/_0.65)] sm:w-[72%] lg:h-full lg:w-full lg:rounded-none lg:shadow-none"
               decoding="async"
               loading="lazy"
               sizes="(min-width: 1024px) 45vw, 100vw"
@@ -54,12 +54,12 @@ export function NewsletterSection() {
               srcSet={createImageSrcSet(NEWSLETTER_IMAGE)}
             />
           </div>
-          <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-7">
+          <div className="flex flex-col justify-center px-4 pb-4 pt-5 sm:px-6 sm:pb-6 sm:pt-6 lg:p-7">
             <p className="eyebrow">Patani Letters</p>
-            <h2 className="mt-2.5 text-3xl leading-tight sm:text-4xl md:text-[2.5rem]">
+            <h2 className="mt-2.5 text-3xl leading-tight sm:text-4xl md:text-[2.35rem]">
               Receive the quiet luxury of craft in your inbox.
             </h2>
-            <p className="mt-2 text-base leading-6 text-muted-foreground">
+            <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
               Seasonal edits, artisan stories, and collection notes from House
               of Patani.
             </p>

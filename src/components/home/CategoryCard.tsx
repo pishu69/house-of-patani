@@ -21,7 +21,7 @@ function CategoryCardComponent({ category, to }: CategoryCardProps) {
         className="group flex h-full flex-col overflow-hidden rounded-lg border border-maroon/10 bg-card shadow-lift transition duration-300 hover:border-gold/60"
         to={to}
       >
-        <div className="aspect-[16/9] overflow-hidden">
+        <div className="aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
           <img
             alt={category.name}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
@@ -32,10 +32,10 @@ function CategoryCardComponent({ category, to }: CategoryCardProps) {
             srcSet={createImageSrcSet(category.imageUrl)}
           />
         </div>
-        <div className="flex flex-1 items-start justify-between gap-3 p-3 sm:p-4">
+        <div className="flex flex-1 items-start justify-between gap-2.5 p-3 sm:gap-3 sm:p-4">
           <div>
-            <h3 className="text-lg leading-snug sm:text-xl">{category.name}</h3>
-            <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
+            <h3 className="text-base leading-snug sm:text-xl">{category.name}</h3>
+            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground sm:mt-1.5 sm:text-sm">
               {category.description}
             </p>
           </div>

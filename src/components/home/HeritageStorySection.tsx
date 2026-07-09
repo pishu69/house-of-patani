@@ -76,9 +76,9 @@ export function HeritageStorySection({ compact = false }: { compact?: boolean })
     ? [historicalStory[0], historicalStory[2], historicalStory[4]]
     : historicalStory;
   return (
-    <section className="bg-background py-9 sm:py-12 lg:py-14">
+    <section className="bg-background py-10 sm:py-14 lg:py-16">
       <div className="section-shell">
-        <div className="grid items-center gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
+        <div className="grid items-center gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-10">
           <motion.div
             className="overflow-hidden rounded-lg shadow-elegant"
             initial={{ opacity: 0, x: -24 }}
@@ -88,7 +88,7 @@ export function HeritageStorySection({ compact = false }: { compact?: boolean })
           >
             <img
               alt="Traditional Koch Rajbanshi craft and textiles in a heritage interior"
-              className="aspect-[5/4] w-full object-cover lg:aspect-[4/5]"
+              className="aspect-[4/3] w-full object-cover lg:aspect-[4/5]"
               decoding="async"
               loading="lazy"
               src="/images/about/heritage.jpg"
@@ -105,7 +105,7 @@ export function HeritageStorySection({ compact = false }: { compact?: boolean })
             <h2 className="mt-2.5 text-3xl leading-tight sm:text-4xl lg:text-5xl">
               A living heritage, carried forward.
             </h2>
-            <div className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+            <div className="mt-3.5 space-y-2.5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
               {history.map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}

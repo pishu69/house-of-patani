@@ -22,11 +22,11 @@ export function HeroSection() {
   const heroQuote = settings?.heroQuote || "Hand-selected craft, softened by time.";
 
   return (
-    <section className="relative flex min-h-[calc(82svh-5rem)] items-end overflow-hidden bg-ivory sm:min-h-[calc(86svh-5rem)]">
+    <section className="relative flex min-h-[min(680px,calc(76svh-4rem))] items-end overflow-hidden bg-ivory sm:min-h-[calc(82svh-5rem)] lg:min-h-[calc(86svh-5rem)]">
       {heroImage ? (
         <img
         alt="Handcrafted heritage textile in warm maroon and gold tones"
-        className="absolute inset-0 h-full w-full object-cover object-[72%_center] sm:object-[68%_center] md:object-[60%_center] lg:object-center"
+        className="absolute inset-0 h-full w-full object-cover object-[66%_center] sm:object-[68%_center] md:object-[60%_center] lg:object-center"
         decoding="async"
         fetchPriority="high"
         loading="eager"
@@ -37,25 +37,25 @@ export function HeroSection() {
       ) : null}
       <div className={heroImage ? "absolute inset-0 bg-charcoal/60" : "absolute inset-0 bg-ivory"} />
 
-      <div className="section-shell relative z-10 py-12 sm:py-16 lg:py-20">
+      <div className="section-shell relative z-10 py-9 sm:py-14 lg:py-[4.5rem]">
         <motion.div
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl"
           initial={{ opacity: 0, y: 24 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">
+          <p className="max-w-[19rem] text-[11px] font-semibold uppercase leading-5 tracking-[0.24em] text-gold sm:max-w-none sm:text-xs sm:tracking-[0.28em]">
             {heroSubtitle}
           </p>
-          <h1 className="mt-4 text-5xl leading-none text-ivory sm:text-6xl md:text-7xl lg:text-8xl">
+          <h1 className="mt-3 max-w-4xl text-5xl leading-[0.95] text-ivory sm:mt-4 sm:text-6xl md:text-7xl lg:text-8xl">
             {heroTitle}
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-ivory/80 sm:text-lg sm:leading-8">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-ivory/82 sm:mt-5 sm:text-lg sm:leading-8">
             {heroDescription}
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:gap-3">
             <Link
-              className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ivory px-5 py-2 text-sm font-semibold text-maroon shadow-lift transition duration-300 hover:bg-gold hover:text-charcoal"
+              className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ivory px-5 py-2 text-sm font-semibold text-maroon shadow-lift transition duration-300 hover:bg-gold hover:text-charcoal sm:min-w-40"
               to={ROUTES.SHOP}
             >
               Shop Collection
@@ -65,13 +65,13 @@ export function HeroSection() {
               />
             </Link>
             <Link
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-ivory/40 px-5 py-2 text-sm font-semibold text-ivory transition hover:border-ivory hover:bg-ivory/10"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-ivory/40 px-5 py-2 text-sm font-semibold text-ivory transition hover:border-ivory hover:bg-ivory/10 sm:min-w-36"
               to={ROUTES.ABOUT}
             >
               Our Heritage
             </Link>
           </div>
-          <p className="mt-8 max-w-xl border-l border-gold/70 pl-4 font-serif text-xl leading-7 text-ivory/85 sm:text-2xl">
+          <p className="mt-6 max-w-xl border-l border-gold/70 pl-4 font-serif text-lg leading-7 text-ivory/85 sm:mt-8 sm:text-2xl">
             {heroQuote}
           </p>
         </motion.div>
@@ -79,6 +79,4 @@ export function HeroSection() {
     </section>
   );
 }
-
-
 

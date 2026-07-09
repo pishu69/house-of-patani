@@ -42,7 +42,7 @@ const impactItems: ImpactItem[] = [
 
 export function ArtisanSection() {
   return (
-    <section className="bg-linen/55 py-8 sm:py-10 lg:py-12">
+    <section className="bg-linen/55 py-10 sm:py-12 lg:py-14">
       <div className="section-shell">
         <motion.div
           className="max-w-3xl"
@@ -62,10 +62,10 @@ export function ArtisanSection() {
           </p>
         </motion.div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {impactItems.map(({ description, Icon, title }, index) => (
             <motion.article
-              className="rounded-lg border border-maroon/10 bg-card p-4 shadow-lift"
+              className="flex h-full flex-col rounded-lg border border-maroon/10 bg-card p-4 shadow-lift"
               initial={{ opacity: 0, y: 18 }}
               key={title}
               transition={{
@@ -79,7 +79,7 @@ export function ArtisanSection() {
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/15 text-maroon">
                 <Icon aria-hidden="true" size={17} />
               </span>
-              <h3 className="mt-3 text-xl text-charcoal">{title}</h3>
+              <h3 className="mt-3 text-lg leading-snug text-charcoal sm:text-xl">{title}</h3>
               <p className="mt-1.5 text-sm leading-5 text-muted-foreground">
                 {description}
               </p>
