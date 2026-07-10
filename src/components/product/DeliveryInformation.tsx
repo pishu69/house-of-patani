@@ -78,17 +78,17 @@ export function DeliveryInformation({ product }: { product?: CatalogProduct }) {
   ];
 
   return (
-    <Card className="grid gap-5 p-5 sm:grid-cols-2">
+    <Card className="grid gap-4 p-4 sm:grid-cols-2">
       {deliveryItems.map(({ description, Icon, title }) => (
         <div className="flex gap-3" key={title}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold/15 text-maroon">
-            <Icon aria-hidden="true" size={17} />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-maroon">
+            <Icon aria-hidden="true" size={16} />
           </span>
           <div>
             <h3 className="font-sans text-sm font-semibold text-charcoal">
               {title}
             </h3>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
               {description}
             </p>
           </div>

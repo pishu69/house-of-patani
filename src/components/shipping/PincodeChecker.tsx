@@ -61,7 +61,7 @@ export function PincodeChecker({
   }
 
   return (
-    <div className="rounded-lg border border-maroon/10 bg-linen/35 p-3.5 sm:p-4">
+    <div className="rounded-lg border border-maroon/10 bg-linen/35 p-3.5 shadow-lift sm:p-4">
       <div className="flex items-center gap-2">
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/15 text-maroon">
           <MapPin aria-hidden="true" size={16} />
@@ -71,14 +71,14 @@ export function PincodeChecker({
             Delivery Estimate
           </h3>
           <p className="text-xs text-muted-foreground">
-            See courier availability before checkout.
+            Check serviceability before checkout.
           </p>
         </div>
       </div>
 
       <div className={compact ? "mt-3 grid gap-2" : "mt-3 flex flex-col gap-2 sm:flex-row"}>
         <input
-          className="h-11 min-w-0 rounded-full border border-maroon/15 bg-card px-4 text-sm"
+          className="h-10 min-w-0 rounded-full border border-maroon/15 bg-card px-4 text-sm focus:border-maroon/40 focus:ring-2 focus:ring-maroon/15"
           inputMode="numeric"
           maxLength={6}
           onChange={(event) => setPincode(event.target.value.replace(/\D/g, ""))}

@@ -34,18 +34,18 @@ export function ProductInfo({
 }: ProductInfoProps) {
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         {badge ? <Badge>{badge}</Badge> : null}
         {stock}
       </div>
-      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
         {category}
       </p>
-      <h1 className="mt-2 text-4xl leading-tight sm:text-5xl lg:text-6xl">
+      <h1 className="mt-2 text-4xl leading-[1.04] sm:text-5xl lg:text-[3.6rem]">
         {name}
       </h1>
       {rating !== undefined ? (
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           <RatingStars rating={rating} showValue />
           {reviewCount !== undefined ? (
             <a
@@ -57,8 +57,8 @@ export function ProductInfo({
           ) : null}
         </div>
       ) : null}
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        <p className="text-2xl font-semibold text-maroon">
+      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+        <p className="text-2xl font-semibold text-maroon sm:text-3xl">
           {formatCurrency(price)}
         </p>
         {originalPrice && originalPrice > price ? (
@@ -67,14 +67,16 @@ export function ProductInfo({
           </p>
         ) : null}
         {discount && discount > 0 ? (
-          <Badge variant="primary">{discount}% off</Badge>
+          <Badge className="bg-maroon/8 text-maroon" variant="ghost">
+            {discount}% off
+          </Badge>
         ) : null}
       </div>
-      <p className="mt-5 text-base leading-8 text-muted-foreground sm:text-lg">
+      <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
         {description}
       </p>
       {tags.length > 0 ? (
-        <div className="mt-5 flex flex-wrap gap-2" aria-label="Product tags">
+        <div className="mt-4 flex flex-wrap gap-2" aria-label="Product tags">
           {tags.map((tag) => (
             <Badge key={tag} variant="ghost">
               {tag}
@@ -82,7 +84,7 @@ export function ProductInfo({
           ))}
         </div>
       ) : null}
-      {actions ? <div className="mt-8">{actions}</div> : null}
+      {actions ? <div className="mt-6">{actions}</div> : null}
     </div>
   );
 }

@@ -50,26 +50,14 @@ export function ShopPage() {
 
   return (
     <>
-      <section className="border-b border-maroon/10 bg-linen/65 py-9 sm:py-12 lg:py-14">
-        <div className="section-shell max-w-4xl text-center">
-          <p className="eyebrow">The Collection</p>
-          <h1 className="mt-2.5 text-4xl leading-tight sm:text-5xl md:text-6xl">
-            Shop House of Patani
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
-            Explore textiles, jewelry, crafted objects, books, and home accents
-            selected with a quiet sense of heritage.
-          </p>
-        </div>
-      </section>
-<section
-        className="scroll-mt-24 bg-background py-8 sm:py-10 lg:py-12"
+      <section
+        className="scroll-mt-24 bg-background pb-8 pt-5 sm:pb-10 sm:pt-6 lg:pb-12 lg:pt-8"
         id="catalog"
       >
         <div className="section-shell">
           <div className="grid gap-6 lg:grid-cols-[16.5rem_1fr] lg:gap-8">
             <div className="hidden lg:block">
-              <div className="sticky top-28">
+              <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain pr-1 [scrollbar-width:thin]">
                 <FilterSidebar>
                   <ProductFilters {...filterProps} idPrefix="desktop" />
                 </FilterSidebar>
@@ -77,58 +65,71 @@ export function ShopPage() {
             </div>
 
             <div className="min-w-0">
-              <div className="grid gap-3 rounded-lg border border-maroon/10 bg-card p-3 shadow-lift sm:p-4 xl:grid-cols-[1fr_auto] xl:items-center">
-                <SearchBar
-                  onChange={catalog.setQuery}
-                  value={catalog.query}
-                />
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Button
-                    className="h-11 shrink-0 px-4 text-sm lg:hidden"
-                    onClick={() => setIsFilterDrawerOpen(true)}
-                    variant="outline"
+              <div className="rounded-lg border border-maroon/10 bg-card p-3 shadow-lift sm:p-4">
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,34rem)_auto] lg:items-center lg:justify-between">
+                  <div className="min-w-0 lg:max-w-xl">
+                    <SearchBar
+                      onChange={catalog.setQuery}
+                      value={catalog.query}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:gap-3">
+                    <Button
+                      className="h-11 shrink-0 px-4 text-sm lg:hidden"
+                      onClick={() => setIsFilterDrawerOpen(true)}
+                      variant="outline"
+                    >
+                      <SlidersHorizontal aria-hidden="true" size={17} />
+                      Filters
+                    </Button>
+                    <SortDropdown
+                      onChange={catalog.setSort}
+                      options={shopSortOptions}
+                      value={catalog.sort}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-maroon/10 pt-3">
+                  <p
+                    aria-live="polite"
+                    className="text-sm font-semibold text-charcoal"
                   >
-                    <SlidersHorizontal aria-hidden="true" size={17} />
-                    Filters
-                  </Button>
-                  <SortDropdown
-                    onChange={catalog.setSort}
-                    options={shopSortOptions}
-                    value={catalog.sort}
-                  />
+                    {catalog.filteredProducts.length} Products
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                    {catalog.visibleProducts.length > 0 ? (
+                      <span>
+                        Showing {catalog.resultStart}-{catalog.resultEnd}
+                      </span>
+                    ) : null}
+                    {catalog.category !== "all" ? (
+                      <span className="font-semibold text-maroon">
+                        {categoryNameBySlug[catalog.category]}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
               <div className="mt-4 flex gap-2 overflow-x-auto pb-2 lg:hidden">
-  {catalog.categoryOptions.map((category) => {
-    const selected = catalog.category === category.value;
+                {catalog.categoryOptions.map((category) => {
+                  const selected = catalog.category === category.value;
 
-    return (
-      <button
-        key={category.value}
-        type="button"
-        onClick={() => catalog.setCategory(category.value)}
-        className={
-          selected
-            ? "shrink-0 rounded-full bg-maroon px-3.5 py-2 text-xs font-semibold text-ivory shadow-lift"
-            : "shrink-0 rounded-full border border-maroon/20 bg-card px-3.5 py-2 text-xs font-semibold text-maroon"
-        }
-      >
-        {category.label}
-      </button>
-    );
-  })}
-</div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-b border-maroon/10 pb-4">
-                <p aria-live="polite" className="text-sm text-muted-foreground">
-                  Showing {catalog.resultStart}-{catalog.resultEnd} of{" "}
-                  {catalog.filteredProducts.length} products
-                </p>
-                {catalog.category !== "all" ? (
-                  <p className="text-sm font-semibold text-maroon">
-                    {categoryNameBySlug[catalog.category]}
-                  </p>
-                ) : null}
+                  return (
+                    <button
+                      key={category.value}
+                      type="button"
+                      onClick={() => catalog.setCategory(category.value)}
+                      className={
+                        selected
+                          ? "shrink-0 rounded-full bg-maroon px-3.5 py-2 text-xs font-semibold text-ivory shadow-lift"
+                          : "shrink-0 rounded-full border border-maroon/20 bg-card px-3.5 py-2 text-xs font-semibold text-maroon"
+                      }
+                    >
+                      {category.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {catalog.isPending ? (
@@ -198,4 +199,3 @@ export function ShopPage() {
     </>
   );
 }
-

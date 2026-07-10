@@ -15,7 +15,7 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         eyebrow="Complete the Story"
         title="You may also appreciate"
       />
-      <ProductGrid className="mt-10">
+      <ProductGrid className="mt-7 sm:mt-8">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

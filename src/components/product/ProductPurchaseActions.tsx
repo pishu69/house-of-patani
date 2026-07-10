@@ -27,9 +27,9 @@ export function ProductPurchaseActions({
   stock,
 }: ProductPurchaseActionsProps) {
   return (
-    <div>
+    <div className="rounded-lg border border-maroon/10 bg-card p-3.5 shadow-lift sm:p-4">
       <p className="mb-2 text-sm font-semibold text-charcoal">Quantity</p>
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         <div className="flex items-center justify-between gap-2">
           <QuantitySelector
             max={Math.max(stock, 1)}
@@ -42,7 +42,7 @@ export function ProductPurchaseActions({
               aria-label={
                 isWishlisted ? "Remove from wishlist" : "Add to wishlist"
               }
-              className="inline-flex min-h-10 items-center gap-1 px-0.5 text-[11px] font-semibold text-maroon transition duration-200 hover:-translate-y-0.5 hover:text-maroon/75 min-[360px]:text-xs sm:px-1.5 sm:text-sm"
+              className="inline-flex min-h-10 items-center gap-1 rounded-full px-1 text-[11px] font-semibold text-maroon transition duration-200 hover:bg-maroon/5 hover:text-maroon/75 min-[360px]:text-xs sm:px-2 sm:text-sm"
               onClick={onWishlistToggle}
               type="button"
             >
@@ -54,7 +54,8 @@ export function ProductPurchaseActions({
               <span>Wishlist</span>
             </button>
             <button
-              className="inline-flex min-h-10 items-center gap-1 px-0.5 text-[11px] font-semibold text-maroon transition duration-200 hover:-translate-y-0.5 hover:text-maroon/75 min-[360px]:text-xs sm:px-1.5 sm:text-sm"
+              aria-label="Share product"
+              className="inline-flex min-h-10 items-center gap-1 rounded-full px-1 text-[11px] font-semibold text-maroon transition duration-200 hover:bg-maroon/5 hover:text-maroon/75 min-[360px]:text-xs sm:px-2 sm:text-sm"
               onClick={onShare}
               type="button"
             >
@@ -76,7 +77,7 @@ export function ProductPurchaseActions({
             {stock === 0 ? "Out of Stock" : "Add to Cart"}
           </Button>
           <Button
-            className="px-3 text-sm sm:px-5 sm:text-base"
+            className="px-3 text-sm shadow-elegant sm:px-5 sm:text-base"
             disabled={stock === 0}
             fullWidth
             onClick={onBuyNow}

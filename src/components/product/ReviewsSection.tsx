@@ -45,9 +45,9 @@ export function ReviewsSection({
 
       {hasReviews ? (
         <>
-          <div className="mx-auto mt-8 grid max-w-4xl gap-5 rounded-lg border border-maroon/10 bg-card p-6 shadow-lift md:grid-cols-[0.85fr_1.15fr] md:p-8">
+          <div className="mx-auto mt-7 grid max-w-4xl gap-5 rounded-lg border border-maroon/10 bg-card p-5 shadow-lift md:grid-cols-[0.8fr_1.2fr] md:p-6">
             <div className="flex flex-col items-center justify-center text-center">
-              <p className="font-serif text-5xl text-charcoal">
+              <p className="font-serif text-4xl text-charcoal">
                 {rating.toFixed(1)}
               </p>
               <RatingStars className="mt-2" rating={rating} />
@@ -63,7 +63,7 @@ export function ReviewsSection({
                   key={star}
                 >
                   <span className="font-semibold text-charcoal">
-                    {star}★
+                    {star} star
                   </span>
 
                   <div className="h-2 overflow-hidden rounded-full bg-linen">
@@ -81,14 +81,14 @@ export function ReviewsSection({
             </div>
           </div>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {reviews.map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
           </div>
         </>
       ) : (
-        <div className="mx-auto mt-8 max-w-xl rounded-lg border border-maroon/10 bg-card p-8 text-center shadow-lift">
+        <div className="mx-auto mt-7 max-w-xl rounded-lg border border-maroon/10 bg-card p-6 text-center shadow-lift sm:p-8">
           <p className="font-serif text-3xl text-charcoal">No reviews yet</p>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
             Only verified customers who have purchased this product will be able

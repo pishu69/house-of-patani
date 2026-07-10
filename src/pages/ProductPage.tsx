@@ -378,7 +378,7 @@ ${productUrl}`;
         type="product"
       />
       <article className="bg-background">
-      <section className="py-8 sm:py-10">
+      <section className="py-6 sm:py-8 lg:py-10">
         <div className="section-shell">
           <Breadcrumb
             items={[
@@ -390,15 +390,15 @@ ${productUrl}`;
               { label: product.name },
             ]}
           />
-          <div className="mt-7 grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 xl:gap-14">
             <ProductGallery
               images={product.images}
               productName={product.name}
             />
-            <div className="lg:sticky lg:top-28">
+            <div className="lg:sticky lg:top-24">
               <ProductInfo
                 actions={
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
                     <PincodeChecker
                       originPincode={
                         warehouseOriginQuery.data?.originPincode ?? null
@@ -448,7 +448,7 @@ reviewCount={displayReviewCount}
         </div>
       </section>
 
-      <section className="border-y border-maroon/10 bg-linen/45 py-12 sm:py-16">
+      <section className="border-y border-maroon/10 bg-linen/45 py-8 sm:py-10 lg:py-12">
         <div className="section-shell max-w-5xl">
           <ProductTabs
             activeTab={activeTab}
@@ -458,7 +458,7 @@ reviewCount={displayReviewCount}
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-10 sm:py-14 lg:py-16">
         <div className="section-shell">
           <ReviewsSection
             rating={displayRating}
@@ -469,7 +469,7 @@ reviewCount={displayReviewCount}
       </section>
 
       {relatedProducts.length > 0 ? (
-        <section className="bg-linen/55 py-16 sm:py-20 lg:py-24">
+        <section className="bg-linen/55 py-10 sm:py-14 lg:py-16">
           <div className="section-shell">
             <RelatedProducts products={relatedProducts} />
           </div>

@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { CircleCheck, CircleX, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,7 +11,6 @@ import {
   shiprocketService,
   type CartDeliveryEstimate,
 } from "@/services/shiprocket.service";
-import { PageHero } from "@/components/common/PageHero";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useCart } from "@/hooks/useCart";
@@ -32,11 +31,10 @@ function deliveryDateText(estimate: CartDeliveryEstimate) {
     ? formatDeliveryDate(estimate.latestDeliveryDate)
     : earliest;
 
-  return earliest === latest ? earliest : `${earliest}–${latest}`;
+  return earliest === latest ? earliest : `${earliest} - ${latest}`;
 }
 
 export function CartPage() {
-  const [country, setCountry] = useState("India");
   const [postalCode, setPostalCode] = useState("");
   const [deliveryEstimate, setDeliveryEstimate] =
     useState<CartDeliveryEstimate | null>(null);
@@ -55,12 +53,7 @@ export function CartPage() {
   if (cartItems.length === 0) {
     return (
       <>
-        <PageHero
-          description="A calm place to review the pieces you have gathered from the House of Patani collection."
-          eyebrow="Cart"
-          title="Your selection awaits"
-        />
-        <section className="bg-background py-16">
+        <section className="bg-background pb-10 pt-6 sm:pb-12 sm:pt-8">
           <div className="section-shell">
             <EmptyCartState
               action={
@@ -78,14 +71,47 @@ export function CartPage() {
     );
   }
 
+  const deliveryResult = deliveryEstimate ? (
+    <div className="text-sm">
+      <p className="flex items-center gap-2 font-semibold text-charcoal">
+        {deliveryEstimate.serviceable ? (
+          <CircleCheck aria-hidden="true" className="text-maroon" size={17} />
+        ) : (
+          <CircleX aria-hidden="true" className="text-muted-foreground" size={17} />
+        )}
+        {deliveryEstimate.serviceable
+          ? "Delivery Available"
+          : "Delivery is currently unavailable for this PIN code."}
+      </p>
+      {deliveryEstimate.serviceable ? (
+        <div className="mt-2 space-y-1.5 text-muted-foreground">
+          <p>
+            Arrives by{" "}
+            <strong className="font-sans font-semibold text-maroon">
+              {deliveryDateText(deliveryEstimate)}
+            </strong>
+          </p>
+          <p className="font-medium text-charcoal">
+            Cash on Delivery{" "}
+            {deliveryEstimate.codAvailable ? "Available" : "Unavailable"}
+          </p>
+          {deliveryEstimate.isMultiWarehouse ? (
+            <p className="font-medium text-charcoal">
+              Items may arrive separately.
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Please try another PIN code.
+        </p>
+      )}
+    </div>
+  ) : null;
+
   return (
     <>
-      <PageHero
-        description="Review quantities, estimate delivery, and prepare your selection for checkout."
-        eyebrow="Cart"
-        title="Your Patani selection"
-      />
-      <section className="bg-background py-12 sm:py-16">
+      <section className="bg-background pb-8 pt-6 sm:pb-10 sm:pt-8">
         <div className="section-shell grid items-start gap-10 lg:grid-cols-[1fr_22rem]">
           <div>
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-maroon/10 pb-4">
@@ -135,11 +161,9 @@ export function CartPage() {
               ))}
             </div>
 
-            <div className="mt-8 grid gap-8 rounded-lg border border-maroon/10 bg-linen/35 p-5 sm:p-6 md:grid-cols-2">
-              
+            <div className="mt-7">
               <ShippingEstimator
-                country={country}
-                onCountryChange={setCountry}
+                isChecking={isEstimatingDelivery}
                 onEstimate={() => {
                   const destinationPincode = postalCode.replace(/\D/g, "");
 
@@ -169,43 +193,15 @@ export function CartPage() {
                 }}
                 onPostalCodeChange={setPostalCode}
                 postalCode={postalCode}
-              />
-              {isEstimatingDelivery || deliveryEstimate ? (
-                <div className="rounded-lg border border-maroon/10 bg-card p-4 text-sm">
-                  <h3 className="font-serif text-2xl text-charcoal">
-                    Delivery estimate
-                  </h3>
-                  {isEstimatingDelivery ? (
-                    <p className="mt-3 text-muted-foreground">
-                      Checking delivery estimate...
-                    </p>
-                  ) : deliveryEstimate ? (
-                  <div className="mt-3 space-y-2 text-muted-foreground">
-                    <p>
-                      PIN {postalCode}:{" "}
-                      {deliveryEstimate.serviceable
-                        ? "delivery available"
-                        : "delivery not available"}
-                    </p>
-                    <p>
-                      COD:{" "}
-                      {deliveryEstimate.codAvailable
-                        ? "available"
-                        : "not available"}
-                    </p>
-                    <p>
-                      Estimated delivery:{" "}
-                      {deliveryDateText(deliveryEstimate)}
-                    </p>
-                    {deliveryEstimate.isMultiWarehouse ? (
-                      <p className="font-medium text-charcoal">
-                        Items may arrive separately.
-                      </p>
-                    ) : null}
-                  </div>
-                  ) : null}
-                </div>
-              ) : null}
+              >
+                {isEstimatingDelivery ? (
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Checking delivery...
+                  </p>
+                ) : (
+                  deliveryResult
+                )}
+              </ShippingEstimator>
             </div>
 
             <Link

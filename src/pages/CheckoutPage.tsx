@@ -122,7 +122,7 @@ export function CheckoutPage() {
       setValue("addressLine1", savedAddress.line1);
       setValue("addressLine2", savedAddress.line2);
       setValue("city", savedAddress.city);
-      setValue("country", savedAddress.country);
+      setValue("country", "India");
       setValue("pincode", savedAddress.postalCode);
       setValue("state", savedAddress.state);
     }
@@ -478,12 +478,7 @@ async function submitCheckout(values: CheckoutFormValues) {
 
   return (
     <>
-      <PageHero
-        description="Secure guest checkout with clear delivery details and a final order review."
-        eyebrow="Checkout"
-        title="Complete your order"
-      />
-      <section className="overflow-x-hidden bg-background py-8 sm:py-14">
+      <section className="overflow-x-hidden bg-background pb-8 pt-6 sm:pb-10 sm:pt-8">
         <form
           className="section-shell grid min-w-0 items-start gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-8"
           noValidate
@@ -564,12 +559,7 @@ async function submitCheckout(values: CheckoutFormValues) {
                   maxLength={6}
                   registration={register("pincode")}
                 />
-                <CheckoutField
-                  autoComplete="country-name"
-                  error={errors.country?.message}
-                  label="Country"
-                  registration={register("country")}
-                />
+                <input type="hidden" value="India" {...register("country")} />
                 <div className="sm:col-span-2">
                   <CheckoutField
                     error={errors.landmark?.message}

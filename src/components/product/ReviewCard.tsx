@@ -12,7 +12,7 @@ interface ReviewCardProps {
 
 export function ReviewCard({ review }: ReviewCardProps) {
   return (
-    <Card className="p-6">
+    <Card className="p-5">
       <div className="flex items-center gap-3">
         <Avatar alt={review.author} fallback={review.author} />
         <div>
@@ -23,14 +23,14 @@ export function ReviewCard({ review }: ReviewCardProps) {
         </div>
       </div>
 
-      <RatingStars className="mt-4" rating={review.rating} />
+      <RatingStars className="mt-3.5" rating={review.rating} />
 
       <div className="mt-3 inline-flex rounded-full bg-linen px-2.5 py-1 text-xs font-semibold text-maroon">
-        ✓ Verified Purchase
+        Verified Purchase
       </div>
 
       {review.title ? (
-        <h3 className="mt-4 text-2xl">{review.title}</h3>
+        <h3 className="mt-4 text-xl">{review.title}</h3>
       ) : null}
 
       <p className="mt-3 text-sm leading-7 text-muted-foreground">
