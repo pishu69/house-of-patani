@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LockKeyhole, PackageCheck, ShieldCheck } from "lucide-react";
+import { ChevronDown, LockKeyhole, PackageCheck, ShieldCheck, Truck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,7 +9,6 @@ import {
   CheckoutField,
   CheckoutOrderSummary,
   PaymentMethodCard,
-  ShippingMethodCard,
 } from "@/components/checkout";
 import { EmptyCartState } from "@/components/cart/EmptyCartState";
 import { CouponInput } from "@/components/cart/CouponInput";
@@ -27,6 +26,7 @@ import {
   type CheckoutFormValues,
 } from "@/lib/checkout-schema";
 import { applyZodErrors } from "@/lib/form-validation";
+import { orderDeliveryEstimateStorage } from "@/lib/order-delivery-estimate";
 import {
   couponService,
   orderService,
@@ -106,6 +106,7 @@ export function CheckoutPage() {
 
     if (customerProfile.name) {
       const [firstName, ...lastNameParts] = customerProfile.name.split(" ");
+      setFullName(customerProfile.name);
       setValue("firstName", firstName ?? "");
       setValue("lastName", lastNameParts.join(" "));
     }
@@ -127,10 +128,11 @@ export function CheckoutPage() {
       setValue("state", savedAddress.state);
     }
   }, [customerProfile, savedAddresses, setValue]);
-  const shippingMethod = watch("shippingMethod");
   const settings = settingsQuery.data?.data;
   const catalog = productsQuery.data?.data ?? [];
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] = useState("");
   const [appliedCouponData, setAppliedCouponData] = useState<CouponRow | null>(null);
@@ -226,6 +228,13 @@ const coupons = couponsQuery.data?.data ?? [];
   async function finishOrder(
     response: Awaited<ReturnType<typeof orderService.createGuestOrder>>,
   ) {
+   if (deliveryEstimate?.earliestDeliveryDate) {
+     orderDeliveryEstimateStorage.set(response.data.order.order_number, {
+       earliestDeliveryDate: deliveryEstimate.earliestDeliveryDate,
+       isMultiWarehouse: deliveryEstimate.isMultiWarehouse,
+       latestDeliveryDate: deliveryEstimate.latestDeliveryDate,
+     });
+   }
    const couponCodeToIncrement =
   couponUsageCodeRef.current || appliedCoupon?.code || "";
 
@@ -300,6 +309,15 @@ setCouponCode(coupon.code);
 toast.success(`Coupon ${coupon.code} applied.`);
 }
 
+function removeCoupon() {
+  const removedCode = appliedCouponCode;
+  setAppliedCouponCode("");
+  setAppliedCouponData(null);
+  setCouponCode("");
+  couponUsageCodeRef.current = "";
+  toast.success(removedCode ? `Coupon ${removedCode} removed.` : "Coupon removed.");
+}
+
 async function submitCheckout(values: CheckoutFormValues) {
     const result = checkoutSchema.safeParse(values);
 
@@ -345,6 +363,16 @@ async function submitCheckout(values: CheckoutFormValues) {
       subtotal: checkoutState.subtotal,
       total: checkoutState.total,
     };
+
+    if (import.meta.env.DEV) {
+      console.debug("Created order pricing payload", {
+        couponCode: appliedCoupon?.code ?? null,
+        discount: checkout.discount,
+        shipping: checkout.shipping,
+        subtotal: checkout.subtotal,
+        total: checkout.total,
+      });
+    }
 
     if (result.data.paymentMethod === "cod") {
       placeOrderMutation.mutate(checkout);
@@ -475,6 +503,9 @@ async function submitCheckout(values: CheckoutFormValues) {
   razorpayEnabled,
 });
   const hasUnavailableItems = checkoutState.unavailable.length > 0;
+  const itemCount = checkoutState.items.reduce((total, item) => total + item.quantity, 0);
+  const checkoutButtonLabel = paymentMethod === "razorpay" ? "Proceed to Payment" : "Place COD Order";
+  const freeShippingThreshold = settings?.freeShippingThreshold ?? 5000;
 
   return (
     <>
@@ -484,50 +515,52 @@ async function submitCheckout(values: CheckoutFormValues) {
           noValidate
           onSubmit={handleSubmit(submitCheckout)}
         >
-          <div className="space-y-6">
-            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-7">
-              <p className="eyebrow">Step 1</p>
-              <h2 className="mt-2 text-3xl">Contact information</h2>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <CheckoutField
-                  autoComplete="given-name"
-                  error={errors.firstName?.message}
-                  label="First name"
-                  registration={register("firstName")}
-                />
-                <CheckoutField
-                  autoComplete="family-name"
-                  error={errors.lastName?.message}
-                  label="Last name"
-                  registration={register("lastName")}
-                />
+          <div className="space-y-4 pb-24 lg:pb-0">
+            <div className="rounded-lg border border-maroon/10 bg-card p-4 shadow-lift lg:hidden">
+              <button className="flex w-full items-center justify-between gap-4 text-left" onClick={() => setSummaryOpen((open) => !open)} type="button">
+                <span><span className="block text-sm font-semibold">{itemCount} {itemCount === 1 ? "Item" : "Items"}</span><span className="text-xs text-muted-foreground">{summaryOpen ? "Hide" : "View"} Your Order</span></span>
+                <span className="flex items-center gap-2 font-semibold text-maroon">{formatCurrency(checkoutState.total)}<ChevronDown className={summaryOpen ? "rotate-180 transition" : "transition"} size={18} /></span>
+              </button>
+              {summaryOpen ? <div className="mt-4 border-t border-maroon/10 pt-4"><CouponInput appliedCode={appliedCouponCode} discount={checkoutState.discount} id="coupon-mobile" onApply={applyCoupon} onChange={setCouponCode} onRemove={removeCoupon} value={couponCode} /><div className="mt-4"><CheckoutOrderSummary discount={checkoutState.discount} freeShippingThreshold={freeShippingThreshold} items={checkoutState.items} shipping={checkoutState.shipping} subtotal={checkoutState.subtotal} total={checkoutState.total} /></div></div> : null}
+            </div>
+
+            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-6">
+              <h2 className="text-2xl">Contact</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-semibold text-charcoal sm:col-span-2">Full Name *
+                  <input autoComplete="name" className="mt-1.5 h-11 w-full rounded-md border border-maroon/15 bg-card px-3.5 text-sm outline-none transition focus:border-maroon focus:ring-2 focus:ring-maroon/10" onChange={(event) => { const value = event.target.value; const [first, ...rest] = value.trimStart().split(/\s+/); setFullName(value); setValue("firstName", first || "", { shouldValidate: true }); setValue("lastName", rest.join(" "), { shouldValidate: true }); }} placeholder="Full name" value={fullName} />
+                  {errors.firstName || errors.lastName ? <span className="mt-1 block text-xs font-medium text-destructive">Enter your full name.</span> : null}
+                </label>
+                <input type="hidden" {...register("firstName")} /><input type="hidden" {...register("lastName")} />
                 <CheckoutField
                   autoComplete="tel"
                   error={errors.phone?.message}
                   inputMode="tel"
-                  label="Phone number"
+                  label="Phone Number *"
+                  placeholder="10-digit mobile number"
                   registration={register("phone")}
                   type="tel"
                 />
                 <CheckoutField
                   autoComplete="email"
                   error={errors.email?.message}
-                  label="Email"
+                  label="Email Address *"
+                  placeholder="you@example.com"
                   registration={register("email")}
                   type="email"
                 />
               </div>
             </section>
 
-            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-7">
-              <p className="eyebrow">Step 2</p>
-              <h2 className="mt-2 text-3xl">Shipping address</h2>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-6">
+              <h2 className="text-2xl">Delivery Address</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <CheckoutField
                     autoComplete="address-line1"
                     error={errors.addressLine1?.message}
-                    label="Address line 1"
+                    label="Full Address / House / Village *"
+                    placeholder="House number, building or village"
                     registration={register("addressLine1")}
                   />
                 </div>
@@ -535,27 +568,28 @@ async function submitCheckout(values: CheckoutFormValues) {
                   <CheckoutField
                     autoComplete="address-line2"
                     error={errors.addressLine2?.message}
-                    label="Address line 2"
+                    label="Address Line 2"
+                    placeholder="Apartment, floor or nearby detail (optional)"
                     registration={register("addressLine2")}
                   />
                 </div>
                 <CheckoutField
                   autoComplete="address-level2"
                   error={errors.city?.message}
-                  label="City"
+                  label="City *"
                   registration={register("city")}
                 />
                 <CheckoutField
                   autoComplete="address-level1"
                   error={errors.state?.message}
-                  label="State"
+                  label="State *"
                   registration={register("state")}
                 />
                 <CheckoutField
                   autoComplete="postal-code"
                   error={errors.pincode?.message}
                   inputMode="numeric"
-                  label="Pincode"
+                  label="PIN Code *"
                   maxLength={6}
                   registration={register("pincode")}
                 />
@@ -563,81 +597,53 @@ async function submitCheckout(values: CheckoutFormValues) {
                 <div className="sm:col-span-2">
                   <CheckoutField
                     error={errors.landmark?.message}
-                    label="Landmark or delivery notes"
+                    label="Landmark (Optional)"
                     registration={register("landmark")}
                   />
                 </div>
               </div>
-              {isEstimatingDelivery || deliveryEstimate ? (
-                <div className="mt-5 rounded-lg border border-maroon/10 bg-linen/35 p-4 text-sm">
+              <div className="mt-4 border-t border-maroon/10 pt-4">
+                <h3 className="text-xl">Delivery</h3>
+                <div className="mt-2 flex items-start gap-3 bg-linen/25 px-3 py-3 text-sm">
+                  <Truck className="mt-0.5 shrink-0 text-gold" size={18} />
+                  <div className="grid flex-1 gap-1 text-muted-foreground">
+                    <p className="font-semibold text-charcoal">Standard Shipping</p>
                   {isEstimatingDelivery ? (
                     <p className="text-muted-foreground">
-                      Checking Shiprocket delivery estimate...
+                      Checking delivery availability...
                     </p>
                   ) : deliveryEstimate ? (
-                    <div className="grid gap-2 text-muted-foreground sm:grid-cols-2">
-                      <p className="text-charcoal">
+                    <>
+                      <p className="font-medium text-charcoal">
                         {deliveryEstimate.serviceable
-                          ? "Delivery available"
+                          ? "✓ Delivery Available"
                           : "Delivery not available"}
                       </p>
                       <p>
-                        Estimated:{" "}
+                        Delivery by{" "}
                         {deliveryDateText(deliveryEstimate)}
                       </p>
                       <p>
-                        COD:{" "}
                         {deliveryEstimate.codAvailable
-                          ? "available"
-                          : "not available"}
+                          ? "Cash on Delivery Available"
+                          : "Cash on Delivery Not Available"}
                       </p>
                       {deliveryEstimate.isMultiWarehouse ? (
-                        <p className="font-medium text-charcoal sm:col-span-2">
+                        <p className="text-xs">
                           Items may arrive separately.
                         </p>
                       ) : null}
-                    </div>
-                  ) : null}
+                    </>
+                  ) : <p>Delivery estimate appears after entering a valid PIN code.</p>}
+                  </div>
                 </div>
-              ) : null}
-            </section>
-
-            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-7">
-              <p className="eyebrow">Step 3</p>
-              <h2 className="mt-2 text-3xl">Shipping method</h2>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <ShippingMethodCard
-                  description={
-                    checkoutState.shipping === 0
-                      ? `Free shipping applied above ${formatCurrency(
-                          settings?.freeShippingThreshold ?? 5000,
-                        )}.`
-                      : "Tracked delivery across India, usually within 5-8 business days."
-                  }
-                  id="standard"
-                  name="Standard shipping"
-                  onSelect={() =>
-                    setValue("shippingMethod", "standard", {
-                      shouldValidate: true,
-                    })
-                  }
-                  price={checkoutState.shipping}
-                  selected={shippingMethod === "standard"}
-                />
-                <ShippingMethodCard
-                  description="Store pickup will be introduced in a later phase."
-                  disabled
-                  id="pickup"
-                  name="Store pickup"
-                  price={0}
-                />
               </div>
             </section>
+            <input type="hidden" {...register("shippingMethod")} />
 
-            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-7">
-              <p className="eyebrow">Step 4</p>
-              <h2 className="mt-2 text-3xl">Payment method</h2>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <section className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-6">
+              <h2 className="text-2xl">Payment</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <PaymentMethodCard
                   description={
                     codEnabled
@@ -690,7 +696,7 @@ async function submitCheckout(values: CheckoutFormValues) {
               </div>
             ) : null}
 
-            <Button
+            <Button className="hidden min-h-[3.25rem] lg:flex"
               disabled={
                 placeOrderMutation.isPending ||
                 isProcessingPayment ||
@@ -707,11 +713,9 @@ async function submitCheckout(values: CheckoutFormValues) {
               <LockKeyhole aria-hidden="true" size={18} />
               {placeOrderMutation.isPending || isProcessingPayment
                 ? "Processing securely..."
-                : paymentMethod === "razorpay"
-                  ? "Pay securely with Razorpay"
-                  : "Place Cash on Delivery order"}
+                : checkoutButtonLabel}
             </Button>
-            <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
+            <div className="hidden gap-3 text-xs text-muted-foreground sm:grid-cols-3 lg:grid">
               <span className="flex items-center gap-2">
                 <ShieldCheck aria-hidden="true" size={15} />
                 Secure payments
@@ -727,22 +731,32 @@ async function submitCheckout(values: CheckoutFormValues) {
             </div>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-28">
+          <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block">
             <div className="rounded-lg border border-maroon/10 bg-card p-5 shadow-lift sm:p-6">
+              <h2 className="mb-4 text-2xl">Coupon</h2>
               <CouponInput
+                appliedCode={appliedCouponCode}
+                discount={checkoutState.discount}
+                id="coupon-desktop"
                 onApply={applyCoupon}
                 onChange={setCouponCode}
+                onRemove={removeCoupon}
                 value={couponCode}
               />
             </div>
             <CheckoutOrderSummary
               discount={checkoutState.discount}
+              freeShippingThreshold={freeShippingThreshold}
               items={checkoutState.items}
               shipping={checkoutState.shipping}
               subtotal={checkoutState.subtotal}
               total={checkoutState.total}
             />
+            <Button className="min-h-[3.25rem]" disabled={placeOrderMutation.isPending || isProcessingPayment || productsQuery.isLoading || settingsQuery.isLoading || hasUnavailableItems || (paymentMethod === "cod" && !codEnabled) || (paymentMethod === "razorpay" && !razorpayEnabled)} fullWidth size="lg" type="submit"><LockKeyhole aria-hidden="true" size={18} />{placeOrderMutation.isPending || isProcessingPayment ? "Processing securely..." : checkoutButtonLabel}</Button>
+            <p className="text-center text-xs text-muted-foreground">Need help with your order? <a className="font-semibold text-charcoal hover:text-maroon" href="tel:+918290366530">+91 8290366530</a></p>
+            <div className="grid grid-cols-3 gap-3 text-center text-[0.68rem] leading-tight text-muted-foreground"><span><ShieldCheck className="mx-auto mb-1" size={13} />Secure Payments</span><span><PackageCheck className="mx-auto mb-1" size={13} />COD Available</span><span><LockKeyhole className="mx-auto mb-1" size={13} />No Hidden Charges</span></div>
           </aside>
+          <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-4 border-t border-maroon/10 bg-card/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(58,24,31,0.08)] backdrop-blur lg:hidden"><div className="min-w-0"><span className="block text-xs text-muted-foreground">{itemCount} {itemCount === 1 ? "Item" : "Items"}</span><span className="font-semibold text-maroon">{formatCurrency(checkoutState.total)}</span></div><Button className="ml-auto min-w-44" disabled={placeOrderMutation.isPending || isProcessingPayment || hasUnavailableItems || (paymentMethod === "cod" && !codEnabled) || (paymentMethod === "razorpay" && !razorpayEnabled)} type="submit">{placeOrderMutation.isPending || isProcessingPayment ? "Processing..." : checkoutButtonLabel}</Button></div>
         </form>
       </section>
     </>

@@ -254,12 +254,15 @@ Deno.serve(async (request) => {
     .insert({
       amount: verifiedTotal,
       currency: "INR",
+      discount: verifiedDiscount,
       customer_email: body.customerEmail,
       customer_name: body.customerName,
       customer_phone: body.customerPhone,
       items: body.items,
+      shipping: verifiedShipping,
       shipping_address: body.address,
       status: "created",
+      subtotal: verifiedSubtotal,
     })
     .select("id")
     .single();

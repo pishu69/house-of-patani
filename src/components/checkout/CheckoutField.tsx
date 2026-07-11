@@ -18,7 +18,7 @@ export function CheckoutField({
       {label}
       <input
         aria-invalid={Boolean(error)}
-        className="mt-2 h-11 w-full rounded-md border border-maroon/15 bg-card px-4 text-sm"
+        className="mt-1.5 h-11 w-full rounded-md border border-maroon/15 bg-card px-3.5 text-sm outline-none transition placeholder:text-muted-foreground/65 focus:border-maroon focus:ring-2 focus:ring-maroon/10"
         {...props}
         {...registration}
       />

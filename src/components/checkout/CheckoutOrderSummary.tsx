@@ -4,6 +4,7 @@ import { formatCurrency } from "@/utils";
 
 interface CheckoutOrderSummaryProps {
   discount: number;
+  freeShippingThreshold: number;
   items: CartItemView[];
   shipping: number;
   subtotal: number;
@@ -12,24 +13,27 @@ interface CheckoutOrderSummaryProps {
 
 export function CheckoutOrderSummary({
   discount,
+  freeShippingThreshold,
   items,
   shipping,
   subtotal,
   total,
 }: CheckoutOrderSummaryProps) {
+  const shippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
+  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   return (
     <section
       aria-labelledby="checkout-summary-title"
       className="w-full overflow-hidden rounded-lg border border-maroon/10 bg-card p-4 shadow-lift sm:p-6"
     >
       <h2 className="text-2xl sm:text-3xl" id="checkout-summary-title">
-        Order review
+        Your Order
       </h2>
 
       <ul className="mt-5 space-y-4">
         {items.map(({ lineTotal, product, quantity }) => (
           <li className="flex w-full min-w-0 gap-3" key={product.id}>
-            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-linen">
+            <div className="relative h-[3.25rem] w-[3.25rem] shrink-0 overflow-hidden rounded-md bg-linen">
               {product.images[0] ? (
                 <img
                   alt=""
@@ -48,7 +52,7 @@ export function CheckoutOrderSummary({
                 {product.name}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {formatCurrency(product.price)} each
+                Qty {quantity} × {formatCurrency(product.price)}
               </p>
               <p className="mt-1 text-sm font-semibold text-maroon">
                 {formatCurrency(lineTotal)}
@@ -57,6 +61,14 @@ export function CheckoutOrderSummary({
           </li>
         ))}
       </ul>
+
+      <Divider className="my-5" />
+
+      <div className="rounded-md bg-linen/35 p-3 text-xs">
+        <p className="font-semibold text-charcoal">{remainingForFreeShipping > 0 ? <>You’re only {formatCurrency(remainingForFreeShipping)} away from FREE SHIPPING 🚚</> : <>🎉 You’ve unlocked FREE SHIPPING.</>}</p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-maroon/10"><div className="h-full rounded-full bg-gold transition-[width]" style={{ width: `${shippingProgress}%` }} /></div>
+        <p className="mt-1.5 text-muted-foreground">{formatCurrency(Math.min(subtotal, freeShippingThreshold))} / {formatCurrency(freeShippingThreshold)}</p>
+      </div>
 
       <Divider className="my-5" />
 

@@ -252,6 +252,7 @@ export const orderService = {
         p_customer_name: verifiedInput.customerName,
         p_customer_phone: verifiedInput.customerPhone,
         p_items: items,
+        p_discount: verifiedInput.discount,
         p_payment_method: verifiedInput.paymentMethod,
       });
       if (error) throw error;

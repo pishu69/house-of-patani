@@ -23,8 +23,8 @@ export function PaymentMethodCard({
     <label className={disabled ? "block cursor-not-allowed opacity-60" : "block cursor-pointer"}>
       <Card
         className={cn(
-          "flex min-w-0 items-start gap-3 p-4 transition sm:gap-4 sm:p-5",
-          selected && "border-maroon ring-1 ring-maroon",
+          "flex min-h-14 min-w-0 items-center gap-3 p-3 transition",
+          selected && "border-maroon/70 bg-linen/45 ring-1 ring-maroon/20",
         )}
       >
         <input
@@ -35,10 +35,10 @@ export function PaymentMethodCard({
           onChange={() => onSelect?.(id)}
           type="radio"
         />
-        <CreditCard aria-hidden="true" className="text-gold" size={21} />
+        <CreditCard aria-hidden="true" className="shrink-0 text-gold" size={19} />
         <div className="min-w-0">
-          <h3 className="text-xl">{name}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <h3 className="text-base font-semibold">{name}</h3>
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
             {description}
           </p>
         </div>

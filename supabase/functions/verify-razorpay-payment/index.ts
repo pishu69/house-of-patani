@@ -111,7 +111,7 @@ Deno.serve(async (request) => {
   });
   const { data: intent, error: intentError } = await client
     .from("payment_intents")
-    .select("id, amount, razorpay_order_id, status")
+    .select("id, amount, discount, shipping, subtotal, razorpay_order_id, status")
     .eq("id", body.intentId)
     .single();
 
@@ -179,6 +179,28 @@ Deno.serve(async (request) => {
 
   if (error) {
     return json({ message: "Paid order could not be finalised." }, 409);
+  }
+
+  const orderId = data?.order?.id;
+  if (typeof orderId === "string") {
+    const subtotal = Number(intent.subtotal);
+    const discount = Number(intent.discount);
+    const shipping = Number(intent.shipping);
+    const total = Number(intent.amount);
+
+    if ([subtotal, discount, shipping, total].every(Number.isFinite)) {
+      const { data: correctedOrder, error: pricingError } = await client
+        .from("orders")
+        .update({ discount, shipping, subtotal, total })
+        .eq("id", orderId)
+        .select("*")
+        .single();
+
+      if (pricingError || !correctedOrder) {
+        return json({ message: "Paid order pricing could not be finalised." }, 409);
+      }
+      data.order = correctedOrder;
+    }
   }
 
   return json(data);

@@ -68,7 +68,7 @@ export function HeroSection() {
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-ivory/40 px-5 py-2 text-sm font-semibold text-ivory transition hover:border-ivory hover:bg-ivory/10 sm:min-w-36"
               to={ROUTES.ABOUT}
             >
-              Our Heritage
+              Discover Our Story
             </Link>
           </div>
           <p className="mt-6 max-w-xl border-l border-gold/70 pl-4 font-serif text-lg leading-7 text-ivory/85 sm:mt-8 sm:text-2xl">
@@ -79,4 +79,3 @@ export function HeroSection() {
     </section>
   );
 }
-
