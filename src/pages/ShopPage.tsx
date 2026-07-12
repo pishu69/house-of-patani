@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useCategories } from "@/hooks/useCategories";
 import { shopSortOptions, useShopCatalog } from "@/hooks/useShopCatalog";
+import { shopCategories as categorySeoData } from "@/data/categories";
 
 export function ShopPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -24,6 +25,7 @@ export function ShopPage() {
   const categoryNameBySlug = Object.fromEntries(
     shopCategories.map((category) => [category.slug, category.name]),
   );
+  const selectedCategorySeo = categorySeoData.find((category) => category.slug === catalog.category);
 
   const resetFilters = () => {
     catalog.resetFilters();
@@ -65,6 +67,7 @@ export function ShopPage() {
             </div>
 
             <div className="min-w-0">
+              {selectedCategorySeo && catalog.filteredProducts.length > 0 ? <header className="mb-4"><h1 className="text-3xl sm:text-4xl">{selectedCategorySeo.name}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{selectedCategorySeo.seoDescription ?? selectedCategorySeo.description}</p></header> : <h1 className="sr-only">Shop Koch Rajbanshi clothing, books and handicrafts</h1>}
               <div className="rounded-lg border border-maroon/10 bg-card p-3 shadow-lift sm:p-4">
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,34rem)_auto] lg:items-center lg:justify-between">
                   <div className="min-w-0 lg:max-w-xl">

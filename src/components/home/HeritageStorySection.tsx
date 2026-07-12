@@ -176,6 +176,7 @@ export function HeritageStorySection({ compact = false }: { compact?: boolean })
             "Every product we create carries a story. Every purchase helps keep
             that story alive."
           </blockquote>
+          <div className="mt-6 text-center"><Link className="inline-flex min-h-10 items-center rounded-full border border-maroon/25 px-4 text-sm font-semibold text-maroon transition hover:border-maroon hover:bg-maroon/5" to={ROUTES.SHOP}>Explore the House of Patani collection</Link></div>
 
         </motion.div>
           </>

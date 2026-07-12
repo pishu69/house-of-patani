@@ -23,7 +23,7 @@ function CategoryCardComponent({ category, to }: CategoryCardProps) {
       >
         <div className="aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
           <img
-            alt={category.name}
+            alt={`${category.name} collection at House of Patani`}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
             decoding="async"
             loading="lazy"

@@ -50,6 +50,12 @@ const pages = [
   { path: "/about" },
   { path: "/contact" },
   { path: "/policies" },
+  { path: "/shop?category=clothing" },
+  { path: "/shop?category=jewelry" },
+  { path: "/shop?category=handicrafts" },
+  { path: "/shop?category=home-decor" },
+  { path: "/shop?category=books" },
+  { path: "/shop?category=accessories" },
   ...names.map((name) => ({
     path: `/product/${slugify(name)}`,
   })),

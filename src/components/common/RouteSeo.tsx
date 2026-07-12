@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Seo } from "@/components/common/Seo";
 import { APP_CONFIG } from "@/constants/config";
 import { ROUTES } from "@/constants/routes";
+import { shopCategories } from "@/data/categories";
 import {
   createBreadcrumbSchema,
   organizationSchema,
@@ -119,8 +120,11 @@ function breadcrumbFor(pathname: string, title: string): JsonLd[] {
 }
 
 export function RouteSeo() {
-  const { pathname } = useLocation();
-  const metadata = resolveMetadata(pathname);
+  const { pathname, search } = useLocation();
+  const categorySlug = pathname === ROUTES.SHOP ? new URLSearchParams(search).get("category") : null;
+  const category = shopCategories.find((item) => item.slug === categorySlug);
+  const metadata = category ? { description: category.seoDescription ?? category.description, title: category.seoTitle ?? `${category.name} | House of Patani` } : resolveMetadata(pathname);
+  const canonicalPath = category ? `${ROUTES.SHOP}?category=${category.slug}` : pathname;
   const jsonLd = useMemo(() => {
     if (pathname === ROUTES.HOME) {
       return [organizationSchema, websiteSchema];
@@ -138,7 +142,7 @@ export function RouteSeo() {
 
   return (
     <Seo
-      canonicalPath={pathname}
+      canonicalPath={canonicalPath}
       description={metadata.description}
       jsonLd={jsonLd}
       noIndex={metadata.noIndex ?? false}

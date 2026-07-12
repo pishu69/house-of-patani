@@ -364,7 +364,7 @@ export function ProductGallery({
         </div>
         <div className="group relative order-1 sm:order-2">
           <ProductImageZoom
-            alt={`${productName}, image ${selectedIndex + 1}`}
+            alt={selectedIndex === 0 ? `${productName} from House of Patani` : `${productName} — image ${selectedIndex + 1}`}
             className="aspect-[4/5] shadow-elegant"
             onOpen={openPreview}
             onTouchEnd={handleTouchEnd}
@@ -472,7 +472,7 @@ export function ProductGallery({
           >
             <img
               key={activeImage}
-              alt={`${productName}, enlarged image ${selectedIndex + 1}`}
+              alt={selectedIndex === 0 ? `${productName} from House of Patani` : `${productName} — image ${selectedIndex + 1}`}
               className="max-h-[82vh] max-w-[92vw] animate-in select-none fade-in-0 zoom-in-95 duration-300 object-contain transition-transform sm:max-h-[88vh] sm:max-w-[88vw]"
               draggable={false}
               onClick={handlePreviewImageTap}

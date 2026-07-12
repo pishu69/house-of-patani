@@ -12,10 +12,10 @@ export function HomePage() {
     <>
       <Seo
         canonicalPath="/"
-        description="Discover heritage-inspired clothing, handwoven textiles, and cultural craft from House of Patani."
+        description="Discover Koch Rajbanshi traditional clothing, Patani, books, handicrafts, home décor, and heritage-inspired products from House of Patani."
         image="/images/social/home-share-v1.jpg"
         imageAlt="House of Patani heritage-inspired homepage banner"
-        title="House of Patani | Tradition Woven with Heritage"
+        title="House of Patani | Koch Rajbanshi Heritage, Patani, Books & Handicrafts"
         type="website"
       />
       <HeroSection />

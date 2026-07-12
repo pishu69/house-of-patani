@@ -18,7 +18,7 @@ export function HeroSection() {
   const heroTitle = settings?.heroTitle || "House of Patani";
   const heroDescription =
     settings?.heroDescription ||
-    "A refined marketplace for Indian craft, handwoven textiles, carved keepsakes, and objects that carry the warmth of home.";
+    "A refined home for traditional Patani, Koch Rajbanshi clothing, books, handicrafts, jewellery, home décor, and heritage-inspired products.";
   const heroQuote = settings?.heroQuote || "Hand-selected craft, softened by time.";
 
   return (

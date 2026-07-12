@@ -89,7 +89,7 @@ function ProductCardComponent({
         >
           {imageUrl ? (
             <img
-              alt={product.name}
+              alt={`${product.name} from House of Patani`}
               className={cn(
                 "h-full w-full object-cover transition duration-700 group-hover:scale-105",
                 imageLoaded ? "opacity-100" : "opacity-0",
