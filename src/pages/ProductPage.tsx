@@ -38,6 +38,10 @@ function standardizePolicyText(value: string) {
   );
 }
 
+function seoDescription(value: string) {
+  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
+}
+
 export function ProductPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -86,22 +90,16 @@ const displayReviewCount =
 
     const categoryName = categoryNameBySlug[product.category] ?? product.category;
 
-    return [
-      {
+    const productSchema: Record<string, unknown> = {
         "@context": "https://schema.org",
         "@type": "Product",
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingCount: product.reviewCount,
-          ratingValue: product.rating,
-        },
         brand: {
           "@type": "Brand",
           name: "House of Patani",
         },
         category: categoryName,
         description: product.description,
-        image: product.images.map(absoluteUrl),
+        image: product.images.map((image) => absoluteUrl(image)),
         name: product.name,
         offers: {
           "@type": "Offer",
@@ -116,7 +114,21 @@ const displayReviewCount =
         },
         sku: product.sku,
         url: absoluteUrl(`/product/${product.slug}`),
-      },
+      };
+
+    if (reviewCount > 0) {
+      productSchema.aggregateRating = { "@type": "AggregateRating", ratingCount: reviewCount, ratingValue: averageRating };
+      productSchema.review = reviews.slice(0, 10).map((review) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: review.author },
+        datePublished: review.createdAt,
+        reviewBody: review.comment,
+        reviewRating: { "@type": "Rating", ratingValue: review.rating },
+      }));
+    }
+
+    return [
+      productSchema,
       createBreadcrumbSchema([
         { name: "Home", path: ROUTES.HOME },
         { name: "Shop", path: ROUTES.SHOP },
@@ -153,7 +165,7 @@ const displayReviewCount =
         "Delivery estimate is using the Jaipur fallback: product has no warehouse_id.",
       );
     }
-  }, [product]);
+  }, [averageRating, product, reviewCount, reviews]);
 
   useEffect(() => {
     if (!product?.warehouseId || !warehouseOriginQuery.data) return;
@@ -330,7 +342,7 @@ Eligible return requests must be raised within 3 days after delivery for unused 
   const handleShareProduct = async () => {
   if (!product) return;
 
-  const productUrl = `${window.location.origin}/product/${product.slug}`;
+  const productUrl = absoluteUrl(`/product/${product.slug}`);
 
   const shareText = `✨ ${product.name}
 
@@ -370,12 +382,13 @@ ${productUrl}`;
     <>
       <Seo
         canonicalPath={`/product/${product.slug}`}
-        description={`${product.description} Shop ${product.name} from House of Patani's ${categoryName.toLowerCase()} collection.`}
-        image={product.images[0] ?? "/favicon.svg"}
+        description={seoDescription(product.description || product.longDescription || product.name)}
+        image={product.images[0] ?? "/images/social/home-share-v1.jpg"}
         imageAlt={product.name}
         jsonLd={productSeoSchemas}
         title={product.name}
         type="product"
+        price={product.price}
       />
       <article className="bg-background">
       <section className="py-6 sm:py-8 lg:py-10">

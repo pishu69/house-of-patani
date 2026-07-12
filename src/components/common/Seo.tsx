@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { APP_CONFIG } from "@/constants/config";
 import { absoluteUrl, type JsonLd } from "@/lib/seo";
 
-const DEFAULT_IMAGE = "/images/social/home-share-v1.jpg";
 const EMPTY_SCHEMAS: JsonLd[] = [];
 
 interface SeoProps {
@@ -14,6 +13,7 @@ interface SeoProps {
   noIndex?: boolean;
   title: string;
   type?: "website" | "product";
+  price?: number;
 }
 
 function setMeta(
@@ -47,6 +47,10 @@ function setCanonical(href: string) {
   element.href = href;
 }
 
+function removeMeta(attribute: "name" | "property", key: string) {
+  document.head.querySelector(`meta[${attribute}="${key}"]`)?.remove();
+}
+
 function serializeJsonLd(value: JsonLd) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
@@ -54,19 +58,20 @@ function serializeJsonLd(value: JsonLd) {
 export function Seo({
   canonicalPath,
   description,
-  image = DEFAULT_IMAGE,
+  image = APP_CONFIG.DEFAULT_SOCIAL_IMAGE,
   imageAlt = `${APP_CONFIG.NAME} heritage craft`,
   jsonLd = EMPTY_SCHEMAS,
   noIndex = false,
   title,
   type = "website",
+  price,
 }: SeoProps) {
   useEffect(() => {
     const resolvedTitle = title.includes(APP_CONFIG.NAME)
       ? title
       : `${title} | ${APP_CONFIG.NAME}`;
     const canonicalUrl = absoluteUrl(canonicalPath);
-    const imageUrl = absoluteUrl(image);
+    const imageUrl = absoluteUrl(image, APP_CONFIG.DEFAULT_SOCIAL_IMAGE);
 
     document.title = resolvedTitle;
     document.documentElement.lang = "en-IN";
@@ -75,9 +80,9 @@ export function Seo({
     setMeta(
       "name",
       "robots",
-      noIndex ? "noindex, nofollow" : "index, follow, max-image-preview:large",
+      noIndex ? "noindex, follow" : "index, follow, max-image-preview:large",
     );
-    setMeta("property", "og:locale", "en_IN");
+    setMeta("property", "og:locale", APP_CONFIG.LOCALE);
     setMeta("property", "og:site_name", APP_CONFIG.NAME);
     setMeta("property", "og:title", resolvedTitle);
     setMeta("property", "og:description", description);
@@ -88,7 +93,14 @@ setMeta("property", "og:image:secure_url", imageUrl);
 setMeta("property", "og:image:alt", imageAlt);
 setMeta("property", "og:image:width", "1200");
 setMeta("property", "og:image:height", "630");
-    setMeta("name", "twitter:card", "summary_large_image");
+    if (type === "product" && typeof price === "number") {
+      setMeta("property", "product:price:amount", String(price));
+      setMeta("property", "product:price:currency", "INR");
+    } else {
+      removeMeta("property", "product:price:amount");
+      removeMeta("property", "product:price:currency");
+    }
+    setMeta("name", "twitter:card", APP_CONFIG.TWITTER_CARD_TYPE);
     setMeta("name", "twitter:title", resolvedTitle);
     setMeta("name", "twitter:description", description);
     setMeta("name", "twitter:image", imageUrl);
@@ -112,6 +124,7 @@ setMeta("property", "og:image:height", "630");
     imageAlt,
     jsonLd,
     noIndex,
+    price,
     title,
     type,
   ]);

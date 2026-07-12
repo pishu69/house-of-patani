@@ -45,22 +45,19 @@ function escapeXml(value) {
 }
 
 const pages = [
-  { path: "/", priority: "1.0" },
-  { path: "/shop", priority: "0.9" },
-  { path: "/about", priority: "0.7" },
-  { path: "/contact", priority: "0.6" },
+  { path: "/" },
+  { path: "/shop" },
+  { path: "/about" },
+  { path: "/contact" },
+  { path: "/policies" },
   ...names.map((name) => ({
     path: `/product/${slugify(name)}`,
-    priority: "0.8",
   })),
 ];
-const urls = pages
+const uniquePages = [...new Map(pages.map((page) => [page.path, page])).values()];
+const urls = uniquePages
   .map(
-    ({ path: pagePath, priority }) => `  <url>
-    <loc>${escapeXml(`${siteUrl}${pagePath}`)}</loc>
-    <changefreq>${pagePath.startsWith("/product/") ? "weekly" : "monthly"}</changefreq>
-    <priority>${priority}</priority>
-  </url>`,
+    ({ path: pagePath }) => `  <url><loc>${escapeXml(`${siteUrl}${pagePath}`)}</loc></url>`,
   )
   .join("\n");
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -70,14 +67,6 @@ ${urls}
 `;
 const robots = `User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /account
-Disallow: /cart
-Disallow: /checkout
-Disallow: /login
-Disallow: /verify-otp
-Disallow: /order-confirmation
-Disallow: /order-lookup
 
 Sitemap: ${siteUrl}/sitemap.xml
 `;
@@ -88,4 +77,4 @@ await Promise.all([
   writeFile(path.join(publicDirectory, "robots.txt"), robots, "utf8"),
   writeFile(path.join(publicDirectory, "sitemap.xml"), sitemap, "utf8"),
 ]);
-console.log(`Generated sitemap with ${pages.length} URLs.`);
+console.log(`Generated sitemap with ${uniquePages.length} URLs.`);

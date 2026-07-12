@@ -7,10 +7,16 @@ interface BreadcrumbSchemaItem {
   path: string;
 }
 
-export function absoluteUrl(pathOrUrl: string) {
+export function absoluteUrl(pathOrUrl: string, fallback = APP_CONFIG.DEFAULT_SOCIAL_IMAGE) {
   if (/^https?:\/\//i.test(pathOrUrl)) {
-    return pathOrUrl;
+    try {
+      const url = new URL(pathOrUrl);
+      if (url.protocol === "https:" && !["localhost", "127.0.0.1"].includes(url.hostname)) return url.href;
+    } catch { /* Use the public fallback. */ }
+    return absoluteUrl(fallback);
   }
+
+  if (/^(blob:|data:)/i.test(pathOrUrl)) return absoluteUrl(fallback);
 
   const normalizedPath = pathOrUrl.startsWith("/")
     ? pathOrUrl
@@ -42,6 +48,7 @@ export const organizationSchema: JsonLd = {
   email: APP_CONFIG.CONTACT_EMAIL,
   logo: absoluteUrl("/favicon.svg"),
   name: APP_CONFIG.NAME,
+  telephone: "+91 8290366530",
   url: APP_CONFIG.SITE_URL,
 };
 

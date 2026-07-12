@@ -18,13 +18,13 @@ interface RouteMetadata {
 
 const routeMetadata: Record<string, RouteMetadata> = {
   [ROUTES.HOME]: {
-    description: APP_CONFIG.DESCRIPTION,
-    title: `${APP_CONFIG.NAME} | ${APP_CONFIG.TAGLINE}`,
+    description: "Discover Koch Rajbanshi traditional clothing, Patani, books, handicrafts, home décor, and heritage-inspired products from House of Patani.",
+    title: APP_CONFIG.DEFAULT_TITLE,
   },
   [ROUTES.SHOP]: {
     description:
-      "Shop House of Patani's considered collection of Indian clothing, jewelry, handicrafts, home decor, books, and accessories.",
-    title: "Shop Indian Heritage Craft",
+      "Shop traditional Patani, Koch Rajbanshi clothing, books, handicrafts, jewellery, and culturally inspired products.",
+    title: "Shop Koch Rajbanshi Clothing, Books & Handicrafts | House of Patani",
   },
   [ROUTES.CART]: {
     description: "Review the pieces selected for your House of Patani order.",
@@ -45,13 +45,13 @@ const routeMetadata: Record<string, RouteMetadata> = {
   },
   [ROUTES.ABOUT]: {
     description:
-      "Discover the story, craft traditions, and artisan communities behind House of Patani.",
-    title: "Our Heritage",
+      "Discover the story of Patani, Koch Rajbanshi heritage, and the mission behind House of Patani.",
+    title: "Our Story | House of Patani",
   },
   [ROUTES.CONTACT]: {
     description:
-      "Contact House of Patani for collection guidance, order support, and heritage craft enquiries.",
-    title: "Contact",
+      "Contact House of Patani for product enquiries, order support, collaborations, wholesale requests, and community initiatives.",
+    title: "Contact House of Patani",
   },
   [ROUTES.POLICIES]: {
     description:
@@ -78,6 +78,7 @@ const routeMetadata: Record<string, RouteMetadata> = {
 };
 
 function resolveMetadata(pathname: string): RouteMetadata {
+  if (pathname.startsWith("/admin")) return { description: "Private administration area.", noIndex: true, title: "Administration" };
   if (pathname.startsWith(`${ROUTES.ACCOUNT.ROOT}/`)) {
     return routeMetadata[ROUTES.ACCOUNT.ROOT]!;
   }
@@ -95,7 +96,8 @@ function resolveMetadata(pathname: string): RouteMetadata {
 
   return exactMetadata ?? {
     description: APP_CONFIG.DESCRIPTION,
-    title: APP_CONFIG.NAME,
+    noIndex: true,
+    title: "Page Not Found",
   };
 }
 
