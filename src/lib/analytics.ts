@@ -36,15 +36,17 @@ declare global {
     dataLayer?: unknown[][];
     fbq?: MetaPixelCommand;
     gtag?: AnalyticsCommand;
-    testHouseOfPataniAnalytics?: () => AnalyticsDiagnosticsResult;
+    google_tag_manager?: unknown;
+    testHouseOfPataniAnalytics?: () => Promise<AnalyticsDiagnosticsResult>;
   }
 }
 
 export interface AnalyticsDiagnosticsResult {
+  configured: boolean;
   dataLayerAvailable: boolean;
   gtagAvailable: boolean;
   initialized: boolean;
-  measurementIdPresent: boolean;
+  scriptLoaded: boolean;
   testEventSent: boolean;
 }
 
@@ -54,6 +56,9 @@ const validGaId = gaMeasurementId && /^G-[A-Z0-9]+$/i.test(gaMeasurementId);
 const validMetaId = metaPixelId && /^\d{5,20}$/.test(metaPixelId);
 let initialized = false;
 let gaInitialized = false;
+let gaConfigured = false;
+let gaScriptLoaded = false;
+let gaInitializationPromise: Promise<boolean> | null = null;
 
 function gaParameters(parameters: Record<string, unknown> = {}) {
   return import.meta.env.DEV ? { ...parameters, debug_mode: true } : parameters;
@@ -71,36 +76,74 @@ function appendScript(id: string, source: string) {
   document.head.append(script);
 }
 
-function initializeGoogleAnalytics(measurementId: string) {
-  window.dataLayer = window.dataLayer ?? [];
-  window.gtag = (...args: unknown[]) => {
-    window.dataLayer?.push(args);
-  };
-  window.gtag("js", new Date());
-  window.gtag("config", measurementId, {
-    send_page_view: false,
-  });
-  gaInitialized = true;
-  appendScript(
-    "house-of-patani-google-analytics",
-    `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`,
-  );
+function findGaScript(measurementId: string) {
+  const stable = document.getElementById("house-of-patani-ga4-script");
+  if (stable instanceof HTMLScriptElement) return stable;
+  return Array.from(document.scripts).find((script) => script.src.includes("googletagmanager.com/gtag/js") && script.src.includes(encodeURIComponent(measurementId)));
+}
 
-  if (import.meta.env.DEV) {
-    console.info("[GA4] Initialized");
-    console.info(`[GA4] Measurement ID: ${measurementId}`);
+function loadGoogleAnalytics(measurementId: string) {
+  if (gaInitializationPromise) return gaInitializationPromise;
+
+  gaInitializationPromise = new Promise<boolean>((resolve) => {
+  window.dataLayer = window.dataLayer ?? [];
+  window.gtag = window.gtag ?? ((...args: unknown[]) => {
+    window.dataLayer?.push(args);
+  });
+  window.gtag("js", new Date());
+
+  const existing = findGaScript(measurementId);
+  const script = existing ?? document.createElement("script");
+  const complete = () => {
+    gaScriptLoaded = true;
+    window.gtag?.("config", measurementId, { send_page_view: false });
+    gaConfigured = true;
+    gaInitialized = true;
+    if (import.meta.env.DEV) {
+      console.info("[GA4] Initialized");
+      console.info(`[GA4] Measurement ID: ${measurementId}`);
+    }
+    resolve(true);
+  };
+  const fail = () => {
+    gaScriptLoaded = false;
+    gaConfigured = false;
+    gaInitialized = false;
+    gaInitializationPromise = null;
+    if (!existing) script.remove();
+    if (import.meta.env.DEV) console.error("[GA4] Failed to load gtag.js");
+    resolve(false);
+  };
+
+  if (script.dataset.houseOfPataniLoaded === "true" || Boolean(window.google_tag_manager)) {
+    complete();
+    return;
   }
+
+  script.addEventListener("load", () => { script.dataset.houseOfPataniLoaded = "true"; complete(); }, { once: true });
+  script.addEventListener("error", fail, { once: true });
+  if (!existing) {
+    script.async = true;
+    script.id = "house-of-patani-ga4-script";
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+    document.head.append(script);
+  }
+  });
+
+  return gaInitializationPromise;
 }
 
 function installDevelopmentDiagnostics() {
   if (!import.meta.env.DEV) return;
 
-  window.testHouseOfPataniAnalytics = () => {
+  window.testHouseOfPataniAnalytics = async () => {
+    const ready = await initializeAnalytics();
     const result: AnalyticsDiagnosticsResult = {
+      configured: gaConfigured,
       dataLayerAvailable: Array.isArray(window.dataLayer),
       gtagAvailable: typeof window.gtag === "function",
-      initialized: gaInitialized,
-      measurementIdPresent: Boolean(validGaId && gaMeasurementId),
+      initialized: gaInitialized && ready,
+      scriptLoaded: gaScriptLoaded,
       testEventSent: false,
     };
 
@@ -139,22 +182,19 @@ function initializeMetaPixel(pixelId: string) {
   );
 }
 
-export function initializeAnalytics() {
-  if (initialized || typeof window === "undefined") {
-    return;
-  }
+export async function initializeAnalytics() {
+  if (typeof window === "undefined") return false;
 
-  initialized = true;
+  if (!initialized) {
+    initialized = true;
+    if (validMetaId && metaPixelId) initializeMetaPixel(metaPixelId);
+    installDevelopmentDiagnostics();
+  }
 
   if (validGaId && gaMeasurementId) {
-    initializeGoogleAnalytics(gaMeasurementId);
+    return loadGoogleAnalytics(gaMeasurementId);
   }
-
-  if (validMetaId && metaPixelId) {
-    initializeMetaPixel(metaPixelId);
-  }
-
-  installDevelopmentDiagnostics();
+  return false;
 }
 
 export function isAnalyticsConfigured() {

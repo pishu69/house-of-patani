@@ -6,6 +6,8 @@ import {
   trackPageView,
 } from "@/lib/analytics";
 
+let lastGaPageView = "";
+
 function privacySafePath(pathname: string) {
   if (pathname.startsWith("/order-confirmation/")) {
     return "/order-confirmation";
@@ -31,11 +33,20 @@ export function AnalyticsRouteTracker() {
     }
 
     const safePath = privacySafePath(pathname);
+    let cancelled = false;
     const timer = window.setTimeout(() => {
-      trackPageView(`${safePath}${search}`, document.title);
+      const path = `${safePath}${search}`;
+      void initializeAnalytics().then((ready) => {
+        if (cancelled || !ready || lastGaPageView === path) return;
+        lastGaPageView = path;
+        trackPageView(path, document.title);
+      });
     });
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [pathname, search]);
 
   return null;

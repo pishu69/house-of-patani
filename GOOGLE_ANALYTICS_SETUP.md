@@ -15,9 +15,11 @@ When the variable is absent or does not match the `G-...` format, Google Analyti
 ## How it works
 
 - `src/lib/analytics.ts` owns script injection, initialization, page views, and future event helpers.
-- The Google `gtag.js` script is injected once at runtime.
+- The Google `gtag.js` script is found by a stable element ID or matching Measurement ID URL and injected only when absent.
+- Initialization uses one shared promise. It creates `dataLayer`, defines `gtag`, queues the `js` command, waits for `gtag.js` to load, and only then sends the `config` command.
 - GA automatic page views are disabled with `send_page_view: false`.
-- `AnalyticsRouteTracker` sends one explicit `page_view` when the React Router pathname or query string changes.
+- `AnalyticsRouteTracker` awaits initialization and sends one explicit, deduplicated `page_view` when the React Router pathname or query string changes.
+- Script load failures are non-fatal and clear the initialization promise so a later request can retry safely.
 - Order numbers are removed from analytics paths. Account order-detail paths are also normalized to avoid collecting customer/order identifiers.
 - No Google Tag Manager is used.
 
