@@ -29,6 +29,7 @@ import { useProductBySlug } from "@/hooks/useProductBySlug";
 import { useProducts } from "@/hooks/useProducts";
 import { showCartMutationToast } from "@/lib/cart-feedback";
 import { mapAnalyticsItem, trackAddToCart, trackViewItem, trackWishlist } from "@/lib/analytics";
+import { getProductShareDescription } from "@/lib/product-share";
 import { createBreadcrumbSchema, absoluteUrl, productSocialImage } from "@/lib/seo";
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
@@ -43,25 +44,6 @@ function standardizePolicyText(value: string) {
 
 function seoDescription(value: string) {
   return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
-}
-
-function productShareDescription(
-  productName: string,
-  shortDescription: string,
-  longDescription: string,
-) {
-  const sanitizedDescription = (shortDescription || longDescription)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/https?:\/\/\S+/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!sanitizedDescription) {
-    return `Discover ${productName} from House of Patani.`;
-  }
-
-  const firstSentence = sanitizedDescription.match(/^.*?[.!?](?:\s|$)/)?.[0];
-  return (firstSentence ?? sanitizedDescription).trim();
 }
 
 const viewedProductIds = new Set<string>();
@@ -379,11 +361,12 @@ Eligible return requests must be raised within 3 days after delivery for unused 
       APP_CONFIG.PRODUCTION_SITE_URL,
     ).href;
     const formattedSellingPrice = formatCurrency(product.price);
-    const shareDescription = productShareDescription(
-      product.name,
-      product.description,
-      product.longDescription,
-    );
+    const shareDescription = getProductShareDescription({
+      description: product.description,
+      longDescription: product.longDescription,
+      productName: product.name,
+      shortDescription: product.shortDescription,
+    });
     const shareText = [
       `✨ ${product.name}`,
       "",

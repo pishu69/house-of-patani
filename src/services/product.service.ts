@@ -136,6 +136,10 @@ function mapProduct(
       row.short_description ??
       row.description ??
       "",
+    shortDescription:
+      override?.description ??
+      row.short_description ??
+      "",
     longDescription:
       override?.longDescription ??
       row.long_description ??

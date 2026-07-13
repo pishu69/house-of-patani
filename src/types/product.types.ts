@@ -36,6 +36,7 @@ export interface CatalogProduct {
 details: string;
 careInstructions: string;
 shippingReturns: string;
+  shortDescription?: string;
   packageBreadthCm: number;
   packageHeightCm: number;
   packageLengthCm: number;
