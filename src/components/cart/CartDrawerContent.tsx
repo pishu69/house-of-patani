@@ -6,6 +6,7 @@ import { Divider } from "@/components/common/Divider";
 import { ROUTES } from "@/constants/routes";
 import { useCart } from "@/hooks/useCart";
 import { showCartMutationToast } from "@/lib/cart-feedback";
+import { mapAnalyticsItem, trackRemoveFromCart } from "@/lib/analytics";
 import { formatCurrency } from "@/utils";
 
 export function CartDrawerContent() {
@@ -54,10 +55,12 @@ export function CartDrawerContent() {
             key={product.id}
             onQuantityChange={(nextQuantity) => {
               const result = updateQuantity(product.id, nextQuantity);
+              if (result.success && nextQuantity < quantity) trackRemoveFromCart(mapAnalyticsItem(product, quantity - nextQuantity), { currency: "INR", value: product.price * (quantity - nextQuantity) });
               showCartMutationToast(product.name, result);
             }}
             onRemove={() => {
               const result = removeItem(product.id);
+              if (result.success) trackRemoveFromCart(mapAnalyticsItem(product, quantity), { currency: "INR", value: lineTotal });
               showCartMutationToast(product.name, result);
             }}
             onStockLimit={() =>

@@ -26,6 +26,7 @@ import {
   type CheckoutFormValues,
 } from "@/lib/checkout-schema";
 import { applyZodErrors } from "@/lib/form-validation";
+import { mapAnalyticsItem, trackAddPaymentInfo, trackAddShippingInfo, trackApplyCoupon, trackBeginCheckout, trackPurchase, trackRemoveCoupon } from "@/lib/analytics";
 import { orderDeliveryEstimateStorage } from "@/lib/order-delivery-estimate";
 import {
   couponService,
@@ -76,6 +77,10 @@ function deliveryDateText(estimate: CartDeliveryEstimate) {
 
   return earliest === latest ? earliest : `${earliest}–${latest}`;
 }
+
+const begunCheckoutSignatures = new Set<string>();
+const shippingInfoSignatures = new Set<string>();
+const paymentInfoSignatures = new Set<string>();
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -235,6 +240,11 @@ const coupons = couponsQuery.data?.data ?? [];
        latestDeliveryDate: deliveryEstimate.latestDeliveryDate,
      });
    }
+   const purchaseKey = `hop_ga4_purchase_${response.data.order.order_number}`;
+   if (!window.localStorage.getItem(purchaseKey)) {
+     trackPurchase(response.data.items.map((item) => mapAnalyticsItem({ id: item.product_id ?? item.id, name: item.product_name, price: Number(item.price) }, item.quantity)), response.data.order.order_number, { currency: "INR", value: Number(response.data.order.total), shipping: Number(response.data.order.shipping), tax: 0, ...(appliedCoupon?.code ? { coupon: appliedCoupon.code } : {}) });
+     window.localStorage.setItem(purchaseKey, "sent");
+   }
    const couponCodeToIncrement =
   couponUsageCodeRef.current || appliedCoupon?.code || "";
 
@@ -306,15 +316,18 @@ if (couponCodeToIncrement) {
   setAppliedCouponCode(coupon.code);
 setAppliedCouponData(coupon);
 setCouponCode(coupon.code);
+trackApplyCoupon(coupon.code, checkoutState.discount || Math.min(checkoutState.subtotal, coupon.type === "percentage" ? Math.round(checkoutState.subtotal * coupon.value / 100) : coupon.value), "success");
 toast.success(`Coupon ${coupon.code} applied.`);
 }
 
 function removeCoupon() {
   const removedCode = appliedCouponCode;
+  const removedDiscount = checkoutState.discount;
   setAppliedCouponCode("");
   setAppliedCouponData(null);
   setCouponCode("");
   couponUsageCodeRef.current = "";
+  if (removedCode) trackRemoveCoupon(removedCode, removedDiscount);
   toast.success(removedCode ? `Coupon ${removedCode} removed.` : "Coupon removed.");
 }
 
@@ -461,6 +474,32 @@ async function submitCheckout(values: CheckoutFormValues) {
       });
     }
   }
+
+  const analyticsItems = checkoutState.items.map((item) => mapAnalyticsItem(item.product, item.quantity, appliedCouponCode ? { coupon: appliedCouponCode } : {}));
+
+  useEffect(() => {
+    if (analyticsItems.length === 0) return;
+    const signature = analyticsItems.map((item) => `${item.item_id}:${item.quantity}`).join("|");
+    if (begunCheckoutSignatures.has(signature)) return;
+    begunCheckoutSignatures.add(signature);
+    trackBeginCheckout(analyticsItems, { currency: "INR", value: checkoutState.subtotal });
+  }, [analyticsItems, checkoutState.subtotal]);
+
+  useEffect(() => {
+    if (!deliveryEstimate?.serviceable || analyticsItems.length === 0) return;
+    const signature = `${pincode}:${appliedCouponCode}`;
+    if (shippingInfoSignatures.has(signature)) return;
+    shippingInfoSignatures.add(signature);
+    trackAddShippingInfo(analyticsItems, { currency: "INR", value: checkoutState.subtotal, shipping_tier: "Standard Shipping", ...(appliedCouponCode ? { coupon: appliedCouponCode } : {}) });
+  }, [analyticsItems, appliedCouponCode, checkoutState.subtotal, deliveryEstimate?.serviceable, pincode]);
+
+  useEffect(() => {
+    if (analyticsItems.length === 0) return;
+    const signature = `${paymentMethod}:${appliedCouponCode}`;
+    if (paymentInfoSignatures.has(signature)) return;
+    paymentInfoSignatures.add(signature);
+    trackAddPaymentInfo(analyticsItems, paymentMethod === "cod" ? "Cash on Delivery" : "Razorpay Online Payment", { currency: "INR", value: checkoutState.subtotal, ...(appliedCouponCode ? { coupon: appliedCouponCode } : {}) });
+  }, [analyticsItems, appliedCouponCode, checkoutState.subtotal, paymentMethod]);
 
   if (!productsQuery.isLoading && cartEntries.length === 0) {
     return (

@@ -17,8 +17,26 @@ export interface AnalyticsItem {
   quantity?: number;
 }
 
+export interface AnalyticsProductSource {
+  category?: string;
+  id: string;
+  name: string;
+  price: number;
+  sku?: string;
+}
+
+export interface AnalyticsLogEntry {
+  event: string;
+  item_id?: string;
+  path?: string;
+  value?: number;
+}
+
 interface CommerceParameters {
+  coupon?: string;
   currency?: string;
+  shipping?: number;
+  tax?: number;
   value?: number;
 }
 
@@ -33,19 +51,25 @@ interface MetaPixelCommand extends AnalyticsCommand {
 
 declare global {
   interface Window {
-    dataLayer?: unknown[][];
+    dataLayer?: unknown[];
     fbq?: MetaPixelCommand;
     gtag?: AnalyticsCommand;
     google_tag_manager?: unknown;
+    getHouseOfPataniAnalyticsLog?: () => AnalyticsLogEntry[];
     testHouseOfPataniAnalytics?: () => Promise<AnalyticsDiagnosticsResult>;
   }
 }
 
 export interface AnalyticsDiagnosticsResult {
+  clientIdAvailable: boolean;
+  collectionRequestObserved: boolean;
+  consentState: "not configured";
+  cspDetected: boolean;
   configured: boolean;
   dataLayerAvailable: boolean;
   gtagAvailable: boolean;
   initialized: boolean;
+  eventQueued: boolean;
   scriptLoaded: boolean;
   testEventSent: boolean;
 }
@@ -59,6 +83,51 @@ let gaInitialized = false;
 let gaConfigured = false;
 let gaScriptLoaded = false;
 let gaInitializationPromise: Promise<boolean> | null = null;
+const developmentEventLog: AnalyticsLogEntry[] = [];
+let collectionRequestObserved = false;
+
+function isGaCollectionUrl(value: string) {
+  return /https:\/\/(?:[^/]+\.)?(?:google-analytics\.com|analytics\.google\.com)\/g\/collect/i.test(value);
+}
+
+function installDeliveryObserver() {
+  if (!import.meta.env.DEV || typeof PerformanceObserver === "undefined") return;
+  performance.getEntriesByType("resource").forEach((entry) => {
+    if (isGaCollectionUrl(entry.name)) collectionRequestObserved = true;
+  });
+  const observer = new PerformanceObserver((list) => {
+    list.getEntries().forEach((entry) => {
+      if (!isGaCollectionUrl(entry.name)) return;
+      collectionRequestObserved = true;
+      console.info("[GA4] Collection request observed", entry.name);
+    });
+  });
+  observer.observe({ entryTypes: ["resource"] });
+}
+
+export function mapAnalyticsItem(product: AnalyticsProductSource, quantity = 1, extras: Partial<AnalyticsItem> = {}): AnalyticsItem {
+  return {
+    item_id: product.sku || product.id,
+    item_name: product.name,
+    item_brand: "House of Patani",
+    ...(product.category ? { item_category: product.category } : {}),
+    price: Number(product.price),
+    quantity,
+    ...extras,
+  };
+}
+
+function recordDevelopmentEvent(event: string, parameters: Record<string, unknown>) {
+  if (!import.meta.env.DEV) return;
+  const items = parameters.items as AnalyticsItem[] | undefined;
+  developmentEventLog.push({
+    event,
+    ...(typeof parameters.page_path === "string" ? { path: parameters.page_path } : {}),
+    ...(items?.[0]?.item_id ? { item_id: items[0].item_id } : {}),
+    ...(typeof parameters.value === "number" ? { value: parameters.value } : {}),
+  });
+  console.info(`[GA4] ${event} sent`, parameters);
+}
 
 function gaParameters(parameters: Record<string, unknown> = {}) {
   return import.meta.env.DEV ? { ...parameters, debug_mode: true } : parameters;
@@ -87,9 +156,9 @@ function loadGoogleAnalytics(measurementId: string) {
 
   gaInitializationPromise = new Promise<boolean>((resolve) => {
   window.dataLayer = window.dataLayer ?? [];
-  window.gtag = window.gtag ?? ((...args: unknown[]) => {
-    window.dataLayer?.push(args);
-  });
+  window.gtag = window.gtag ?? function gtag() {
+    window.dataLayer?.push(arguments);
+  };
   window.gtag("js", new Date());
 
   const existing = findGaScript(measurementId);
@@ -138,11 +207,27 @@ function installDevelopmentDiagnostics() {
 
   window.testHouseOfPataniAnalytics = async () => {
     const ready = await initializeAnalytics();
+    const clientIdAvailable = await new Promise<boolean>((resolve) => {
+      if (!gaMeasurementId || typeof window.gtag !== "function") {
+        resolve(false);
+        return;
+      }
+      const timer = window.setTimeout(() => resolve(false), 2500);
+      window.gtag("get", gaMeasurementId, "client_id", (clientId: unknown) => {
+        window.clearTimeout(timer);
+        resolve(typeof clientId === "string" && clientId.length > 0);
+      });
+    });
     const result: AnalyticsDiagnosticsResult = {
+      clientIdAvailable,
+      collectionRequestObserved,
+      consentState: "not configured",
+      cspDetected: Boolean(document.querySelector('meta[http-equiv="Content-Security-Policy"]')),
       configured: gaConfigured,
       dataLayerAvailable: Array.isArray(window.dataLayer),
       gtagAvailable: typeof window.gtag === "function",
       initialized: gaInitialized && ready,
+      eventQueued: false,
       scriptLoaded: gaScriptLoaded,
       testEventSent: false,
     };
@@ -153,11 +238,19 @@ function installDevelopmentDiagnostics() {
     }
 
     window.gtag?.("event", "test_event", gaParameters());
+    result.eventQueued = true;
     result.testEventSent = true;
-    console.info("[GA4] event sent: test_event");
+    console.info("[GA4] Event queued: test_event");
+    await new Promise((resolve) => window.setTimeout(resolve, 1800));
+    result.collectionRequestObserved = collectionRequestObserved || performance.getEntriesByType("resource").some((entry) => isGaCollectionUrl(entry.name));
+    if (result.collectionRequestObserved) console.info("[GA4] Collection request observed");
+    else console.error("[GA4] Collection request not observed. Check browser extensions, tracking protection, DNS filtering, and the Network console for ERR_BLOCKED_BY_CLIENT.");
+    if (!clientIdAvailable) console.error("[GA4] Configuration callback unavailable. The tag may be blocked before configuration completes.");
     console.info("[GA4] Diagnostics passed", result);
     return result;
   };
+  window.getHouseOfPataniAnalyticsLog = () => [...developmentEventLog];
+  installDeliveryObserver();
 }
 
 function initializeMetaPixel(pixelId: string) {
@@ -209,7 +302,7 @@ export function trackPageView(path: string, title: string) {
       page_title: title,
       send_to: gaMeasurementId,
     }));
-    if (import.meta.env.DEV) console.info(`[GA4] page_view sent: ${path}`);
+    recordDevelopmentEvent("page_view", { page_path: path });
   }
 
   if (validMetaId) {
@@ -223,7 +316,7 @@ export function trackEvent(
 ) {
   if (validGaId) {
     window.gtag?.("event", name, gaParameters(parameters));
-    if (import.meta.env.DEV) console.info(`[GA4] event sent: ${name}`);
+    recordDevelopmentEvent(name, parameters);
   }
 
   if (validMetaId) {
@@ -237,7 +330,7 @@ function trackCommerceEvent(
 ) {
   if (!validGaId) return;
   window.gtag?.("event", name, gaParameters(parameters));
-  if (import.meta.env.DEV) console.info(`[GA4] event sent: ${name}`);
+  recordDevelopmentEvent(name, parameters);
 }
 
 export function trackViewItem(item: AnalyticsItem, parameters: CommerceParameters = {}) {
@@ -264,6 +357,10 @@ export function trackAddPaymentInfo(items: AnalyticsItem[], paymentType: string,
   trackCommerceEvent("add_payment_info", { ...parameters, items, payment_type: paymentType });
 }
 
+export function trackAddShippingInfo(items: AnalyticsItem[], parameters: CommerceParameters & { coupon?: string; shipping_tier: string }) {
+  trackCommerceEvent("add_shipping_info", { ...parameters, items });
+}
+
 export function trackPurchase(items: AnalyticsItem[], transactionId: string, parameters: CommerceParameters = {}) {
   trackCommerceEvent("purchase", { ...parameters, items, transaction_id: transactionId });
 }
@@ -276,6 +373,10 @@ export function trackWishlist(item: AnalyticsItem, parameters: CommerceParameter
   trackCommerceEvent("add_to_wishlist", { ...parameters, items: [item] });
 }
 
-export function trackApplyCoupon(coupon: string, parameters: CommerceParameters = {}) {
-  trackCommerceEvent("select_promotion", { ...parameters, coupon });
+export function trackApplyCoupon(coupon: string, discount: number, result: "success" | "failure") {
+  trackCommerceEvent("coupon_apply", { coupon, discount, result });
+}
+
+export function trackRemoveCoupon(coupon: string, discount: number) {
+  trackCommerceEvent("coupon_remove", { coupon, discount });
 }

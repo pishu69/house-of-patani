@@ -1,5 +1,5 @@
 import { RotateCcw, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { EmptyProductsState } from "@/components/shop/EmptyProductsState";
 import { FilterSidebar } from "@/components/shop/FilterSidebar";
@@ -16,6 +16,9 @@ import { ROUTES } from "@/constants/routes";
 import { useCategories } from "@/hooks/useCategories";
 import { shopSortOptions, useShopCatalog } from "@/hooks/useShopCatalog";
 import { shopCategories as categorySeoData } from "@/data/categories";
+import { trackSearch } from "@/lib/analytics";
+
+let lastTrackedSearch = "";
 
 export function ShopPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -26,6 +29,16 @@ export function ShopPage() {
     shopCategories.map((category) => [category.slug, category.name]),
   );
   const selectedCategorySeo = categorySeoData.find((category) => category.slug === catalog.category);
+
+  useEffect(() => {
+    const term = catalog.query.trim();
+    if (term.length < 2 || term === lastTrackedSearch) return;
+    const timer = window.setTimeout(() => {
+      lastTrackedSearch = term;
+      trackSearch(term);
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [catalog.query]);
 
   const resetFilters = () => {
     catalog.resetFilters();

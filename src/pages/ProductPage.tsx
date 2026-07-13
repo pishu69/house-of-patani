@@ -27,6 +27,7 @@ import { getProductExperience } from "@/data/product-experience";
 import { useProductBySlug } from "@/hooks/useProductBySlug";
 import { useProducts } from "@/hooks/useProducts";
 import { showCartMutationToast } from "@/lib/cart-feedback";
+import { mapAnalyticsItem, trackAddToCart, trackViewItem, trackWishlist } from "@/lib/analytics";
 import { createBreadcrumbSchema, absoluteUrl } from "@/lib/seo";
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
@@ -41,6 +42,8 @@ function standardizePolicyText(value: string) {
 function seoDescription(value: string) {
   return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
 }
+
+const viewedProductIds = new Set<string>();
 
 export function ProductPage() {
   const { slug } = useParams();
@@ -151,6 +154,12 @@ const displayReviewCount =
     setActiveTab("description");
     setQuantity(1);
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product || viewedProductIds.has(product.id)) return;
+    viewedProductIds.add(product.id);
+    trackViewItem(mapAnalyticsItem(product), { currency: "INR", value: product.price });
+  }, [product]);
 
   useEffect(() => {
     if (!product) return;
@@ -324,6 +333,7 @@ Eligible return requests must be raised within 3 days after delivery for unused 
     showCartMutationToast(product.name, result);
 
     if (result.success) {
+      trackAddToCart(mapAnalyticsItem(product, quantity), { currency: "INR", value: product.price * quantity });
       openDrawer();
     }
   };
@@ -373,6 +383,7 @@ ${productUrl}`;
 };
   const handleWishlistToggle = () => {
     const nextValue = toggleWishlist(product.id);
+    if (nextValue) trackWishlist(mapAnalyticsItem(product), { currency: "INR", value: product.price });
     toast(nextValue ? "Added to wishlist" : "Removed from wishlist", {
       description: product.name,
     });

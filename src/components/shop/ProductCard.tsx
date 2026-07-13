@@ -10,6 +10,7 @@ import { StockBadge } from "@/components/product/StockBadge";
 import { Button } from "@/components/ui/button";
 import { categoryNameBySlug } from "@/data/categories";
 import { showCartMutationToast } from "@/lib/cart-feedback";
+import { mapAnalyticsItem, trackAddToCart, trackWishlist } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
@@ -55,6 +56,7 @@ function ProductCardComponent({
     showCartMutationToast(product.name, result);
 
     if (result.success) {
+      trackAddToCart(mapAnalyticsItem(product), { currency: "INR", value: product.price });
       openDrawer();
     }
   };
@@ -66,6 +68,7 @@ function ProductCardComponent({
     }
 
     const active = toggleWishlist(product.id);
+    if (active) trackWishlist(mapAnalyticsItem(product), { currency: "INR", value: product.price });
     toast(active ? "Added to wishlist" : "Removed from wishlist", {
       description: product.name,
     });

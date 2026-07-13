@@ -1,5 +1,5 @@
 import { CircleCheck, CircleX, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { CartItem } from "@/components/cart/CartItem";
@@ -15,6 +15,9 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useCart } from "@/hooks/useCart";
 import { showCartMutationToast } from "@/lib/cart-feedback";
+import { mapAnalyticsItem, trackRemoveFromCart, trackViewCart } from "@/lib/analytics";
+
+let lastViewedCartSignature = "";
 
 function formatDeliveryDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", {
@@ -49,6 +52,14 @@ export function CartPage() {
     subtotal,
     updateQuantity,
   } = useCart();
+
+  useEffect(() => {
+    if (cartItems.length === 0) return;
+    const signature = cartItems.map((item) => `${item.product.id}:${item.quantity}`).join("|");
+    if (signature === lastViewedCartSignature) return;
+    lastViewedCartSignature = signature;
+    trackViewCart(cartItems.map((item) => mapAnalyticsItem(item.product, item.quantity)), { currency: "INR", value: subtotal });
+  }, [cartItems, subtotal]);
 
   if (cartItems.length === 0) {
     return (
@@ -118,6 +129,7 @@ export function CartPage() {
               <h2 className="text-3xl">Cart Items</h2>
               <Button
                 onClick={() => {
+                  cartItems.forEach((item) => trackRemoveFromCart(mapAnalyticsItem(item.product, item.quantity), { currency: "INR", value: item.lineTotal }));
                   clearCart();
                   toast.success("Cart cleared");
                 }}
@@ -146,10 +158,12 @@ export function CartPage() {
                   key={product.id}
                   onQuantityChange={(nextQuantity) => {
                     const result = updateQuantity(product.id, nextQuantity);
+                    if (result.success && nextQuantity < quantity) trackRemoveFromCart(mapAnalyticsItem(product, quantity - nextQuantity), { currency: "INR", value: product.price * (quantity - nextQuantity) });
                     showCartMutationToast(product.name, result);
                   }}
                   onRemove={() => {
                     const result = removeItem(product.id);
+                    if (result.success) trackRemoveFromCart(mapAnalyticsItem(product, quantity), { currency: "INR", value: lineTotal });
                     showCartMutationToast(product.name, result);
                   }}
                   onStockLimit={() =>
