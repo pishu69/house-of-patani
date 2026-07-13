@@ -9,6 +9,9 @@ interface SeoProps {
   description: string;
   image?: string;
   imageAlt?: string;
+  imageHeight?: number;
+  imageType?: string;
+  imageWidth?: number;
   jsonLd?: JsonLd[];
   noIndex?: boolean;
   title: string;
@@ -55,7 +58,7 @@ function serializeJsonLd(value: JsonLd) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-function imageMimeType(url: string) {
+function inferImageMimeType(url: string) {
   const pathname = new URL(url).pathname.toLowerCase();
   if (pathname.endsWith(".png")) return "image/png";
   if (pathname.endsWith(".webp")) return "image/webp";
@@ -68,6 +71,9 @@ export function Seo({
   description,
   image = APP_CONFIG.DEFAULT_SOCIAL_IMAGE,
   imageAlt = `${APP_CONFIG.NAME} heritage craft`,
+  imageHeight,
+  imageType,
+  imageWidth,
   jsonLd = EMPTY_SCHEMAS,
   noIndex = false,
   title,
@@ -98,9 +104,12 @@ export function Seo({
     setMeta("property", "og:url", canonicalUrl);
     setMeta("property", "og:image", imageUrl);
 setMeta("property", "og:image:secure_url", imageUrl);
-setMeta("property", "og:image:type", imageMimeType(imageUrl));
+setMeta("property", "og:image:type", imageType ?? inferImageMimeType(imageUrl));
 setMeta("property", "og:image:alt", imageAlt);
-if (type === "website" && image === APP_CONFIG.DEFAULT_SOCIAL_IMAGE) {
+if (imageWidth && imageHeight) {
+  setMeta("property", "og:image:width", String(imageWidth));
+  setMeta("property", "og:image:height", String(imageHeight));
+} else if (type === "website" && image === APP_CONFIG.DEFAULT_SOCIAL_IMAGE) {
   setMeta("property", "og:image:width", "1200");
   setMeta("property", "og:image:height", "630");
 } else {
@@ -136,6 +145,9 @@ if (type === "website" && image === APP_CONFIG.DEFAULT_SOCIAL_IMAGE) {
     description,
     image,
     imageAlt,
+    imageHeight,
+    imageType,
+    imageWidth,
     jsonLd,
     noIndex,
     price,

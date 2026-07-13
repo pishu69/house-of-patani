@@ -9,6 +9,7 @@ export const APP_CONFIG = {
   ENABLE_PHONE_OTP_LOGIN: false,
   NAME: "House of Patani",
   LOCALE: "en_IN",
+  PRODUCTION_SITE_URL: "https://houseofpatani.com",
   SITE_URL:
     configuredSiteUrl && /^https?:\/\//i.test(configuredSiteUrl)
       ? configuredSiteUrl.replace(/\/+$/, "")

@@ -38,6 +38,12 @@ To verify, request a deployed product URL with a crawler user agent or use Netli
 3. Confirm invalid product and unknown routes emit `noindex` and no Product schema.
 4. Open `/sitemap.xml` and `/robots.txt`; confirm production HTTPS URLs only.
 5. Use Facebook Sharing Debugger and WhatsApp link sharing after prerendering is enabled. Refresh Facebook's scrape after metadata changes.
+
+## Product social preview images
+
+Product pages derive a 1200x630 JPEG social-preview URL on demand from the existing primary Supabase product image through Netlify Image CDN. No per-product social asset is generated or stored, and gallery and JSON-LD images continue to use the originals. Netlify caches each unique transformation at the edge, so Image CDN transformation and delivery usage should be monitored against the site's current Netlify plan.
+
+After deploying a metadata or source-image change, Meta and WhatsApp may continue to show a cached preview. Run **Scrape Again** once in Meta Sharing Debugger when necessary. If a primary image is missing or is outside the allowlisted product-image bucket, metadata falls back to the original valid image or the branded default rather than emitting an empty image URL.
 6. Do not submit the sitemap to Search Console and do not add analytics during Phase 1.
 
 ## Social preview cache checks

@@ -20,6 +20,7 @@ import { RelatedProducts } from "@/components/product/RelatedProducts";
 import { ReviewsSection } from "@/components/product/ReviewsSection";
 import { PincodeChecker } from "@/components/shipping/PincodeChecker";
 import { StockBadge } from "@/components/product/StockBadge";
+import { APP_CONFIG } from "@/constants/config";
 import { ROUTES } from "@/constants/routes";
 import { categoryNameBySlug } from "@/data/categories";
 import { getProductAttributeTemplate } from "@/data/product-attribute-templates";
@@ -28,9 +29,10 @@ import { useProductBySlug } from "@/hooks/useProductBySlug";
 import { useProducts } from "@/hooks/useProducts";
 import { showCartMutationToast } from "@/lib/cart-feedback";
 import { mapAnalyticsItem, trackAddToCart, trackViewItem, trackWishlist } from "@/lib/analytics";
-import { createBreadcrumbSchema, absoluteUrl } from "@/lib/seo";
+import { createBreadcrumbSchema, absoluteUrl, productSocialImage } from "@/lib/seo";
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 function standardizePolicyText(value: string) {
   return value.replace(
@@ -41,6 +43,25 @@ function standardizePolicyText(value: string) {
 
 function seoDescription(value: string) {
   return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
+}
+
+function productShareDescription(
+  productName: string,
+  shortDescription: string,
+  longDescription: string,
+) {
+  const sanitizedDescription = (shortDescription || longDescription)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!sanitizedDescription) {
+    return `Discover ${productName} from House of Patani.`;
+  }
+
+  const firstSentence = sanitizedDescription.match(/^.*?[.!?](?:\s|$)/)?.[0];
+  return (firstSentence ?? sanitizedDescription).trim();
 }
 
 const viewedProductIds = new Set<string>();
@@ -246,6 +267,7 @@ const displayReviewCount =
   }
 
   const categoryName = categoryNameBySlug[product.category] ?? product.category;
+  const socialImage = productSocialImage(product.images[0]);
   const attributeTemplate = getProductAttributeTemplate(product.category);
   const productAttributes = Array.isArray(product.attributes)
     ? product.attributes
@@ -352,15 +374,30 @@ Eligible return requests must be raised within 3 days after delivery for unused 
   const handleShareProduct = async () => {
     if (!product) return;
 
-    const productUrl = absoluteUrl(`/product/${product.slug}`);
-    const shareText = `Discover ${product.name} from House of Patani.`;
+    const canonicalProductUrl = new URL(
+      `/product/${product.slug}`,
+      APP_CONFIG.PRODUCTION_SITE_URL,
+    ).href;
+    const formattedSellingPrice = formatCurrency(product.price);
+    const shareDescription = productShareDescription(
+      product.name,
+      product.description,
+      product.longDescription,
+    );
+    const shareText = [
+      `✨ ${product.name}`,
+      "",
+      `💰 Price: ${formattedSellingPrice}`,
+      "",
+      shareDescription,
+    ].join("\n");
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: product.name,
+          title: `${product.name} | House of Patani`,
           text: shareText,
-          url: productUrl,
+          url: canonicalProductUrl,
         });
         return;
       } catch (error) {
@@ -371,7 +408,9 @@ Eligible return requests must be raised within 3 days after delivery for unused 
     }
 
     try {
-      await navigator.clipboard.writeText(productUrl);
+      await navigator.clipboard.writeText(
+        `${shareText}\n\n${canonicalProductUrl}`,
+      );
       toast.success("Product link copied.", {
         description: "You can now paste it anywhere.",
       });
@@ -392,8 +431,15 @@ Eligible return requests must be raised within 3 days after delivery for unused 
       <Seo
         canonicalPath={`/product/${product.slug}`}
         description={seoDescription(product.description || product.longDescription || product.name)}
-        image={product.images[0] ?? "/images/social/home-share-v1.jpg"}
+        image={socialImage.url}
         imageAlt={product.name}
+        imageType={socialImage.type}
+        {...(socialImage.height && socialImage.width
+          ? {
+              imageHeight: socialImage.height,
+              imageWidth: socialImage.width,
+            }
+          : {})}
         jsonLd={productSeoSchemas}
         title={product.name}
         type="product"
