@@ -39,3 +39,7 @@ To verify, request a deployed product URL with a crawler user agent or use Netli
 4. Open `/sitemap.xml` and `/robots.txt`; confirm production HTTPS URLs only.
 5. Use Facebook Sharing Debugger and WhatsApp link sharing after prerendering is enabled. Refresh Facebook's scrape after metadata changes.
 6. Do not submit the sitemap to Search Console and do not add analytics during Phase 1.
+
+## Social preview cache checks
+
+After deploying metadata changes, test a product URL that has not been shared before. Meta and WhatsApp can retain an older preview: use Meta Sharing Debugger and choose **Scrape Again**, then resend the URL in a new WhatsApp chat. A temporary harmless query parameter may be used only to test cache behavior; canonical URLs must remain clean and unchanged.

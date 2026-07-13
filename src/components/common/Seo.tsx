@@ -55,6 +55,14 @@ function serializeJsonLd(value: JsonLd) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
+function imageMimeType(url: string) {
+  const pathname = new URL(url).pathname.toLowerCase();
+  if (pathname.endsWith(".png")) return "image/png";
+  if (pathname.endsWith(".webp")) return "image/webp";
+  if (pathname.endsWith(".jpg") || pathname.endsWith(".jpeg")) return "image/jpeg";
+  return "image/jpeg";
+}
+
 export function Seo({
   canonicalPath,
   description,
@@ -90,9 +98,15 @@ export function Seo({
     setMeta("property", "og:url", canonicalUrl);
     setMeta("property", "og:image", imageUrl);
 setMeta("property", "og:image:secure_url", imageUrl);
+setMeta("property", "og:image:type", imageMimeType(imageUrl));
 setMeta("property", "og:image:alt", imageAlt);
-setMeta("property", "og:image:width", "1200");
-setMeta("property", "og:image:height", "630");
+if (type === "website" && image === APP_CONFIG.DEFAULT_SOCIAL_IMAGE) {
+  setMeta("property", "og:image:width", "1200");
+  setMeta("property", "og:image:height", "630");
+} else {
+  removeMeta("property", "og:image:width");
+  removeMeta("property", "og:image:height");
+}
     if (type === "product" && typeof price === "number") {
       setMeta("property", "product:price:amount", String(price));
       setMeta("property", "product:price:currency", "INR");

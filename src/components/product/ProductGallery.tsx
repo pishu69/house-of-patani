@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Share2, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -15,14 +15,20 @@ import { cn } from "@/lib/utils";
 interface ProductGalleryProps {
   activeIndex?: number;
   images: string[];
+  isWishlisted: boolean;
   onImageChange?: (index: number) => void;
+  onShare: () => void;
+  onWishlistToggle: () => void;
   productName: string;
 }
 
 export function ProductGallery({
   activeIndex,
   images,
+  isWishlisted,
   onImageChange,
+  onShare,
+  onWishlistToggle,
   productName,
 }: ProductGalleryProps) {
   const [internalIndex, setInternalIndex] = useState(0);
@@ -371,6 +377,10 @@ export function ProductGallery({
             onTouchStart={handleTouchStart}
             src={activeImage}
           >
+            <div className="absolute right-3 top-3 z-20 flex gap-2 sm:right-4 sm:top-4 sm:flex-col">
+              <button aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"} aria-pressed={isWishlisted} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-maroon/15 bg-ivory/90 text-maroon shadow-lift backdrop-blur-sm transition hover:bg-ivory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon focus-visible:ring-offset-2" onClick={(event) => { event.stopPropagation(); onWishlistToggle(); }} title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"} type="button"><Heart aria-hidden="true" className={cn(isWishlisted && "fill-maroon")} size={19} /></button>
+              <button aria-label="Share product" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-maroon/15 bg-ivory/90 text-maroon shadow-lift backdrop-blur-sm transition hover:bg-ivory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-maroon focus-visible:ring-offset-2" onClick={(event) => { event.stopPropagation(); onShare(); }} title="Share product" type="button"><Share2 aria-hidden="true" size={18} /></button>
+            </div>
             {hasMultipleImages ? (
               <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-ivory/90 px-3 py-1 text-xs font-semibold text-maroon shadow-lift">
                 {selectedIndex + 1} / {images.length}

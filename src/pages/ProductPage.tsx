@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -314,7 +314,7 @@ const displayReviewCount =
       content: (
         <div className="space-y-3">
   {standardizePolicyText(product.shippingReturns ||
-    `Orders are carefully packed and typically dispatched within 2–4 business days.
+    `Orders are carefully packed and typically dispatched within 2â€“4 business days.
 
 Eligible return requests must be raised within 3 days after delivery for unused products in their original packaging.`)
     .split("\n\n")
@@ -350,37 +350,35 @@ Eligible return requests must be raised within 3 days after delivery for unused 
   };
 
   const handleShareProduct = async () => {
-  if (!product) return;
+    if (!product) return;
 
-  const productUrl = absoluteUrl(`/product/${product.slug}`);
+    const productUrl = absoluteUrl(`/product/${product.slug}`);
+    const shareText = `Discover ${product.name} from House of Patani.`;
 
-  const shareText = `✨ ${product.name}
-
-💰 Price: ₹${product.price}
-
-Discover authentic Koch Rajbanshi heritage clothing from House of Patani.
-
-${productUrl}`;
-
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: `${product.name} | House of Patani`,
-        text: shareText,
-        url: productUrl,
-      });
-      return;
-    } catch {
-      // User cancelled sharing
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: shareText,
+          url: productUrl,
+        });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        toast.error("This product could not be shared.");
+        return;
+      }
     }
-  }
 
-  await navigator.clipboard.writeText(shareText);
-
-  toast.success("Product details copied.", {
-    description: "You can now paste it anywhere.",
-  });
-};
+    try {
+      await navigator.clipboard.writeText(productUrl);
+      toast.success("Product link copied.", {
+        description: "You can now paste it anywhere.",
+      });
+    } catch {
+      toast.error("The product link could not be copied.");
+    }
+  };
   const handleWishlistToggle = () => {
     const nextValue = toggleWishlist(product.id);
     if (nextValue) trackWishlist(mapAnalyticsItem(product), { currency: "INR", value: product.price });
@@ -417,6 +415,9 @@ ${productUrl}`;
           <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 xl:gap-14">
             <ProductGallery
               images={product.images}
+              isWishlisted={isWishlisted}
+              onShare={handleShareProduct}
+              onWishlistToggle={handleWishlistToggle}
               productName={product.name}
             />
             <div className="lg:sticky lg:top-24">
@@ -503,6 +504,7 @@ reviewCount={displayReviewCount}
     </>
   );
 }
+
 
 
 
